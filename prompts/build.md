@@ -18,6 +18,7 @@ Before writing any code:
 - Read all files in `affectedPaths` for the selected task
 - Search for existing patterns using Grep and Glob
 - Check `src/lib/` for reusable utilities
+- Review existing test files (`*.test.ts`, `*.svelte.test.ts`) near affected paths to understand testing conventions
 - Use the Svelte MCP server's `svelte-autofixer` for any Svelte components
 
 ### Step 2: Implement
@@ -27,7 +28,20 @@ Before writing any code:
 - Prefer editing existing files over creating new ones
 - Keep changes focused - one logical change per task
 
-### Step 3: Verify
+### Step 3: Write Tests
+
+Tests are required for all new functionality:
+
+- **Unit tests** for new functions and utilities (`*.test.ts`)
+- **Component tests** for new Svelte components (`*.svelte.test.ts`)
+- **Integration tests** for new API endpoints and server logic
+- Follow existing test patterns found in Step 1
+- Cover both happy path and error/edge cases
+- Place test files adjacent to the code they test
+
+Skip this step only if the task is purely configuration or documentation with no testable logic.
+
+### Step 4: Verify
 
 Run these checks in sequence. All must pass before proceeding:
 
@@ -43,13 +57,13 @@ If any check fails:
 - Re-run all checks
 - Do not proceed until all pass
 
-### Step 4: Validate Against Spec
+### Step 5: Validate Against Spec
 
 - Review the task's `verificationSteps` from plan.json
 - Manually verify each step is satisfied
 - If any verification fails, return to Step 2
 
-### Step 5: Update Progress
+### Step 6: Update Progress
 
 Update `plan.json`:
 
@@ -57,7 +71,7 @@ Update `plan.json`:
 - Add any discovered subtasks or follow-up work
 - Update `lastUpdated` timestamp
 
-### Step 6: Commit
+### Step 7: Commit
 
 Create a focused commit:
 
@@ -70,7 +84,10 @@ Create a focused commit:
 - **No stubs or placeholders**: Implement features completely
 - **No breaking changes**: Ensure existing functionality still works
 - **Type safety**: All TypeScript must compile without errors
-- **Test coverage**: Add tests for new functionality
+- **Test coverage is required**:
+  - New files must have corresponding test files
+  - Tests must cover happy path, edge cases, and error handling
+  - Tests must pass before committing
 - **Svelte components**: Always run through `svelte-autofixer` before committing
 
 ## When Blocked
