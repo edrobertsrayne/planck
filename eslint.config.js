@@ -35,5 +35,12 @@ export default defineConfig(
 				svelteConfig
 			}
 		}
+	},
+	{
+		// shadcn-svelte UI components are generic primitives that handle href passthrough
+		files: ['src/lib/components/ui/**/*.svelte'],
+		rules: {
+			'svelte/no-navigation-without-resolve': 'off'
+		}
 	}
 );
