@@ -1,0 +1,518 @@
+{
+	"version": "1",
+	"lastUpdated": "2026-02-11T00:00:00Z",
+	"summary": "Project is at initial scaffold stage. Authentication infrastructure exists but no application features are implemented. Database schema only contains a placeholder 'task' table unrelated to the spec. All core entities (exam specs, classes, timetables, modules, lessons, calendar) need to be built. UI component library (shadcn-svelte) needs to be installed.",
+	"tasks": [
+		{
+			"id": "setup-shadcn",
+			"title": "Install and configure shadcn-svelte",
+			"description": "Install shadcn-svelte component library and configure it with the project's Tailwind CSS v4 setup. This provides the base UI components needed throughout the application.",
+			"status": "pending",
+			"priority": "critical",
+			"specReference": "v1-specification.md#technical-notes",
+			"affectedPaths": ["components.json", "src/lib/components/ui/", "src/routes/layout.css"],
+			"dependencies": [],
+			"verificationSteps": [
+				"components.json exists with valid configuration",
+				"At least one shadcn component can be imported and rendered",
+				"Tailwind styles apply correctly to shadcn components"
+			]
+		},
+		{
+			"id": "schema-exam-specs",
+			"title": "Create database schema for exam specifications",
+			"description": "Create Drizzle schema tables for ExamSpec, Topic, and SpecPoint entities. These are predefined read-only reference data. ExamSpec contains board (AQA, OCR, etc.) and level (GCSE, A-Level). Topics have hierarchical structure. SpecPoints have references like '4.1.1.2' and content statements.",
+			"status": "pending",
+			"priority": "critical",
+			"specReference": "v1-specification.md#exam-specifications",
+			"affectedPaths": ["src/lib/server/db/schema.ts"],
+			"dependencies": [],
+			"verificationSteps": [
+				"examSpec, topic, and specPoint tables defined in schema",
+				"Proper foreign key relationships between tables",
+				"Migration runs successfully"
+			]
+		},
+		{
+			"id": "schema-classes",
+			"title": "Create database schema for classes",
+			"description": "Create Drizzle schema table for Class entity with fields: name (required), yearGroup (7-13), examSpecId (foreign key), academicYear, studentCount (optional), room (optional), notes (optional).",
+			"status": "pending",
+			"priority": "critical",
+			"specReference": "v1-specification.md#classes",
+			"affectedPaths": ["src/lib/server/db/schema.ts"],
+			"dependencies": ["schema-exam-specs"],
+			"verificationSteps": [
+				"class table defined with all required fields",
+				"Foreign key to examSpec table",
+				"Migration runs successfully"
+			]
+		},
+		{
+			"id": "schema-timetable",
+			"title": "Create database schema for timetable configuration and slots",
+			"description": "Create TimetableConfig table (academicYear, weeks 1/2, periodsPerDay 1-10, daysPerWeek 1-7) and TimetableSlot table (classId, day, periodStart, periodEnd for doubles, week A/B/null). Support 2-week timetables with Week A/B labelling.",
+			"status": "pending",
+			"priority": "critical",
+			"specReference": "v1-specification.md#timetable-configuration",
+			"affectedPaths": ["src/lib/server/db/schema.ts"],
+			"dependencies": ["schema-classes"],
+			"verificationSteps": [
+				"timetableConfig table with all settings",
+				"timetableSlot table with foreign key to class",
+				"Support for double periods (periodStart != periodEnd)",
+				"Week field supports null, 'A', 'B'"
+			]
+		},
+		{
+			"id": "schema-modules",
+			"title": "Create database schema for modules and lessons",
+			"description": "Create Module table (name required, description optional, targetSpecId optional) and Lesson table within modules (title required, content markdown optional, duration default 1, order within module). Create LessonSpecPoint junction table for linking lessons to spec points.",
+			"status": "pending",
+			"priority": "critical",
+			"specReference": "v1-specification.md#modules",
+			"affectedPaths": ["src/lib/server/db/schema.ts"],
+			"dependencies": ["schema-exam-specs"],
+			"verificationSteps": [
+				"module table with required fields",
+				"lesson table with moduleId foreign key",
+				"lessonSpecPoint junction table",
+				"Order field for lesson sequencing"
+			]
+		},
+		{
+			"id": "schema-assignments",
+			"title": "Create database schema for module assignments and scheduled lessons",
+			"description": "Create ModuleAssignment table (classId, moduleId source, startDate) and ScheduledLesson table (assignmentId, lessonId source copy, calendarDate, timetableSlotId, content copy, duration copy). Scheduled lessons are independent copies that can be edited.",
+			"status": "pending",
+			"priority": "critical",
+			"specReference": "v1-specification.md#scheduled-lessons",
+			"affectedPaths": ["src/lib/server/db/schema.ts"],
+			"dependencies": ["schema-modules", "schema-timetable"],
+			"verificationSteps": [
+				"moduleAssignment table with class and module references",
+				"scheduledLesson table with copied content fields",
+				"ScheduledLessonSpecPoint junction table for copied spec links"
+			]
+		},
+		{
+			"id": "schema-calendar",
+			"title": "Create database schema for calendar events",
+			"description": "Create CalendarEvent table for holidays, closures, and absences. Fields: type (holiday/closure/absence), title, startDate, endDate, affectsAllClasses boolean. These events trigger automatic lesson rescheduling.",
+			"status": "pending",
+			"priority": "critical",
+			"specReference": "v1-specification.md#calendar-events",
+			"affectedPaths": ["src/lib/server/db/schema.ts"],
+			"dependencies": [],
+			"verificationSteps": [
+				"calendarEvent table with type enum",
+				"Date range support",
+				"Migration runs successfully"
+			]
+		},
+		{
+			"id": "schema-attachments",
+			"title": "Create database schema for attachments",
+			"description": "Create Attachment table with polymorphic association: type (file/link), entityType (class/module/lesson/scheduledLesson/spec), entityId, filePath or url, fileName, mimeType. Support attachments on specs, classes, modules, lessons, and scheduled lessons.",
+			"status": "pending",
+			"priority": "high",
+			"specReference": "v1-specification.md#file-attachments",
+			"affectedPaths": ["src/lib/server/db/schema.ts"],
+			"dependencies": [],
+			"verificationSteps": [
+				"attachment table with polymorphic fields",
+				"Support for both file and link types",
+				"Migration runs successfully"
+			]
+		},
+		{
+			"id": "remove-placeholder-schema",
+			"title": "Remove placeholder task table from schema",
+			"description": "The current schema.ts contains a 'task' table that is unrelated to the application spec. Remove it once the proper schema is in place.",
+			"status": "pending",
+			"priority": "low",
+			"specReference": "v1-specification.md#data-model-simplified",
+			"affectedPaths": ["src/lib/server/db/schema.ts"],
+			"dependencies": [
+				"schema-exam-specs",
+				"schema-classes",
+				"schema-timetable",
+				"schema-modules",
+				"schema-assignments",
+				"schema-calendar",
+				"schema-attachments"
+			],
+			"verificationSteps": ["task table removed from schema", "No references to task table remain"]
+		},
+		{
+			"id": "seed-exam-specs",
+			"title": "Create seed data for UK Physics exam specifications",
+			"description": "Create seed script with predefined exam specifications for GCSE (AQA, OCR Gateway, OCR 21st Century, Edexcel, WJEC/Eduqas) and A-Level (AQA, OCR A, OCR B, Edexcel, WJEC/Eduqas). Include topic hierarchy and spec point references from official specifications.",
+			"status": "pending",
+			"priority": "high",
+			"specReference": "v1-specification.md#exam-specifications",
+			"affectedPaths": ["src/lib/server/db/seed.ts", "drizzle/"],
+			"dependencies": ["schema-exam-specs"],
+			"verificationSteps": [
+				"Seed script creates all listed exam boards",
+				"Both GCSE and A-Level specs included",
+				"Topic hierarchy is populated",
+				"Spec points have references and content"
+			]
+		},
+		{
+			"id": "seed-term-dates",
+			"title": "Create UK academic year term date templates",
+			"description": "Create template data for UK academic year including Autumn term (Sept-Dec), Spring term (Jan-March/April), Summer term (April-July), half-term breaks, and bank holidays. These are starting points that teachers can adjust.",
+			"status": "pending",
+			"priority": "medium",
+			"specReference": "v1-specification.md#term-date-templates",
+			"affectedPaths": ["src/lib/server/db/seed.ts"],
+			"dependencies": ["schema-calendar"],
+			"verificationSteps": [
+				"Term date templates available",
+				"Can be imported into calendar",
+				"Dates are adjustable per school"
+			]
+		},
+		{
+			"id": "app-layout",
+			"title": "Create application shell layout with navigation",
+			"description": "Create main application layout with responsive navigation. Include sidebar/header navigation to: Calendar, Classes, Modules, Specifications. Use shadcn-svelte components. Layout should work on mobile with collapsible navigation.",
+			"status": "pending",
+			"priority": "high",
+			"specReference": "v1-specification.md#views",
+			"affectedPaths": ["src/routes/+layout.svelte", "src/lib/components/nav/"],
+			"dependencies": ["setup-shadcn"],
+			"verificationSteps": [
+				"Navigation links to all main views",
+				"Responsive layout works on mobile",
+				"Current section is highlighted in nav"
+			]
+		},
+		{
+			"id": "view-timetable-config",
+			"title": "Build timetable configuration view",
+			"description": "Create settings view for configuring timetable: academic year selection, 1-week vs 2-week toggle, periods per day (1-10), days per week (1-7 with Mon-Fri default). This is done once per academic year setup.",
+			"status": "pending",
+			"priority": "high",
+			"specReference": "v1-specification.md#timetable-configuration",
+			"affectedPaths": [
+				"src/routes/settings/timetable/+page.svelte",
+				"src/routes/settings/timetable/+page.server.ts"
+			],
+			"dependencies": ["schema-timetable", "setup-shadcn"],
+			"verificationSteps": [
+				"Can set all timetable options",
+				"Settings persist to database",
+				"Validation prevents invalid values"
+			]
+		},
+		{
+			"id": "view-classes-list",
+			"title": "Build classes list view",
+			"description": "Create view showing all classes with key info (name, year group, exam spec, academic year). Support creating new classes and linking to individual class detail views. Include filtering/sorting options.",
+			"status": "pending",
+			"priority": "high",
+			"specReference": "v1-specification.md#classes",
+			"affectedPaths": ["src/routes/classes/+page.svelte", "src/routes/classes/+page.server.ts"],
+			"dependencies": ["schema-classes", "setup-shadcn"],
+			"verificationSteps": [
+				"All classes displayed in list",
+				"Can create new class",
+				"Can navigate to class detail",
+				"Filter by year group works"
+			]
+		},
+		{
+			"id": "view-class-detail",
+			"title": "Build class detail view with timetable slot management",
+			"description": "Create class detail view showing: class properties, assigned exam spec, timetable slots configuration (add/edit slots with day, period, double period support, week A/B for 2-week timetables), all scheduled lessons chronologically, attached documents, and progress through assigned modules.",
+			"status": "pending",
+			"priority": "high",
+			"specReference": "v1-specification.md#class-view",
+			"affectedPaths": [
+				"src/routes/classes/[id]/+page.svelte",
+				"src/routes/classes/[id]/+page.server.ts"
+			],
+			"dependencies": ["view-classes-list", "schema-timetable"],
+			"verificationSteps": [
+				"Class details editable",
+				"Can add/edit/remove timetable slots",
+				"Double periods supported",
+				"Week A/B shown for 2-week timetables",
+				"Scheduled lessons listed chronologically"
+			]
+		},
+		{
+			"id": "view-modules-library",
+			"title": "Build module library view",
+			"description": "Create module library view listing all created modules. Show module name, description, target spec, number of lessons. Support filtering by target specification. Link to module detail and show which classes a module has been assigned to.",
+			"status": "pending",
+			"priority": "high",
+			"specReference": "v1-specification.md#module-library",
+			"affectedPaths": ["src/routes/modules/+page.svelte", "src/routes/modules/+page.server.ts"],
+			"dependencies": ["schema-modules", "setup-shadcn"],
+			"verificationSteps": [
+				"All modules listed",
+				"Can create new module",
+				"Filter by target spec works",
+				"Shows assignment count per module"
+			]
+		},
+		{
+			"id": "view-module-editor",
+			"title": "Build module editor with lesson sequencing",
+			"description": "Create module editor view for creating and editing modules. Support: module name/description/target spec, adding lessons in sequence, reordering lessons via drag-and-drop, editing lesson content (markdown), setting lesson duration (single/double), linking lessons to spec points, attaching resources to module or individual lessons.",
+			"status": "pending",
+			"priority": "high",
+			"specReference": "v1-specification.md#creating-a-module",
+			"affectedPaths": [
+				"src/routes/modules/[id]/+page.svelte",
+				"src/routes/modules/[id]/+page.server.ts",
+				"src/routes/modules/new/+page.svelte"
+			],
+			"dependencies": ["view-modules-library", "schema-exam-specs"],
+			"verificationSteps": [
+				"Can edit module properties",
+				"Can add/remove/reorder lessons",
+				"Markdown editor for lesson content",
+				"Can set lesson duration",
+				"Can link to spec points",
+				"Can attach files/links"
+			]
+		},
+		{
+			"id": "view-spec-browser",
+			"title": "Build specification browser view",
+			"description": "Create specification browser allowing teachers to browse exam specs by board and level. Display topic hierarchy tree and spec points. Show which lessons/modules link to each spec point. Allow attaching documents to specifications.",
+			"status": "pending",
+			"priority": "medium",
+			"specReference": "v1-specification.md#specification-browser",
+			"affectedPaths": [
+				"src/routes/specifications/+page.svelte",
+				"src/routes/specifications/[id]/+page.svelte"
+			],
+			"dependencies": ["schema-exam-specs", "seed-exam-specs", "setup-shadcn"],
+			"verificationSteps": [
+				"Can browse by board and level",
+				"Topic hierarchy displayed as tree",
+				"Spec points show linked lessons",
+				"Can attach documents to specs"
+			]
+		},
+		{
+			"id": "feature-module-assignment",
+			"title": "Implement module assignment to classes",
+			"description": "Build the module assignment workflow: select a class, choose a module to assign, select start point (specific date or 'next available slot'). System creates scheduled lessons by copying module content and filling timetable slots sequentially. Handle double-period lessons requiring double slots.",
+			"status": "pending",
+			"priority": "critical",
+			"specReference": "v1-specification.md#assigning-a-module-to-a-class",
+			"affectedPaths": [
+				"src/lib/server/scheduling/",
+				"src/routes/classes/[id]/assign/+page.svelte"
+			],
+			"dependencies": ["schema-assignments", "view-class-detail", "view-modules-library"],
+			"verificationSteps": [
+				"Can select module to assign",
+				"Can choose start date or next available",
+				"Lessons copied to scheduled lessons",
+				"Calendar populated correctly",
+				"Double periods placed in double slots"
+			]
+		},
+		{
+			"id": "feature-calendar-day",
+			"title": "Build calendar day view",
+			"description": "Create day view showing single day with all periods. Display scheduled lessons colour-coded by class. Show holidays/closures as greyed out, absences marked distinctly. Support editing lessons on click. Touch-friendly for mobile.",
+			"status": "pending",
+			"priority": "high",
+			"specReference": "v1-specification.md#calendar-views",
+			"affectedPaths": ["src/routes/calendar/+page.svelte", "src/lib/components/calendar/"],
+			"dependencies": ["schema-assignments", "setup-shadcn"],
+			"verificationSteps": [
+				"All periods for day shown",
+				"Lessons colour-coded by class",
+				"Events visible and distinct",
+				"Can click to edit lesson",
+				"Works on mobile"
+			]
+		},
+		{
+			"id": "feature-calendar-week",
+			"title": "Build calendar week view",
+			"description": "Create week view showing one or two weeks (matching timetable type). Display all classes' scheduled lessons in grid format. Support Week A/B labelling for 2-week timetables. Toggle between 1-week and 2-week display.",
+			"status": "pending",
+			"priority": "high",
+			"specReference": "v1-specification.md#calendar-views",
+			"affectedPaths": ["src/routes/calendar/+page.svelte", "src/lib/components/calendar/"],
+			"dependencies": ["feature-calendar-day"],
+			"verificationSteps": [
+				"Week grid displays correctly",
+				"2-week view shows Week A/B",
+				"Can toggle between views",
+				"Responsive on mobile"
+			]
+		},
+		{
+			"id": "feature-calendar-term",
+			"title": "Build calendar term view",
+			"description": "Create term view providing overview of entire term. Show condensed lesson blocks, holidays, and key events. Allow navigation between terms. Useful for long-range planning.",
+			"status": "pending",
+			"priority": "medium",
+			"specReference": "v1-specification.md#calendar-views",
+			"affectedPaths": ["src/routes/calendar/+page.svelte", "src/lib/components/calendar/"],
+			"dependencies": ["feature-calendar-week"],
+			"verificationSteps": [
+				"Term overview displayed",
+				"Can navigate between terms",
+				"Holidays visible",
+				"Can drill down to week/day"
+			]
+		},
+		{
+			"id": "feature-add-events",
+			"title": "Implement adding holidays, closures, and absences",
+			"description": "Build UI for adding calendar events: holidays (term breaks, bank holidays), school closures (INSET, snow days), and teacher absences. Events can span date ranges. Adding events affecting scheduled lessons triggers automatic rescheduling.",
+			"status": "pending",
+			"priority": "critical",
+			"specReference": "v1-specification.md#adding-holidaysclosures",
+			"affectedPaths": ["src/routes/calendar/events/+page.svelte", "src/lib/server/scheduling/"],
+			"dependencies": ["schema-calendar", "feature-calendar-day"],
+			"verificationSteps": [
+				"Can add all event types",
+				"Date range selection works",
+				"Events appear on calendar",
+				"Adding event triggers reschedule prompt"
+			]
+		},
+		{
+			"id": "feature-auto-reschedule",
+			"title": "Implement automatic lesson rescheduling",
+			"description": "Build the cascade rescheduling engine. When a holiday/closure/absence overlaps scheduled lessons, automatically shift affected lessons forward to next available slots. All subsequent lessons cascade accordingly. Handle edge cases: double periods, end of term, slot availability.",
+			"status": "pending",
+			"priority": "critical",
+			"specReference": "v1-specification.md#adding-holidaysclosures",
+			"affectedPaths": ["src/lib/server/scheduling/reschedule.ts"],
+			"dependencies": ["feature-module-assignment", "feature-add-events"],
+			"verificationSteps": [
+				"Lessons shift when event added",
+				"Cascade propagates correctly",
+				"Double periods find double slots",
+				"No lessons lost in reschedule",
+				"Can preview changes before confirming"
+			]
+		},
+		{
+			"id": "feature-push-lessons",
+			"title": "Implement manual push forward/back for lessons",
+			"description": "Add ability to manually push a scheduled lesson forward or back. Select a lesson, choose direction, lesson moves to next/previous available slot. All subsequent lessons cascade in the same direction. Useful for ad-hoc adjustments.",
+			"status": "pending",
+			"priority": "high",
+			"specReference": "v1-specification.md#pushing-lessons-forwardback",
+			"affectedPaths": ["src/lib/server/scheduling/", "src/lib/components/lesson/"],
+			"dependencies": ["feature-auto-reschedule"],
+			"verificationSteps": [
+				"Push forward moves to next slot",
+				"Push back moves to previous slot",
+				"Subsequent lessons cascade",
+				"Cannot push past term boundaries"
+			]
+		},
+		{
+			"id": "feature-edit-scheduled-lesson",
+			"title": "Implement scheduled lesson editing from multiple views",
+			"description": "Allow editing scheduled lessons from: calendar view (click lesson), class view (lesson list), and module instance view (sequence). Edits affect only that scheduled instance, not source module. Support editing title, content (markdown), duration, spec point links.",
+			"status": "pending",
+			"priority": "high",
+			"specReference": "v1-specification.md#editing-scheduled-lessons",
+			"affectedPaths": [
+				"src/lib/components/lesson/editor.svelte",
+				"src/routes/calendar/",
+				"src/routes/classes/"
+			],
+			"dependencies": ["feature-module-assignment"],
+			"verificationSteps": [
+				"Can edit from calendar view",
+				"Can edit from class view",
+				"Edits don't affect source module",
+				"Markdown editor works",
+				"Changes persist correctly"
+			]
+		},
+		{
+			"id": "feature-attachments",
+			"title": "Implement file and link attachments",
+			"description": "Build attachment system supporting: file uploads (PDF, DOCX, PPTX, images) and link attachments. Attachments can be added to specifications, classes, modules, lessons, and scheduled lessons. Files stored in configurable directory. Display attached resources in relevant views.",
+			"status": "pending",
+			"priority": "medium",
+			"specReference": "v1-specification.md#file-attachments",
+			"affectedPaths": [
+				"src/lib/server/attachments/",
+				"src/lib/components/attachments/",
+				"src/routes/api/attachments/"
+			],
+			"dependencies": ["schema-attachments"],
+			"verificationSteps": [
+				"Can upload files",
+				"Can add link attachments",
+				"Attachments visible on entities",
+				"Can download/open attachments",
+				"File types validated"
+			]
+		},
+		{
+			"id": "responsive-mobile",
+			"title": "Ensure full mobile responsiveness",
+			"description": "Review and enhance all views for mobile responsiveness. Day view as default on mobile, touch-friendly tap targets, swipe gestures where suitable, adaptive layouts from phone to desktop. All core features must be accessible on mobile.",
+			"status": "pending",
+			"priority": "high",
+			"specReference": "v1-specification.md#responsive-design",
+			"affectedPaths": ["src/routes/", "src/lib/components/"],
+			"dependencies": [
+				"feature-calendar-day",
+				"feature-calendar-week",
+				"view-class-detail",
+				"view-module-editor"
+			],
+			"verificationSteps": [
+				"All views work on mobile viewport",
+				"Touch targets are appropriately sized",
+				"Navigation works on mobile",
+				"Calendar defaults to day view on mobile",
+				"No horizontal scrolling issues"
+			]
+		},
+		{
+			"id": "import-term-dates",
+			"title": "Build term date import workflow",
+			"description": "Create workflow for importing UK term date templates at start of academic year. Allow adjusting dates to match specific school calendar. Imported dates create calendar events for holidays and term breaks.",
+			"status": "pending",
+			"priority": "medium",
+			"specReference": "v1-specification.md#setting-up-a-new-academic-year",
+			"affectedPaths": [
+				"src/routes/settings/term-dates/+page.svelte",
+				"src/lib/server/scheduling/"
+			],
+			"dependencies": ["seed-term-dates", "feature-add-events"],
+			"verificationSteps": [
+				"Can select academic year template",
+				"Can adjust individual dates",
+				"Import creates calendar events",
+				"Can re-import/update dates"
+			]
+		}
+	],
+	"missingSpecs": [
+		{
+			"proposedPath": "specs/exam-spec-data-format.md",
+			"description": "Document the exact structure and format for exam specification seed data, including how to parse topic hierarchies and spec point references from official specification documents",
+			"reason": "The v1 spec mentions predefined specifications will be parsed from official documents but doesn't specify the data format or parsing approach needed for implementation"
+		},
+		{
+			"proposedPath": "specs/scheduling-algorithm.md",
+			"description": "Detail the scheduling algorithm for placing lessons into timetable slots, handling double periods, respecting slot availability, and cascade rescheduling logic when events are added",
+			"reason": "The cascade rescheduling and slot-filling logic is complex and needs clear rules for edge cases like double periods spanning unavailable slots, term boundaries, and conflict resolution"
+		}
+	]
+}
