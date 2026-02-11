@@ -103,4 +103,40 @@ export const specPoint = sqliteTable('spec_point', {
 		.$defaultFn(() => new Date())
 });
 
+// ============================================================================
+// Classes
+// ============================================================================
+
+/**
+ * Teaching class/group with exam specification and timetable information.
+ * Classes represent a teaching group that is assigned to an exam specification.
+ */
+export const teachingClass = sqliteTable('class', {
+	id: text('id')
+		.primaryKey()
+		.$defaultFn(() => crypto.randomUUID()),
+	/** Display name (e.g., "11X/Ph1", "Year 12 Physics") */
+	name: text('name').notNull(),
+	/** Academic year group (7-13) */
+	yearGroup: integer('year_group').notNull(),
+	/** Reference to the exam specification this class is studying */
+	examSpecId: text('exam_spec_id')
+		.notNull()
+		.references(() => examSpec.id, { onDelete: 'restrict' }),
+	/** Academic year in format "YYYY-YY" (e.g., "2024-25") */
+	academicYear: text('academic_year').notNull(),
+	/** Optional number of students in the class */
+	studentCount: integer('student_count'),
+	/** Optional default teaching room */
+	room: text('room'),
+	/** Optional free-text notes about the class */
+	notes: text('notes'),
+	createdAt: integer('created_at', { mode: 'timestamp' })
+		.notNull()
+		.$defaultFn(() => new Date()),
+	updatedAt: integer('updated_at', { mode: 'timestamp' })
+		.notNull()
+		.$defaultFn(() => new Date())
+});
+
 export * from './auth.schema';
