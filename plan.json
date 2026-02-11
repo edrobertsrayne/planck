@@ -1,7 +1,7 @@
 {
 	"version": "1",
-	"lastUpdated": "2026-02-11T22:20:00Z",
-	"summary": "Project has shadcn-svelte UI library configured with Tailwind CSS v4. Authentication infrastructure exists but no application features are implemented. Database schema only contains a placeholder 'task' table unrelated to the spec. All core entities (exam specs, classes, timetables, modules, lessons, calendar) need to be built.",
+	"lastUpdated": "2026-02-11T22:25:00Z",
+	"summary": "Project has shadcn-svelte UI library configured with Tailwind CSS v4. Exam specification schema (examSpec, topic, specPoint tables) is now implemented. Database schema still contains placeholder 'task' table. Remaining core entities (classes, timetables, modules, lessons, calendar, attachments) need to be built.",
 	"tasks": [
 		{
 			"id": "setup-shadcn",
@@ -22,7 +22,7 @@
 			"id": "schema-exam-specs",
 			"title": "Create database schema for exam specifications",
 			"description": "Create Drizzle schema tables for ExamSpec, Topic, and SpecPoint entities. These are predefined read-only reference data. ExamSpec contains board (AQA, OCR, etc.) and level (GCSE, A-Level). Topics have hierarchical structure. SpecPoints have references like '4.1.1.2' and content statements.",
-			"status": "pending",
+			"status": "complete",
 			"priority": "critical",
 			"specReference": "v1-specification.md#exam-specifications",
 			"affectedPaths": ["src/lib/server/db/schema.ts"],
