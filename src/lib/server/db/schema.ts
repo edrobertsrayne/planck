@@ -139,4 +139,60 @@ export const teachingClass = sqliteTable('class', {
 		.$defaultFn(() => new Date())
 });
 
+// ============================================================================
+// Timetable Configuration
+// ============================================================================
+
+/**
+ * Timetable configuration for an academic year.
+ * Defines the structure of the school timetable.
+ */
+export const timetableConfig = sqliteTable('timetable_config', {
+	id: text('id')
+		.primaryKey()
+		.$defaultFn(() => crypto.randomUUID()),
+	/** Academic year in format "YYYY-YY" (e.g., "2024-25") */
+	academicYear: text('academic_year').notNull().unique(),
+	/** Number of weeks in the timetable cycle: 1 (standard) or 2 (Week A/B) */
+	weeks: integer('weeks').notNull().default(1),
+	/** Number of periods per day (1-10) */
+	periodsPerDay: integer('periods_per_day').notNull().default(6),
+	/** Number of days per week (1-7, typically 5 for Mon-Fri) */
+	daysPerWeek: integer('days_per_week').notNull().default(5),
+	createdAt: integer('created_at', { mode: 'timestamp' })
+		.notNull()
+		.$defaultFn(() => new Date()),
+	updatedAt: integer('updated_at', { mode: 'timestamp' })
+		.notNull()
+		.$defaultFn(() => new Date())
+});
+
+/**
+ * Timetable slots for a class.
+ * Defines when a class is scheduled during the timetable cycle.
+ */
+export const timetableSlot = sqliteTable('timetable_slot', {
+	id: text('id')
+		.primaryKey()
+		.$defaultFn(() => crypto.randomUUID()),
+	/** Reference to the class this slot belongs to */
+	classId: text('class_id')
+		.notNull()
+		.references(() => teachingClass.id, { onDelete: 'cascade' }),
+	/** Day of the week (1 = Monday, 7 = Sunday) */
+	day: integer('day').notNull(),
+	/** Starting period for this slot (1-based) */
+	periodStart: integer('period_start').notNull(),
+	/** Ending period for this slot (same as start for single, higher for doubles) */
+	periodEnd: integer('period_end').notNull(),
+	/** Week identifier for 2-week timetables: 'A', 'B', or null for 1-week timetables */
+	week: text('week', { enum: ['A', 'B'] }),
+	createdAt: integer('created_at', { mode: 'timestamp' })
+		.notNull()
+		.$defaultFn(() => new Date()),
+	updatedAt: integer('updated_at', { mode: 'timestamp' })
+		.notNull()
+		.$defaultFn(() => new Date())
+});
+
 export * from './auth.schema';
