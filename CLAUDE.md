@@ -4,7 +4,20 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-This is a SvelteKit application using Svelte 5 with Better Auth authentication, Drizzle ORM with SQLite, and Tailwind CSS v4. The project uses Bun as the package manager and runtime.
+Planck is a lesson planning and scheduling tool for UK secondary Physics teachers.
+
+## Tech Stack (Source of Truth)
+
+This section is the single source of truth for the project's technology choices.
+
+| Layer          | Technology              | Documentation                    |
+| -------------- | ----------------------- | -------------------------------- |
+| Framework      | SvelteKit with Svelte 5 | https://svelte.dev/docs          |
+| UI Components  | shadcn-svelte           | https://www.shadcn-svelte.com/   |
+| Styling        | Tailwind CSS v4         | https://tailwindcss.com/docs     |
+| Database       | SQLite with Drizzle ORM | https://orm.drizzle.team/docs    |
+| Authentication | Better Auth             | https://www.better-auth.com/docs |
+| Runtime        | Bun                     | https://bun.sh/docs              |
 
 ## Development Commands
 
