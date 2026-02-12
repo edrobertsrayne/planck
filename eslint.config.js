@@ -42,5 +42,12 @@ export default defineConfig(
 		rules: {
 			'svelte/no-navigation-without-resolve': 'off'
 		}
+	},
+	{
+		// Navigation components use SvelteKit's standard href navigation with preload data
+		files: ['src/lib/components/nav/**/*.svelte'],
+		rules: {
+			'svelte/no-navigation-without-resolve': 'off'
+		}
 	}
 );
