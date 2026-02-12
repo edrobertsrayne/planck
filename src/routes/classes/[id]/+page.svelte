@@ -10,6 +10,7 @@
 	let editingClass = $state(false);
 	let addingSlot = $state(false);
 	let editingSlot = $state<string | null>(null);
+	let editingLesson = $state<string | null>(null);
 
 	// Form states for class editing
 	let name = $state(data.class.name);
@@ -24,6 +25,13 @@
 	let slotPeriodStart = $state(1);
 	let slotPeriodEnd = $state(1);
 	let slotWeek = $state('');
+
+	// Form states for lesson editing
+	let lessonTitle = $state('');
+	let lessonContent = $state('');
+	let lessonDuration = $state(1);
+	let lessonSpecPointIds = $state<string[]>([]);
+	let showSpecPointPicker = $state(false);
 
 	// Day names for display
 	const dayNames = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
@@ -45,6 +53,43 @@
 		slotPeriodStart = 1;
 		slotPeriodEnd = 1;
 		slotWeek = '';
+	}
+
+	function resetLessonForm() {
+		editingLesson = null;
+		lessonTitle = '';
+		lessonContent = '';
+		lessonDuration = 1;
+		lessonSpecPointIds = [];
+		showSpecPointPicker = false;
+	}
+
+	type ScheduledLesson = {
+		id: string;
+		title: string;
+		content: string | null;
+		duration: number;
+		calendarDate: Date;
+	};
+
+	function startEditLesson(lesson: ScheduledLesson) {
+		editingLesson = lesson.id;
+		lessonTitle = lesson.title;
+		lessonContent = lesson.content || '';
+		lessonDuration = lesson.duration;
+
+		// Load spec point IDs for this lesson
+		const links = data.specPointLinks.filter((link) => link.scheduledLessonId === lesson.id);
+		lessonSpecPointIds = links.map((link) => link.specPointId);
+		showSpecPointPicker = false;
+	}
+
+	function toggleSpecPoint(specPointId: string) {
+		if (lessonSpecPointIds.includes(specPointId)) {
+			lessonSpecPointIds = lessonSpecPointIds.filter((id) => id !== specPointId);
+		} else {
+			lessonSpecPointIds = [...lessonSpecPointIds, specPointId];
+		}
 	}
 
 	type TimetableSlot = {
@@ -87,6 +132,7 @@
 		if (form?.success) {
 			resetClassForm();
 			resetSlotForm();
+			resetLessonForm();
 		}
 	});
 </script>
@@ -491,41 +537,207 @@
 		{:else}
 			<div class="space-y-2">
 				{#each data.scheduledLessons as lesson (lesson.id)}
-					<div class="rounded-md border border-gray-200 bg-white p-4">
-						<div class="flex items-start justify-between">
-							<div class="flex-1">
-								<h3 class="font-semibold">{lesson.title}</h3>
-								<p class="text-sm text-gray-600">{formatDate(lesson.calendarDate)}</p>
-								{#if lesson.duration > 1}
-									<p class="text-xs text-gray-500">{lesson.duration} periods</p>
-								{/if}
+					{#if editingLesson === lesson.id}
+						<!-- Edit Form -->
+						<form
+							method="POST"
+							action="?/updateScheduledLesson"
+							use:enhance
+							id="lesson-{lesson.id}"
+							class="rounded-md border border-gray-300 bg-gray-50 p-4"
+						>
+							<input type="hidden" name="lessonId" value={lesson.id} />
+							<input type="hidden" name="specPointIds" value={lessonSpecPointIds.join(',')} />
+
+							<div class="space-y-3">
+								<div>
+									<label
+										for="title-{lesson.id}"
+										class="mb-1 block text-sm font-medium text-gray-700"
+									>
+										Lesson Title <span class="text-red-500">*</span>
+									</label>
+									<input
+										type="text"
+										id="title-{lesson.id}"
+										name="title"
+										bind:value={lessonTitle}
+										required
+										class="block w-full rounded-md border border-gray-300 px-3 py-2 text-sm shadow-sm focus:border-indigo-500 focus:ring-indigo-500 focus:outline-none"
+									/>
+								</div>
+
+								<div>
+									<label
+										for="content-{lesson.id}"
+										class="mb-1 block text-sm font-medium text-gray-700"
+									>
+										Content (Markdown)
+									</label>
+									<textarea
+										id="content-{lesson.id}"
+										name="content"
+										bind:value={lessonContent}
+										rows="4"
+										placeholder="Use markdown for formatting..."
+										class="block w-full rounded-md border border-gray-300 px-3 py-2 font-mono text-sm shadow-sm focus:border-indigo-500 focus:ring-indigo-500 focus:outline-none"
+									></textarea>
+								</div>
+
+								<div>
+									<label
+										for="duration-{lesson.id}"
+										class="mb-1 block text-sm font-medium text-gray-700"
+									>
+										Duration (periods)
+									</label>
+									<input
+										type="number"
+										id="duration-{lesson.id}"
+										name="duration"
+										bind:value={lessonDuration}
+										min="1"
+										max="10"
+										class="block w-24 rounded-md border border-gray-300 px-3 py-2 text-sm shadow-sm focus:border-indigo-500 focus:ring-indigo-500 focus:outline-none"
+									/>
+								</div>
+
+								<div>
+									<div class="mb-2 flex items-center justify-between">
+										<span class="text-sm font-medium text-gray-700">Specification Points</span>
+										{#if data.availableSpecPoints.length > 0}
+											<Button
+												type="button"
+												size="sm"
+												variant="outline"
+												onclick={() => (showSpecPointPicker = !showSpecPointPicker)}
+											>
+												{showSpecPointPicker ? 'Hide' : 'Manage'} Spec Points
+											</Button>
+										{/if}
+									</div>
+
+									{#if lessonSpecPointIds.length > 0}
+										<div class="mb-2 space-y-1">
+											{#each lessonSpecPointIds as specPointId (specPointId)}
+												{@const specPoint = data.availableSpecPoints.find(
+													(sp) => sp.id === specPointId
+												)}
+												{#if specPoint}
+													<div
+														class="flex items-center justify-between rounded bg-white px-2 py-1 text-xs"
+													>
+														<span class="font-mono">{specPoint.reference}</span>
+														<button
+															type="button"
+															onclick={() => toggleSpecPoint(specPointId)}
+															class="text-red-600 hover:text-red-800"
+														>
+															Remove
+														</button>
+													</div>
+												{/if}
+											{/each}
+										</div>
+									{/if}
+
+									{#if showSpecPointPicker && data.availableSpecPoints.length > 0}
+										<div
+											class="max-h-48 space-y-1 overflow-y-auto rounded border border-gray-200 bg-white p-2"
+										>
+											{#each data.availableSpecPoints as specPoint (specPoint.id)}
+												<label
+													class="flex cursor-pointer items-start gap-2 rounded p-2 hover:bg-gray-50"
+												>
+													<input
+														type="checkbox"
+														checked={lessonSpecPointIds.includes(specPoint.id)}
+														onchange={() => toggleSpecPoint(specPoint.id)}
+														class="mt-0.5"
+													/>
+													<div class="flex-1">
+														<p class="font-mono text-xs font-medium">{specPoint.reference}</p>
+														<p class="text-xs text-gray-600">{specPoint.content}</p>
+													</div>
+												</label>
+											{/each}
+										</div>
+									{/if}
+								</div>
+
+								<div class="flex justify-end gap-2">
+									<Button type="button" variant="outline" size="sm" onclick={resetLessonForm}>
+										Cancel
+									</Button>
+									<Button type="submit" size="sm">Save Changes</Button>
+								</div>
 							</div>
-							<div class="flex gap-2">
-								<form method="POST" action="?/pushLessonBack" use:enhance>
-									<input type="hidden" name="lessonId" value={lesson.id} />
+						</form>
+					{:else}
+						<!-- Display Mode -->
+						<div id="lesson-{lesson.id}" class="rounded-md border border-gray-200 bg-white p-4">
+							<div class="flex items-start justify-between">
+								<div class="flex-1">
+									<h3 class="font-semibold">{lesson.title}</h3>
+									<p class="text-sm text-gray-600">{formatDate(lesson.calendarDate)}</p>
+									{#if lesson.duration > 1}
+										<p class="text-xs text-gray-500">{lesson.duration} periods</p>
+									{/if}
+									{#if data.specPointLinks.filter((link) => link.scheduledLessonId === lesson.id).length > 0}
+										{@const lessonSpecPoints = data.specPointLinks
+											.filter((link) => link.scheduledLessonId === lesson.id)
+											.map((link) =>
+												data.availableSpecPoints.find((sp) => sp.id === link.specPointId)
+											)
+											.filter((sp) => sp)}
+										<div class="mt-1 flex flex-wrap gap-1">
+											{#each lessonSpecPoints as sp (sp?.id)}
+												{#if sp}
+													<span
+														class="rounded bg-blue-100 px-1.5 py-0.5 font-mono text-xs text-blue-800"
+													>
+														{sp.reference}
+													</span>
+												{/if}
+											{/each}
+										</div>
+									{/if}
+								</div>
+								<div class="flex gap-2">
 									<Button
-										type="submit"
 										variant="outline"
 										size="sm"
-										title="Push lesson back to previous slot"
+										onclick={() => startEditLesson(lesson)}
+										title="Edit lesson"
 									>
-										← Back
+										Edit
 									</Button>
-								</form>
-								<form method="POST" action="?/pushLessonForward" use:enhance>
-									<input type="hidden" name="lessonId" value={lesson.id} />
-									<Button
-										type="submit"
-										variant="outline"
-										size="sm"
-										title="Push lesson forward to next slot"
-									>
-										Forward →
-									</Button>
-								</form>
+									<form method="POST" action="?/pushLessonBack" use:enhance>
+										<input type="hidden" name="lessonId" value={lesson.id} />
+										<Button
+											type="submit"
+											variant="outline"
+											size="sm"
+											title="Push lesson back to previous slot"
+										>
+											← Back
+										</Button>
+									</form>
+									<form method="POST" action="?/pushLessonForward" use:enhance>
+										<input type="hidden" name="lessonId" value={lesson.id} />
+										<Button
+											type="submit"
+											variant="outline"
+											size="sm"
+											title="Push lesson forward to next slot"
+										>
+											Forward →
+										</Button>
+									</form>
+								</div>
 							</div>
 						</div>
-					</div>
+					{/if}
 				{/each}
 			</div>
 		{/if}

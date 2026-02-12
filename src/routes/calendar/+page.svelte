@@ -275,8 +275,9 @@
 							</div>
 							<div class="flex-1 p-3">
 								{#if lesson}
-									<button
-										class="w-full rounded-md border p-3 text-left transition-colors hover:opacity-80 {data.classColors.get(
+									<a
+										href={resolve(`/classes/${lesson.classId}#lesson-${lesson.id}`)}
+										class="block w-full rounded-md border p-3 text-left transition-colors hover:opacity-80 {data.classColors.get(
 											lesson.classId
 										) || 'border-gray-300 bg-gray-100'}"
 									>
@@ -293,7 +294,7 @@
 												</span>
 											{/if}
 										</div>
-									</button>
+									</a>
 								{:else}
 									<div
 										class="flex h-16 items-center justify-center rounded-md border border-dashed border-gray-200"

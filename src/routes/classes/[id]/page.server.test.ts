@@ -12,6 +12,7 @@ import {
 	module,
 	lesson
 } from '$lib/server/db/schema';
+import { eq } from 'drizzle-orm';
 import type { RequestEvent } from '@sveltejs/kit';
 
 describe('Class Detail Page Server', () => {
@@ -668,6 +669,204 @@ describe('Class Detail Page Server', () => {
 			} as RequestEvent);
 
 			expect(result?.error).toBe('Slot not found or does not belong to this class');
+		});
+	});
+
+	describe('updateScheduledLesson action', () => {
+		it('should update a scheduled lesson successfully', async () => {
+			// Create a module
+			const modules = await db
+				.insert(module)
+				.values({
+					name: 'Forces and Motion',
+					description: 'Test module',
+					targetSpecId: testExamSpec.id
+				})
+				.returning();
+			const testModule = modules[0];
+
+			// Create a lesson in the module
+			const lessons = await db
+				.insert(lesson)
+				.values({
+					moduleId: testModule.id,
+					title: 'Introduction to Forces',
+					content: 'Original content',
+					duration: 1,
+					order: 1
+				})
+				.returning();
+			const testLesson = lessons[0];
+
+			// Create a module assignment
+			const assignments = await db
+				.insert(moduleAssignment)
+				.values({
+					classId: testClass.id,
+					moduleId: testModule.id,
+					startDate: new Date('2024-09-01')
+				})
+				.returning();
+			const assignment = assignments[0];
+
+			// Create a scheduled lesson
+			const scheduledLessons = await db
+				.insert(scheduledLesson)
+				.values({
+					assignmentId: assignment.id,
+					lessonId: testLesson.id,
+					calendarDate: new Date('2024-09-02'),
+					timetableSlotId: null,
+					title: 'Introduction to Forces',
+					content: 'Original content',
+					duration: 1,
+					order: 1
+				})
+				.returning();
+			const scheduled = scheduledLessons[0];
+
+			const formData = new FormData();
+			formData.append('lessonId', scheduled.id);
+			formData.append('title', 'Updated Forces Lesson');
+			formData.append('content', 'Updated content with more details');
+			formData.append('duration', '2');
+			formData.append('specPointIds', '');
+
+			const mockRequest = {
+				formData: async () => formData
+			} as Request;
+
+			const result = await actions.updateScheduledLesson({
+				request: mockRequest,
+				params: { id: testClass.id }
+			} as RequestEvent);
+
+			expect(result?.success).toBe(true);
+
+			// Verify the lesson was updated
+			const updated = await db
+				.select()
+				.from(scheduledLesson)
+				.where(eq(scheduledLesson.id, scheduled.id));
+			expect(updated[0].title).toBe('Updated Forces Lesson');
+			expect(updated[0].content).toBe('Updated content with more details');
+			expect(updated[0].duration).toBe(2);
+		});
+
+		it('should validate required fields', async () => {
+			const formData = new FormData();
+			formData.append('lessonId', 'test-id');
+			formData.append('title', '');
+			formData.append('content', '');
+			formData.append('duration', '1');
+
+			const mockRequest = {
+				formData: async () => formData
+			} as Request;
+
+			const result = await actions.updateScheduledLesson({
+				request: mockRequest,
+				params: { id: testClass.id }
+			} as RequestEvent);
+
+			expect(result?.error).toBe('Lesson title is required');
+		});
+
+		it('should validate duration range', async () => {
+			const formData = new FormData();
+			formData.append('lessonId', 'test-id');
+			formData.append('title', 'Test Lesson');
+			formData.append('content', '');
+			formData.append('duration', '15');
+
+			const mockRequest = {
+				formData: async () => formData
+			} as Request;
+
+			const result = await actions.updateScheduledLesson({
+				request: mockRequest,
+				params: { id: testClass.id }
+			} as RequestEvent);
+
+			expect(result?.error).toBe('Duration must be between 1 and 10 periods');
+		});
+
+		it('should reject updates to lessons from other classes', async () => {
+			// Create another class
+			const otherClasses = await db
+				.insert(teachingClass)
+				.values({
+					name: 'Other Class',
+					yearGroup: 10,
+					examSpecId: testExamSpec.id,
+					academicYear: '2024-25'
+				})
+				.returning();
+			const otherClass = otherClasses[0];
+
+			// Create a module
+			const modules = await db
+				.insert(module)
+				.values({
+					name: 'Test Module',
+					targetSpecId: testExamSpec.id
+				})
+				.returning();
+			const testModule = modules[0];
+
+			// Create a lesson
+			const lessons = await db
+				.insert(lesson)
+				.values({
+					moduleId: testModule.id,
+					title: 'Test Lesson',
+					order: 1
+				})
+				.returning();
+			const testLesson = lessons[0];
+
+			// Create assignment for OTHER class
+			const assignments = await db
+				.insert(moduleAssignment)
+				.values({
+					classId: otherClass.id,
+					moduleId: testModule.id,
+					startDate: new Date('2024-09-01')
+				})
+				.returning();
+			const assignment = assignments[0];
+
+			// Create scheduled lesson for OTHER class
+			const scheduledLessons = await db
+				.insert(scheduledLesson)
+				.values({
+					assignmentId: assignment.id,
+					lessonId: testLesson.id,
+					calendarDate: new Date('2024-09-02'),
+					timetableSlotId: null,
+					title: 'Test Lesson',
+					order: 1
+				})
+				.returning();
+			const scheduled = scheduledLessons[0];
+
+			const formData = new FormData();
+			formData.append('lessonId', scheduled.id);
+			formData.append('title', 'Updated');
+			formData.append('content', '');
+			formData.append('duration', '1');
+
+			const mockRequest = {
+				formData: async () => formData
+			} as Request;
+
+			// Try to update from testClass context
+			const result = await actions.updateScheduledLesson({
+				request: mockRequest,
+				params: { id: testClass.id }
+			} as RequestEvent);
+
+			expect(result?.error).toBe('Lesson not found or does not belong to this class');
 		});
 	});
 });

@@ -4,9 +4,12 @@ import {
 	examSpec,
 	timetableSlot,
 	scheduledLesson,
-	moduleAssignment
+	moduleAssignment,
+	scheduledLessonSpecPoint,
+	specPoint,
+	topic
 } from '$lib/server/db/schema';
-import { eq, and, asc } from 'drizzle-orm';
+import { eq, and, asc, inArray } from 'drizzle-orm';
 import { error } from '@sveltejs/kit';
 import type { Actions, PageServerLoad } from './$types';
 import { pushLesson } from '$lib/server/scheduling/push-lesson';
@@ -72,10 +75,40 @@ export const load: PageServerLoad = async ({ params }) => {
 		.where(eq(moduleAssignment.classId, classId))
 		.orderBy(asc(scheduledLesson.calendarDate), asc(scheduledLesson.order));
 
+	// Get spec point links for scheduled lessons
+	const lessonIds = lessons.map((l) => l.id);
+	const specPointLinks =
+		lessonIds.length > 0
+			? await db
+					.select({
+						scheduledLessonId: scheduledLessonSpecPoint.scheduledLessonId,
+						specPointId: scheduledLessonSpecPoint.specPointId
+					})
+					.from(scheduledLessonSpecPoint)
+					.where(inArray(scheduledLessonSpecPoint.scheduledLessonId, lessonIds))
+			: [];
+
+	// Get all available spec points from the class's exam specification
+	const availableSpecPoints = classData.examSpec
+		? await db
+				.select({
+					id: specPoint.id,
+					reference: specPoint.reference,
+					content: specPoint.content,
+					topicId: specPoint.topicId
+				})
+				.from(specPoint)
+				.innerJoin(topic, eq(specPoint.topicId, topic.id))
+				.where(eq(topic.examSpecId, classData.examSpec.id))
+				.orderBy(asc(specPoint.reference))
+		: [];
+
 	return {
 		class: classData,
 		timetableSlots: slots,
-		scheduledLessons: lessons
+		scheduledLessons: lessons,
+		specPointLinks,
+		availableSpecPoints
 	};
 };
 
@@ -294,5 +327,79 @@ export const actions: Actions = {
 			const error = err as Error;
 			return { error: error.message };
 		}
+	},
+
+	updateScheduledLesson: async ({ request, params }) => {
+		const classId = params.id;
+		const data = await request.formData();
+		const lessonId = data.get('lessonId')?.toString() || '';
+		const title = data.get('title')?.toString() || '';
+		const content = data.get('content')?.toString() || '';
+		const durationStr = data.get('duration')?.toString();
+		const specPointIds = data.get('specPointIds')?.toString() || '';
+
+		// Validation
+		if (!lessonId) {
+			return { error: 'Lesson ID is required' };
+		}
+
+		if (!title.trim()) {
+			return { error: 'Lesson title is required' };
+		}
+
+		const duration = durationStr ? parseInt(durationStr) : 1;
+		if (duration < 1 || duration > 10) {
+			return { error: 'Duration must be between 1 and 10 periods' };
+		}
+
+		// Verify lesson belongs to a class assignment for this class
+		const lessons = await db
+			.select({
+				id: scheduledLesson.id,
+				assignmentId: scheduledLesson.assignmentId
+			})
+			.from(scheduledLesson)
+			.innerJoin(moduleAssignment, eq(scheduledLesson.assignmentId, moduleAssignment.id))
+			.where(and(eq(scheduledLesson.id, lessonId), eq(moduleAssignment.classId, classId)));
+
+		if (lessons.length === 0) {
+			return { error: 'Lesson not found or does not belong to this class' };
+		}
+
+		// Update the scheduled lesson
+		await db
+			.update(scheduledLesson)
+			.set({
+				title: title.trim(),
+				content: content.trim() || null,
+				duration,
+				updatedAt: new Date()
+			})
+			.where(eq(scheduledLesson.id, lessonId));
+
+		// Update spec point links if provided
+		if (specPointIds) {
+			// Delete existing spec point links
+			await db
+				.delete(scheduledLessonSpecPoint)
+				.where(eq(scheduledLessonSpecPoint.scheduledLessonId, lessonId));
+
+			// Add new spec point links
+			const specPointIdArray = specPointIds
+				.split(',')
+				.map((id) => id.trim())
+				.filter((id) => id);
+
+			if (specPointIdArray.length > 0) {
+				await db.insert(scheduledLessonSpecPoint).values(
+					specPointIdArray.map((specPointId) => ({
+						scheduledLessonId: lessonId,
+						specPointId
+					}))
+				);
+			}
+		}
+
+		return { success: true };
 	}
 };
