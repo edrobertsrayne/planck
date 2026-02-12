@@ -1,14 +1,38 @@
 import { describe, it, expect, beforeEach } from 'vitest';
 import { seedExamSpecs } from './seed';
 import { db } from './index';
-import { examSpec, topic, specPoint } from './schema';
+import {
+	examSpec,
+	topic,
+	specPoint,
+	scheduledLessonSpecPoint,
+	scheduledLesson,
+	moduleAssignment,
+	timetableSlot,
+	timetableConfig,
+	lessonSpecPoint,
+	lesson,
+	module,
+	calendarEvent,
+	teachingClass
+} from './schema';
 import { eq, and } from 'drizzle-orm';
 
 describe('seedExamSpecs', () => {
 	beforeEach(async () => {
-		// Clear existing data before each test
+		// Clear all data in foreign key dependency order
+		await db.delete(scheduledLessonSpecPoint);
+		await db.delete(scheduledLesson);
+		await db.delete(moduleAssignment);
+		await db.delete(timetableSlot);
+		await db.delete(timetableConfig);
+		await db.delete(lessonSpecPoint);
+		await db.delete(lesson);
+		await db.delete(module);
+		await db.delete(calendarEvent);
 		await db.delete(specPoint);
 		await db.delete(topic);
+		await db.delete(teachingClass);
 		await db.delete(examSpec);
 	});
 

@@ -3,7 +3,21 @@
 import { describe, it, expect, beforeEach } from 'vitest';
 import { load } from './+page.server.js';
 import { db } from '$lib/server/db';
-import { examSpec, topic, specPoint, module, lesson, lessonSpecPoint } from '$lib/server/db/schema';
+import {
+	examSpec,
+	topic,
+	specPoint,
+	module,
+	lesson,
+	lessonSpecPoint,
+	scheduledLessonSpecPoint,
+	scheduledLesson,
+	moduleAssignment,
+	timetableSlot,
+	timetableConfig,
+	calendarEvent,
+	teachingClass
+} from '$lib/server/db/schema';
 import type { RequestEvent } from '@sveltejs/kit';
 
 describe('Specification Detail Page Server', () => {
@@ -15,12 +29,19 @@ describe('Specification Detail Page Server', () => {
 	let testLesson: { id: string };
 
 	beforeEach(async () => {
-		// Clean up test data before each test
+		// Clear all data in foreign key dependency order
+		await db.delete(scheduledLessonSpecPoint);
+		await db.delete(scheduledLesson);
+		await db.delete(moduleAssignment);
+		await db.delete(timetableSlot);
+		await db.delete(timetableConfig);
 		await db.delete(lessonSpecPoint);
 		await db.delete(lesson);
 		await db.delete(module);
+		await db.delete(calendarEvent);
 		await db.delete(specPoint);
 		await db.delete(topic);
+		await db.delete(teachingClass);
 		await db.delete(examSpec);
 
 		// Create test exam spec

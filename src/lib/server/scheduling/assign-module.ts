@@ -113,7 +113,7 @@ export async function assignModuleToClass(options: AssignModuleOptions): Promise
 	const occupiedSlots = await getOccupiedSlots(classId, actualStartDate);
 
 	// Schedule lessons into slots
-	const scheduledDates = scheduleListons(
+	const scheduledDates = scheduleLessons(
 		lessons,
 		slotsWithDuration,
 		actualStartDate,
@@ -304,7 +304,7 @@ async function getOccupiedSlots(classId: string, fromDate: Date): Promise<Occupi
  * @param occupiedSlots Array of already occupied date-slot combinations
  * @returns Array of scheduled dates and slot IDs
  */
-function scheduleListons(
+function scheduleLessons(
 	lessons: Array<{ id: string; title: string; duration: number; order: number }>,
 	slots: TimetableSlotInfo[],
 	startDate: Date,

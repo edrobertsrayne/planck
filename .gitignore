@@ -18,6 +18,10 @@ Thumbs.db
 !.env.example
 !.env.test
 
+# Test database
+test.db
+test.db-journal
+
 # Vite
 vite.config.js.timestamp-*
 vite.config.ts.timestamp-*
@@ -27,3 +31,4 @@ vite.config.ts.timestamp-*
 .devenv.flake.nix
 .mcp.json
 .pre-commit-config.yaml
+local.db
