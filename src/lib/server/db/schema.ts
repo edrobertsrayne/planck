@@ -270,4 +270,94 @@ export const lessonSpecPoint = sqliteTable('lesson_spec_point', {
 		.$defaultFn(() => new Date())
 });
 
+// ============================================================================
+// Module Assignments and Scheduled Lessons
+// ============================================================================
+
+/**
+ * Module assignment to a class.
+ * When a module is assigned to a class, its lessons are copied to scheduled lessons.
+ */
+export const moduleAssignment = sqliteTable('module_assignment', {
+	id: text('id')
+		.primaryKey()
+		.$defaultFn(() => crypto.randomUUID()),
+	/** Reference to the class this module is assigned to */
+	classId: text('class_id')
+		.notNull()
+		.references(() => teachingClass.id, { onDelete: 'cascade' }),
+	/** Reference to the source module (template) */
+	moduleId: text('module_id')
+		.notNull()
+		.references(() => module.id, { onDelete: 'restrict' }),
+	/** Date when the module assignment starts */
+	startDate: integer('start_date', { mode: 'timestamp' }).notNull(),
+	createdAt: integer('created_at', { mode: 'timestamp' })
+		.notNull()
+		.$defaultFn(() => new Date()),
+	updatedAt: integer('updated_at', { mode: 'timestamp' })
+		.notNull()
+		.$defaultFn(() => new Date())
+});
+
+/**
+ * Scheduled lesson - a concrete instance of a lesson placed on the calendar.
+ * Created by copying a lesson from a module when it's assigned to a class.
+ * Scheduled lessons are independent and can be edited without affecting the source module.
+ */
+export const scheduledLesson = sqliteTable('scheduled_lesson', {
+	id: text('id')
+		.primaryKey()
+		.$defaultFn(() => crypto.randomUUID()),
+	/** Reference to the module assignment this lesson belongs to */
+	assignmentId: text('assignment_id')
+		.notNull()
+		.references(() => moduleAssignment.id, { onDelete: 'cascade' }),
+	/** Reference to the source lesson (for tracking) */
+	lessonId: text('lesson_id')
+		.notNull()
+		.references(() => lesson.id, { onDelete: 'restrict' }),
+	/** Calendar date when this lesson is scheduled */
+	calendarDate: integer('calendar_date', { mode: 'timestamp' }).notNull(),
+	/** Reference to the timetable slot (null if manually scheduled) */
+	timetableSlotId: text('timetable_slot_id').references(() => timetableSlot.id, {
+		onDelete: 'set null'
+	}),
+	/** Lesson title (copied from source, can be edited) */
+	title: text('title').notNull(),
+	/** Lesson content in markdown (copied from source, can be edited) */
+	content: text('content'),
+	/** Number of periods (copied from source, can be edited) */
+	duration: integer('duration').notNull().default(1),
+	/** Order within the module assignment for sequencing */
+	order: integer('order').notNull(),
+	createdAt: integer('created_at', { mode: 'timestamp' })
+		.notNull()
+		.$defaultFn(() => new Date()),
+	updatedAt: integer('updated_at', { mode: 'timestamp' })
+		.notNull()
+		.$defaultFn(() => new Date())
+});
+
+/**
+ * Junction table linking scheduled lessons to specification points.
+ * Copied from the source lesson when created, but can be edited independently.
+ */
+export const scheduledLessonSpecPoint = sqliteTable('scheduled_lesson_spec_point', {
+	id: text('id')
+		.primaryKey()
+		.$defaultFn(() => crypto.randomUUID()),
+	/** Reference to the scheduled lesson */
+	scheduledLessonId: text('scheduled_lesson_id')
+		.notNull()
+		.references(() => scheduledLesson.id, { onDelete: 'cascade' }),
+	/** Reference to the specification point */
+	specPointId: text('spec_point_id')
+		.notNull()
+		.references(() => specPoint.id, { onDelete: 'cascade' }),
+	createdAt: integer('created_at', { mode: 'timestamp' })
+		.notNull()
+		.$defaultFn(() => new Date())
+});
+
 export * from './auth.schema';
