@@ -1,7 +1,7 @@
 {
 	"version": "1",
-	"lastUpdated": "2026-02-12T12:15:00Z",
-	"summary": "Project has shadcn-svelte UI library configured with Tailwind CSS v4. Database schema includes examSpec, topic, specPoint, teachingClass, timetableConfig, timetableSlot, module, lesson, lessonSpecPoint, moduleAssignment, scheduledLesson, scheduledLessonSpecPoint, calendarEvent, and attachment tables. All core entity schemas are complete and clean. Seed script implemented for UK Physics exam specifications with comprehensive test coverage. Application shell layout with responsive navigation is complete. Timetable configuration view implemented with full CRUD functionality, validation, and test coverage. Classes list view implemented with create functionality, year group filtering, and navigation to detail pages. Class detail view implemented with full timetable slot management (add/edit/delete), class property editing, double period support, Week A/B labelling for 2-week timetables, and chronological scheduled lesson display. Module library view implemented with create functionality, filtering by target specification, lesson count display, and assignment count tracking. Module editor view implemented with full lesson management (add/edit/delete/reorder), markdown content editor, duration setting, spec point linking, and module property editing. Module assignment workflow complete with scheduling logic that copies lessons to scheduled instances, fills timetable slots sequentially, handles single and double period lessons, respects Week A/B cycles, skips occupied slots, and supports both specific start dates and 'next available slot' option. UI provides module selection, start date picker, and assignment confirmation with comprehensive test coverage.",
+	"lastUpdated": "2026-02-12T12:22:00Z",
+	"summary": "Project has shadcn-svelte UI library configured with Tailwind CSS v4. Database schema includes examSpec, topic, specPoint, teachingClass, timetableConfig, timetableSlot, module, lesson, lessonSpecPoint, moduleAssignment, scheduledLesson, scheduledLessonSpecPoint, calendarEvent, and attachment tables. All core entity schemas are complete and clean. Seed script implemented for UK Physics exam specifications with comprehensive test coverage. UK academic year term date templates implemented with seedTermDates function covering Autumn, Spring, and Summer terms, half-term breaks, and bank holidays. Application shell layout with responsive navigation is complete. Timetable configuration view implemented with full CRUD functionality, validation, and test coverage. Classes list view implemented with create functionality, year group filtering, and navigation to detail pages. Class detail view implemented with full timetable slot management (add/edit/delete), class property editing, double period support, Week A/B labelling for 2-week timetables, and chronological scheduled lesson display. Module library view implemented with create functionality, filtering by target specification, lesson count display, and assignment count tracking. Module editor view implemented with full lesson management (add/edit/delete/reorder), markdown content editor, duration setting, spec point linking, and module property editing. Module assignment workflow complete with scheduling logic that copies lessons to scheduled instances, fills timetable slots sequentially, handles single and double period lessons, respects Week A/B cycles, skips occupied slots, and supports both specific start dates and 'next available slot' option. UI provides module selection, start date picker, and assignment confirmation with comprehensive test coverage.",
 	"tasks": [
 		{
 			"id": "setup-shadcn",
@@ -164,10 +164,10 @@
 			"id": "seed-term-dates",
 			"title": "Create UK academic year term date templates",
 			"description": "Create template data for UK academic year including Autumn term (Sept-Dec), Spring term (Jan-March/April), Summer term (April-July), half-term breaks, and bank holidays. These are starting points that teachers can adjust.",
-			"status": "pending",
+			"status": "complete",
 			"priority": "medium",
 			"specReference": "v1-specification.md#term-date-templates",
-			"affectedPaths": ["src/lib/server/db/seed.ts"],
+			"affectedPaths": ["src/lib/server/db/seed.ts", "src/lib/server/db/seed-term-dates.test.ts"],
 			"dependencies": ["schema-calendar"],
 			"verificationSteps": [
 				"Term date templates available",
