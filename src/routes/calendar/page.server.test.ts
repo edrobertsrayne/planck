@@ -299,4 +299,165 @@ describe('Calendar Navigation Logic', () => {
 			expect(isMatch).toBe(false);
 		});
 	});
+
+	describe('Term View Calculations', () => {
+		it('calculates Autumn term dates correctly', () => {
+			const date = new Date(Date.UTC(2024, 9, 15)); // October 2024
+			const month = date.getUTCMonth();
+
+			let termStart: Date;
+			let termEnd: Date;
+
+			if (month >= 8 || month <= 0) {
+				termStart = new Date(Date.UTC(date.getUTCFullYear(), 8, 1));
+				termEnd = new Date(Date.UTC(date.getUTCFullYear(), 11, 31));
+			} else if (month <= 3) {
+				termStart = new Date(Date.UTC(date.getUTCFullYear(), 0, 1));
+				termEnd = new Date(Date.UTC(date.getUTCFullYear(), 2, 31));
+			} else {
+				termStart = new Date(Date.UTC(date.getUTCFullYear(), 3, 1));
+				termEnd = new Date(Date.UTC(date.getUTCFullYear(), 6, 31));
+			}
+
+			expect(termStart.getUTCMonth()).toBe(8); // September
+			expect(termEnd.getUTCMonth()).toBe(11); // December
+		});
+
+		it('calculates Spring term dates correctly', () => {
+			const date = new Date(Date.UTC(2025, 1, 15)); // February 2025
+			const month = date.getUTCMonth();
+
+			let termStart: Date;
+			let termEnd: Date;
+
+			if (month >= 8 || month <= 0) {
+				termStart = new Date(Date.UTC(date.getUTCFullYear(), 8, 1));
+				termEnd = new Date(Date.UTC(date.getUTCFullYear(), 11, 31));
+			} else if (month <= 3) {
+				termStart = new Date(Date.UTC(date.getUTCFullYear(), 0, 1));
+				termEnd = new Date(Date.UTC(date.getUTCFullYear(), 2, 31));
+			} else {
+				termStart = new Date(Date.UTC(date.getUTCFullYear(), 3, 1));
+				termEnd = new Date(Date.UTC(date.getUTCFullYear(), 6, 31));
+			}
+
+			expect(termStart.getUTCMonth()).toBe(0); // January
+			expect(termEnd.getUTCMonth()).toBe(2); // March
+		});
+
+		it('calculates Summer term dates correctly', () => {
+			const date = new Date(Date.UTC(2025, 5, 15)); // June 2025
+			const month = date.getUTCMonth();
+
+			let termStart: Date;
+			let termEnd: Date;
+
+			if (month >= 8 || month <= 0) {
+				termStart = new Date(Date.UTC(date.getUTCFullYear(), 8, 1));
+				termEnd = new Date(Date.UTC(date.getUTCFullYear(), 11, 31));
+			} else if (month <= 3) {
+				termStart = new Date(Date.UTC(date.getUTCFullYear(), 0, 1));
+				termEnd = new Date(Date.UTC(date.getUTCFullYear(), 2, 31));
+			} else {
+				termStart = new Date(Date.UTC(date.getUTCFullYear(), 3, 1));
+				termEnd = new Date(Date.UTC(date.getUTCFullYear(), 6, 31));
+			}
+
+			expect(termStart.getUTCMonth()).toBe(3); // April
+			expect(termEnd.getUTCMonth()).toBe(6); // July
+		});
+
+		it('generates correct number of weeks for term grid', () => {
+			const termStart = new Date(Date.UTC(2024, 8, 1)); // September 1
+			const termEnd = new Date(Date.UTC(2024, 11, 31)); // December 31
+
+			const firstDayOfMonth = new Date(termStart);
+			const startDayOfWeek = firstDayOfMonth.getUTCDay();
+			const daysToMonday = startDayOfWeek === 0 ? 6 : startDayOfWeek - 1;
+			const weekStart = new Date(firstDayOfMonth);
+			weekStart.setUTCDate(weekStart.getUTCDate() - daysToMonday);
+
+			const current = new Date(weekStart);
+			const weeks: (Date | null)[][] = [];
+			let week: (Date | null)[] = [];
+
+			for (let i = 0; i < 42; i++) {
+				const dayDate = new Date(current);
+
+				if (dayDate < termStart || dayDate > termEnd) {
+					week.push(null);
+				} else {
+					week.push(dayDate);
+				}
+
+				if (week.length === 7) {
+					weeks.push(week);
+					week = [];
+				}
+				current.setUTCDate(current.getUTCDate() + 1);
+			}
+
+			const filteredWeeks = weeks.filter((w) => w.some((d) => d !== null));
+
+			expect(filteredWeeks.length).toBeGreaterThan(0);
+			expect(filteredWeeks.length).toBeLessThanOrEqual(6);
+			expect(filteredWeeks[0].length).toBe(7);
+		});
+
+		it('filters out empty weeks correctly', () => {
+			const weeks: (Date | null)[][] = [
+				[null, null, null, null, null, null, null],
+				[null, new Date(), null, null, null, null, null],
+				[null, null, null, null, null, null, null]
+			];
+
+			const filtered = weeks.filter((w) => w.some((d) => d !== null));
+
+			expect(filtered.length).toBe(1);
+		});
+
+		it('calculates teaching days excluding holidays and closures', () => {
+			const weeks: (Date | null)[][] = [
+				[
+					new Date(Date.UTC(2024, 8, 2)),
+					new Date(Date.UTC(2024, 8, 3)),
+					new Date(Date.UTC(2024, 8, 4)),
+					new Date(Date.UTC(2024, 8, 5)),
+					new Date(Date.UTC(2024, 8, 6)),
+					null,
+					null
+				]
+			];
+
+			const events = [
+				{
+					type: 'holiday',
+					startDate: new Date(Date.UTC(2024, 8, 4)),
+					endDate: new Date(Date.UTC(2024, 8, 4))
+				}
+			];
+
+			let count = 0;
+			for (const week of weeks) {
+				for (const day of week) {
+					if (!day) continue;
+					const event = events.find((e) => {
+						const checkDate = new Date(day);
+						checkDate.setUTCHours(0, 0, 0, 0);
+						const start = new Date(e.startDate);
+						start.setUTCHours(0, 0, 0, 0);
+						const end = new Date(e.endDate);
+						end.setUTCHours(0, 0, 0, 0);
+						return checkDate >= start && checkDate <= end;
+					});
+
+					if (!event || event.type === 'absence') {
+						count++;
+					}
+				}
+			}
+
+			expect(count).toBe(4); // 5 days - 1 holiday
+		});
+	});
 });

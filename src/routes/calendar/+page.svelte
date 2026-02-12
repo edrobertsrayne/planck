@@ -119,6 +119,77 @@
 	function getDayOfWeek(date: Date): number {
 		return date.getUTCDay() === 0 ? 7 : date.getUTCDay();
 	}
+
+	function getTermWeeks(): (Date | null)[][] {
+		const weeks: (Date | null)[][] = [];
+		const startOfTerm = new Date(data.currentDate);
+		const month = startOfTerm.getUTCMonth();
+
+		let termStart: Date;
+		let termEnd: Date;
+
+		if (month >= 8 || month <= 0) {
+			termStart = new Date(Date.UTC(startOfTerm.getUTCFullYear(), 8, 1));
+			termEnd = new Date(Date.UTC(startOfTerm.getUTCFullYear(), 11, 31));
+		} else if (month <= 3) {
+			termStart = new Date(Date.UTC(startOfTerm.getUTCFullYear(), 0, 1));
+			termEnd = new Date(Date.UTC(startOfTerm.getUTCFullYear(), 2, 31));
+		} else {
+			termStart = new Date(Date.UTC(startOfTerm.getUTCFullYear(), 3, 1));
+			termEnd = new Date(Date.UTC(startOfTerm.getUTCFullYear(), 6, 31));
+		}
+
+		const firstDayOfMonth = new Date(termStart);
+		const startDayOfWeek = firstDayOfMonth.getUTCDay();
+		const daysToMonday = startDayOfWeek === 0 ? 6 : startDayOfWeek - 1;
+		const weekStart = new Date(firstDayOfMonth);
+		weekStart.setUTCDate(weekStart.getUTCDate() - daysToMonday);
+
+		const current = new Date(weekStart);
+		let week: (Date | null)[] = [];
+
+		for (let i = 0; i < 42; i++) {
+			const dayDate = new Date(current);
+
+			if (dayDate < termStart || dayDate > termEnd) {
+				week.push(null);
+			} else {
+				week.push(dayDate);
+			}
+
+			if (week.length === 7) {
+				weeks.push(week);
+				week = [];
+			}
+			current.setUTCDate(current.getUTCDate() + 1);
+		}
+
+		return weeks.filter((w) => w.some((d) => d !== null));
+	}
+
+	function getTeachingDaysCount(): number {
+		const weeks = getTermWeeks();
+		let count = 0;
+
+		for (const week of weeks) {
+			for (const day of week) {
+				if (!day) continue;
+				const event = getEventForDay(day);
+				if (!event || event.type === 'absence') {
+					count++;
+				}
+			}
+		}
+
+		return count;
+	}
+
+	function navigateToDay(day: Date) {
+		const url = new URL(window.location.href);
+		url.searchParams.set('view', 'day');
+		url.searchParams.set('date', day.toISOString().split('T')[0]);
+		window.location.href = url.toString();
+	}
 </script>
 
 <div class="container mx-auto p-4 md:p-6">
@@ -448,68 +519,135 @@
 			</table>
 		</div>
 	{:else}
-		<div class="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-			{#each data.events as event (event.id)}
-				<div
-					class="rounded-lg border p-4 {event.type === 'holiday'
-						? 'border-gray-200 bg-gray-50'
-						: event.type === 'closure'
-							? 'border-red-200 bg-red-50'
-							: 'border-yellow-200 bg-yellow-50'}"
-				>
-					<div class="mb-2 flex items-center justify-between">
-						<span
-							class="rounded-full px-2 py-1 text-xs font-medium {event.type === 'holiday'
-								? 'bg-gray-200 text-gray-700'
-								: event.type === 'closure'
-									? 'bg-red-200 text-red-700'
-									: 'bg-yellow-200 text-yellow-700'}"
-						>
-							{event.type}
-						</span>
-						<span class="text-xs text-gray-500">
-							{new Date(event.startDate).toLocaleDateString('en-GB', {
-								day: 'numeric',
-								month: 'short'
-							})}
-							-
-							{new Date(event.endDate).toLocaleDateString('en-GB', {
-								day: 'numeric',
-								month: 'short'
-							})}
-						</span>
-					</div>
-					<p class="font-medium">{event.title}</p>
-				</div>
-			{/each}
-		</div>
+		{@const termWeeks = getTermWeeks()}
 
-		<div class="mt-6">
-			<h3 class="mb-4 text-lg font-semibold">Scheduled Lessons</h3>
-			{#if data.scheduledLessons.length === 0}
-				<p class="text-gray-600">No lessons scheduled in this date range.</p>
-			{:else}
-				<div class="space-y-2">
-					{#each data.scheduledLessons as lesson (lesson.id)}
-						<div
-							class="flex items-center justify-between rounded-lg border border-gray-200 bg-white p-4"
-						>
-							<div>
-								<p class="font-medium">{lesson.title}</p>
-								<p class="text-sm text-gray-600">
-									{formatDate(lesson.calendarDate)} • {lesson.className} (Year
-									{lesson.classYearGroup})
-								</p>
-							</div>
-							<button
-								class="rounded-md border border-gray-300 px-3 py-1 text-sm transition-colors hover:bg-gray-50"
-							>
-								Edit
-							</button>
+		<div class="overflow-x-auto rounded-lg border border-gray-200 bg-white shadow-sm">
+			<div class="min-w-[600px]">
+				<!-- Calendar Grid -->
+				<div class="grid grid-cols-7 gap-px bg-gray-200">
+					<!-- Day headers -->
+					{#each dayNames as dayName (dayName)}
+						<div class="bg-gray-50 p-2 text-center text-xs font-medium text-gray-700 sm:text-sm">
+							<span class="hidden sm:inline">{dayName}</span>
+							<span class="sm:hidden">{dayName.slice(0, 3)}</span>
 						</div>
 					{/each}
+
+					<!-- Calendar days -->
+					{#each termWeeks as week, weekIndex (weekIndex)}
+						{#each week as day (day ? day.toISOString() : `empty-${weekIndex}`)}
+							{@const event = day ? getEventForDay(day) : null}
+							{@const dayLessons = day
+								? data.scheduledLessons.filter((lesson) => {
+										const ld = new Date(lesson.calendarDate);
+										ld.setUTCHours(0, 0, 0, 0);
+										return day && ld.getTime() === day.getTime();
+									})
+								: []}
+							{@const lessonCount = dayLessons.length}
+
+							<div
+								class="min-h-[80px] bg-white p-2 sm:min-h-[100px] {day && isToday(day)
+									? 'ring-2 ring-blue-500 ring-inset'
+									: ''} {event
+									? event.type === 'holiday'
+										? 'bg-gray-50'
+										: event.type === 'closure'
+											? 'bg-red-50'
+											: 'bg-yellow-50'
+									: ''}"
+							>
+								{#if day}
+									<!-- Date number -->
+									<div class="mb-1 flex items-center justify-between">
+										<button
+											class="rounded px-1.5 py-0.5 text-xs font-medium transition-colors hover:bg-gray-100 sm:text-sm {isToday(
+												day
+											)
+												? 'bg-blue-500 text-white hover:bg-blue-600'
+												: 'text-gray-700'}"
+											onclick={() => navigateToDay(day)}
+										>
+											{day.getUTCDate()}
+										</button>
+										{#if data.timetableConfig?.weeks === 2}
+											{@const weekNum = getWeekNumber(day)}
+											<span class="text-[10px] text-gray-500">
+												{weekNum % 2 === 1 ? 'A' : 'B'}
+											</span>
+										{/if}
+									</div>
+
+									<!-- Event indicator -->
+									{#if event}
+										<div
+											class="mb-1 truncate rounded px-1.5 py-0.5 text-[10px] font-medium {event.type ===
+											'holiday'
+												? 'bg-gray-200 text-gray-700'
+												: event.type === 'closure'
+													? 'bg-red-200 text-red-700'
+													: 'bg-yellow-200 text-yellow-700'}"
+											title={event.title}
+										>
+											{event.type === 'holiday' ? '🏖️' : event.type === 'closure' ? '🔒' : '🤒'}
+											<span class="hidden sm:inline">{event.title}</span>
+										</div>
+									{:else if lessonCount > 0}
+										<!-- Lesson count -->
+										<div class="space-y-0.5">
+											{#each dayLessons.slice(0, 2) as lesson (lesson.id)}
+												<button
+													class="w-full truncate rounded border px-1.5 py-0.5 text-left text-[10px] transition-colors hover:opacity-80 {data.classColors.get(
+														lesson.classId
+													) || 'border-gray-300 bg-gray-100'}"
+													onclick={() => navigateToDay(day)}
+													title={lesson.title}
+												>
+													{lesson.title}
+												</button>
+											{/each}
+											{#if lessonCount > 2}
+												<button
+													class="w-full rounded bg-gray-100 px-1.5 py-0.5 text-[10px] font-medium text-gray-600 hover:bg-gray-200"
+													onclick={() => navigateToDay(day)}
+												>
+													+{lessonCount - 2} more
+												</button>
+											{/if}
+										</div>
+									{/if}
+								{/if}
+							</div>
+						{/each}
+					{/each}
 				</div>
-			{/if}
+			</div>
+		</div>
+
+		<!-- Term Summary Stats -->
+		<div class="mt-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+			<div class="rounded-lg border border-gray-200 bg-white p-4">
+				<p class="text-sm text-gray-600">Total Lessons</p>
+				<p class="text-2xl font-bold text-gray-900">{data.scheduledLessons.length}</p>
+			</div>
+			<div class="rounded-lg border border-gray-200 bg-white p-4">
+				<p class="text-sm text-gray-600">Holidays</p>
+				<p class="text-2xl font-bold text-gray-900">
+					{data.events.filter((e) => e.type === 'holiday').length}
+				</p>
+			</div>
+			<div class="rounded-lg border border-gray-200 bg-white p-4">
+				<p class="text-sm text-gray-600">School Closures</p>
+				<p class="text-2xl font-bold text-gray-900">
+					{data.events.filter((e) => e.type === 'closure').length}
+				</p>
+			</div>
+			<div class="rounded-lg border border-gray-200 bg-white p-4">
+				<p class="text-sm text-gray-600">Teaching Days</p>
+				<p class="text-2xl font-bold text-gray-900">
+					{getTeachingDaysCount()}
+				</p>
+			</div>
 		</div>
 	{/if}
 
