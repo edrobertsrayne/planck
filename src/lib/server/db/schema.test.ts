@@ -12,7 +12,8 @@ import {
 	lessonSpecPoint,
 	moduleAssignment,
 	scheduledLesson,
-	scheduledLessonSpecPoint
+	scheduledLessonSpecPoint,
+	calendarEvent
 } from './schema';
 
 describe('teachingClass schema', () => {
@@ -559,5 +560,62 @@ describe('scheduledLessonSpecPoint schema', () => {
 
 		expect(fkColumns).toContain('scheduled_lesson_id');
 		expect(fkColumns).toContain('spec_point_id');
+	});
+});
+
+describe('calendarEvent schema', () => {
+	const config = getTableConfig(calendarEvent);
+
+	it('should have table name "calendar_event"', () => {
+		expect(config.name).toBe('calendar_event');
+	});
+
+	it('should have all required columns', () => {
+		const columnNames = config.columns.map((col) => col.name);
+		expect(columnNames).toContain('id');
+		expect(columnNames).toContain('type');
+		expect(columnNames).toContain('title');
+		expect(columnNames).toContain('start_date');
+		expect(columnNames).toContain('end_date');
+		expect(columnNames).toContain('affects_all_classes');
+		expect(columnNames).toContain('created_at');
+		expect(columnNames).toContain('updated_at');
+	});
+
+	it('should have id as primary key', () => {
+		const idColumn = config.columns.find((col) => col.name === 'id');
+		expect(idColumn?.primary).toBe(true);
+	});
+
+	it('should have type as required', () => {
+		const typeColumn = config.columns.find((col) => col.name === 'type');
+		expect(typeColumn?.notNull).toBe(true);
+	});
+
+	it('should have title as required', () => {
+		const titleColumn = config.columns.find((col) => col.name === 'title');
+		expect(titleColumn?.notNull).toBe(true);
+	});
+
+	it('should have start_date as required', () => {
+		const startDateColumn = config.columns.find((col) => col.name === 'start_date');
+		expect(startDateColumn?.notNull).toBe(true);
+	});
+
+	it('should have end_date as required', () => {
+		const endDateColumn = config.columns.find((col) => col.name === 'end_date');
+		expect(endDateColumn?.notNull).toBe(true);
+	});
+
+	it('should have affects_all_classes as required with default', () => {
+		const affectsAllClassesColumn = config.columns.find(
+			(col) => col.name === 'affects_all_classes'
+		);
+		expect(affectsAllClassesColumn?.notNull).toBe(true);
+		expect(affectsAllClassesColumn?.default).toBe(true);
+	});
+
+	it('should have no foreign keys', () => {
+		expect(config.foreignKeys.length).toBe(0);
 	});
 });

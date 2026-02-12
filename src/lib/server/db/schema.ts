@@ -360,4 +360,34 @@ export const scheduledLessonSpecPoint = sqliteTable('scheduled_lesson_spec_point
 		.$defaultFn(() => new Date())
 });
 
+// ============================================================================
+// Calendar Events
+// ============================================================================
+
+/**
+ * Calendar events including holidays, closures, and absences.
+ * These events trigger automatic lesson rescheduling when they overlap scheduled lessons.
+ */
+export const calendarEvent = sqliteTable('calendar_event', {
+	id: text('id')
+		.primaryKey()
+		.$defaultFn(() => crypto.randomUUID()),
+	/** Type of event: holiday (term breaks, bank holidays), closure (INSET, snow days), or absence (teacher absence) */
+	type: text('type', { enum: ['holiday', 'closure', 'absence'] }).notNull(),
+	/** Title/name of the event (e.g., "Half Term", "INSET Day", "Teacher Absence") */
+	title: text('title').notNull(),
+	/** Start date of the event */
+	startDate: integer('start_date', { mode: 'timestamp' }).notNull(),
+	/** End date of the event (inclusive) */
+	endDate: integer('end_date', { mode: 'timestamp' }).notNull(),
+	/** Whether this event affects all classes (true) or specific classes (false) */
+	affectsAllClasses: integer('affects_all_classes', { mode: 'boolean' }).notNull().default(true),
+	createdAt: integer('created_at', { mode: 'timestamp' })
+		.notNull()
+		.$defaultFn(() => new Date()),
+	updatedAt: integer('updated_at', { mode: 'timestamp' })
+		.notNull()
+		.$defaultFn(() => new Date())
+});
+
 export * from './auth.schema';
