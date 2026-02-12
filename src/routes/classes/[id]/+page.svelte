@@ -137,10 +137,13 @@
 	});
 </script>
 
-<div class="container mx-auto p-6">
+<div class="container mx-auto p-4 sm:p-6">
 	<!-- Back to classes list -->
-	<div class="mb-6">
-		<a href={resolve('/classes')} class="text-indigo-600 transition-colors hover:text-indigo-800">
+	<div class="mb-4 sm:mb-6">
+		<a
+			href={resolve('/classes')}
+			class="inline-block min-h-[44px] py-2 text-indigo-600 transition-colors hover:text-indigo-800"
+		>
 			← Back to Classes
 		</a>
 	</div>
@@ -158,10 +161,10 @@
 	{/if}
 
 	<!-- Class Details Section -->
-	<div class="mb-8 rounded-lg border border-gray-200 bg-white p-6 shadow-sm">
-		<div class="mb-4 flex items-center justify-between">
-			<h1 class="text-3xl font-bold">{data.class.name}</h1>
-			<Button onclick={() => (editingClass = !editingClass)}>
+	<div class="mb-6 rounded-lg border border-gray-200 bg-white p-4 shadow-sm sm:mb-8 sm:p-6">
+		<div class="mb-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+			<h1 class="text-2xl font-bold sm:text-3xl">{data.class.name}</h1>
+			<Button onclick={() => (editingClass = !editingClass)} class="min-h-[44px] w-full sm:w-auto">
 				{editingClass ? 'Cancel' : 'Edit Details'}
 			</Button>
 		</div>
@@ -297,10 +300,10 @@
 	</div>
 
 	<!-- Timetable Slots Section -->
-	<div class="mb-8 rounded-lg border border-gray-200 bg-white p-6 shadow-sm">
-		<div class="mb-4 flex items-center justify-between">
-			<h2 class="text-2xl font-semibold">Timetable Slots</h2>
-			<Button onclick={() => (addingSlot = !addingSlot)}>
+	<div class="mb-6 rounded-lg border border-gray-200 bg-white p-4 shadow-sm sm:mb-8 sm:p-6">
+		<div class="mb-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+			<h2 class="text-xl font-semibold sm:text-2xl">Timetable Slots</h2>
+			<Button onclick={() => (addingSlot = !addingSlot)} class="min-h-[44px] w-full sm:w-auto">
 				{addingSlot ? 'Cancel' : 'Add Slot'}
 			</Button>
 		</div>
@@ -514,11 +517,11 @@
 	</div>
 
 	<!-- Scheduled Lessons Section -->
-	<div class="mb-8 rounded-lg border border-gray-200 bg-white p-6 shadow-sm">
-		<div class="mb-4 flex items-center justify-between">
-			<h2 class="text-2xl font-semibold">Scheduled Lessons</h2>
-			<a href={resolve(`/classes/${data.class.id}/assign`)}>
-				<Button>Assign Module</Button>
+	<div class="mb-6 rounded-lg border border-gray-200 bg-white p-4 shadow-sm sm:mb-8 sm:p-6">
+		<div class="mb-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+			<h2 class="text-xl font-semibold sm:text-2xl">Scheduled Lessons</h2>
+			<a href={resolve(`/classes/${data.class.id}/assign`)} class="w-full sm:w-auto">
+				<Button class="min-h-[44px] w-full">Assign Module</Button>
 			</a>
 		</div>
 
@@ -675,10 +678,13 @@
 						</form>
 					{:else}
 						<!-- Display Mode -->
-						<div id="lesson-{lesson.id}" class="rounded-md border border-gray-200 bg-white p-4">
-							<div class="flex items-start justify-between">
+						<div
+							id="lesson-{lesson.id}"
+							class="rounded-md border border-gray-200 bg-white p-3 sm:p-4"
+						>
+							<div class="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
 								<div class="flex-1">
-									<h3 class="font-semibold">{lesson.title}</h3>
+									<h3 class="text-base font-semibold sm:text-lg">{lesson.title}</h3>
 									<p class="text-sm text-gray-600">{formatDate(lesson.calendarDate)}</p>
 									{#if lesson.duration > 1}
 										<p class="text-xs text-gray-500">{lesson.duration} periods</p>
@@ -703,33 +709,36 @@
 										</div>
 									{/if}
 								</div>
-								<div class="flex gap-2">
+								<div class="flex w-full flex-col gap-2 sm:w-auto sm:flex-row">
 									<Button
 										variant="outline"
 										size="sm"
 										onclick={() => startEditLesson(lesson)}
 										title="Edit lesson"
+										class="min-h-[44px]"
 									>
 										Edit
 									</Button>
-									<form method="POST" action="?/pushLessonBack" use:enhance>
+									<form method="POST" action="?/pushLessonBack" use:enhance class="contents">
 										<input type="hidden" name="lessonId" value={lesson.id} />
 										<Button
 											type="submit"
 											variant="outline"
 											size="sm"
 											title="Push lesson back to previous slot"
+											class="min-h-[44px]"
 										>
 											← Back
 										</Button>
 									</form>
-									<form method="POST" action="?/pushLessonForward" use:enhance>
+									<form method="POST" action="?/pushLessonForward" use:enhance class="contents">
 										<input type="hidden" name="lessonId" value={lesson.id} />
 										<Button
 											type="submit"
 											variant="outline"
 											size="sm"
 											title="Push lesson forward to next slot"
+											class="min-h-[44px]"
 										>
 											Forward →
 										</Button>

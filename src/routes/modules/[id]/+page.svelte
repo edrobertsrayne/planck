@@ -1,5 +1,6 @@
 <script lang="ts">
 	import { enhance } from '$app/forms';
+	import { resolve } from '$app/paths';
 	import type { PageData, ActionData } from './$types';
 	import Button from '$lib/components/ui/button/button.svelte';
 
@@ -68,10 +69,12 @@
 	});
 </script>
 
-<div class="container mx-auto p-6">
-	<div class="mb-6">
-		<!-- eslint-disable-next-line svelte/no-navigation-without-resolve -->
-		<a href="/modules" data-sveltekit-preload-data class="text-sm text-blue-600 hover:underline"
+<div class="container mx-auto p-4 sm:p-6">
+	<div class="mb-4 sm:mb-6">
+		<a
+			href={resolve('/modules')}
+			data-sveltekit-preload-data
+			class="inline-block min-h-[44px] py-2 text-sm text-blue-600 hover:underline"
 			>&larr; Back to Module Library</a
 		>
 	</div>
@@ -87,10 +90,13 @@
 	{/if}
 
 	<!-- Module Details Section -->
-	<div class="mb-8 rounded-lg border border-gray-200 bg-white p-6 shadow-sm">
-		<div class="mb-4 flex items-center justify-between">
-			<h1 class="text-3xl font-bold">{data.module.name}</h1>
-			<Button onclick={() => (showModuleEditForm = !showModuleEditForm)}>
+	<div class="mb-6 rounded-lg border border-gray-200 bg-white p-4 shadow-sm sm:mb-8 sm:p-6">
+		<div class="mb-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+			<h1 class="text-2xl font-bold sm:text-3xl">{data.module.name}</h1>
+			<Button
+				onclick={() => (showModuleEditForm = !showModuleEditForm)}
+				class="min-h-[44px] w-full sm:w-auto"
+			>
 				{showModuleEditForm ? 'Cancel Edit' : 'Edit Module'}
 			</Button>
 		</div>
@@ -164,14 +170,15 @@
 	</div>
 
 	<!-- Lessons Section -->
-	<div class="mb-8 rounded-lg border border-gray-200 bg-white p-6 shadow-sm">
-		<div class="mb-4 flex items-center justify-between">
-			<h2 class="text-2xl font-semibold">Lessons</h2>
+	<div class="mb-6 rounded-lg border border-gray-200 bg-white p-4 shadow-sm sm:mb-8 sm:p-6">
+		<div class="mb-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+			<h2 class="text-xl font-semibold sm:text-2xl">Lessons</h2>
 			<Button
 				onclick={() => {
 					showLessonForm = true;
 					editingLessonId = null;
 				}}
+				class="min-h-[44px] w-full sm:w-auto"
 			>
 				Add Lesson
 			</Button>
@@ -245,10 +252,10 @@
 		{:else}
 			<div class="space-y-3">
 				{#each data.lessons as lesson (lesson.id)}
-					<div class="rounded-lg border border-gray-200 bg-gray-50 p-4">
-						<div class="mb-2 flex items-start justify-between">
+					<div class="rounded-lg border border-gray-200 bg-gray-50 p-3 sm:p-4">
+						<div class="mb-2 flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
 							<div class="flex-1">
-								<h3 class="text-lg font-semibold">
+								<h3 class="text-base font-semibold sm:text-lg">
 									{lesson.order}. {lesson.title}
 								</h3>
 								<p class="text-sm text-gray-600">
@@ -256,11 +263,16 @@
 									{lesson.duration === 1 ? 'period' : 'periods'}
 								</p>
 							</div>
-							<div class="flex gap-2">
-								<Button size="sm" variant="outline" onclick={() => openEditLesson(lesson)}>
+							<div class="flex w-full flex-col gap-2 sm:w-auto sm:flex-row">
+								<Button
+									size="sm"
+									variant="outline"
+									onclick={() => openEditLesson(lesson)}
+									class="min-h-[44px]"
+								>
 									Edit
 								</Button>
-								<form method="POST" action="?/deleteLesson" use:enhance>
+								<form method="POST" action="?/deleteLesson" use:enhance class="contents">
 									<input type="hidden" name="lessonId" value={lesson.id} />
 									<Button
 										type="submit"
@@ -271,6 +283,7 @@
 												e.preventDefault();
 											}
 										}}
+										class="min-h-[44px]"
 									>
 										Delete
 									</Button>
@@ -318,9 +331,11 @@
 
 	<!-- Spec Point Picker Modal -->
 	{#if showSpecPointPicker && specPointPickerLessonId}
-		<div class="bg-opacity-50 fixed inset-0 z-50 flex items-center justify-center bg-black">
-			<div class="max-h-[80vh] w-full max-w-2xl overflow-auto rounded-lg bg-white p-6 shadow-xl">
-				<h3 class="mb-4 text-xl font-semibold">Link Specification Point</h3>
+		<div class="bg-opacity-50 fixed inset-0 z-50 flex items-center justify-center bg-black p-4">
+			<div
+				class="max-h-[85vh] w-full max-w-2xl overflow-auto rounded-lg bg-white p-4 shadow-xl sm:p-6"
+			>
+				<h3 class="mb-4 text-lg font-semibold sm:text-xl">Link Specification Point</h3>
 				<div class="space-y-2">
 					{#each data.specPoints as specPoint (specPoint.id)}
 						<form method="POST" action="?/linkSpecPoint" use:enhance>
@@ -328,16 +343,20 @@
 							<input type="hidden" name="specPointId" value={specPoint.id} />
 							<button
 								type="submit"
-								class="block w-full rounded-lg border border-gray-200 p-3 text-left hover:bg-gray-50"
+								class="block min-h-[44px] w-full rounded-lg border border-gray-200 p-3 text-left hover:bg-gray-50 active:bg-gray-100"
 							>
-								<span class="font-medium text-blue-600">{specPoint.reference}</span>
-								<p class="text-sm text-gray-600">{specPoint.content}</p>
+								<span class="text-sm font-medium text-blue-600 sm:text-base"
+									>{specPoint.reference}</span
+								>
+								<p class="text-xs text-gray-600 sm:text-sm">{specPoint.content}</p>
 							</button>
 						</form>
 					{/each}
 				</div>
 				<div class="mt-4 flex justify-end">
-					<Button variant="outline" onclick={closeSpecPointPicker}>Close</Button>
+					<Button variant="outline" onclick={closeSpecPointPicker} class="min-h-[44px]"
+						>Close</Button
+					>
 				</div>
 			</div>
 		</div>

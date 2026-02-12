@@ -18,8 +18,8 @@
 	});
 </script>
 
-<div class="container mx-auto max-w-2xl p-6">
-	<h1 class="mb-6 text-3xl font-bold">Timetable Configuration</h1>
+<div class="container mx-auto max-w-2xl p-4 sm:p-6">
+	<h1 class="mb-4 text-2xl font-bold sm:mb-6 sm:text-3xl">Timetable Configuration</h1>
 
 	{#if form?.success}
 		<div class="mb-4 rounded-md bg-green-50 p-4 text-green-800">

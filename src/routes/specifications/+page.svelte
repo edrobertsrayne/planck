@@ -26,19 +26,21 @@
 	);
 </script>
 
-<div class="container mx-auto p-6">
-	<div class="mb-6">
-		<h1 class="text-3xl font-bold">Specification Browser</h1>
-		<p class="mt-2 text-gray-600">Browse UK Physics exam specifications by board and level</p>
+<div class="container mx-auto p-4 sm:p-6">
+	<div class="mb-4 sm:mb-6">
+		<h1 class="text-2xl font-bold sm:text-3xl">Specification Browser</h1>
+		<p class="mt-2 text-sm text-gray-600 sm:text-base">
+			Browse UK Physics exam specifications by board and level
+		</p>
 	</div>
 
 	{#if data.specs.length > 0}
-		<div class="mb-6 flex items-center gap-4">
+		<div class="mb-4 flex flex-col gap-2 sm:mb-6 sm:flex-row sm:items-center sm:gap-4">
 			<label for="levelFilter" class="text-sm font-medium text-gray-700"> Filter by Level: </label>
 			<select
 				id="levelFilter"
 				bind:value={filterLevel}
-				class="rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 focus:outline-none"
+				class="min-h-[44px] w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 focus:outline-none sm:w-auto"
 			>
 				<option value="all">All Levels</option>
 				<option value="GCSE">GCSE</option>
@@ -59,16 +61,16 @@
 		</div>
 	{:else}
 		{#each Object.entries(specsByLevel) as [level, specs] (level)}
-			<div class="mb-8">
-				<h2 class="mb-4 text-2xl font-semibold">{level}</h2>
+			<div class="mb-6 sm:mb-8">
+				<h2 class="mb-3 text-xl font-semibold sm:mb-4 sm:text-2xl">{level}</h2>
 				<div class="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
 					{#each specs as spec (spec.id)}
 						<a
 							href={resolve(`/specifications/${spec.id}`)}
 							data-sveltekit-preload-data
-							class="block rounded-lg border border-gray-200 bg-white p-6 shadow-sm transition-shadow hover:shadow-md"
+							class="block min-h-[44px] rounded-lg border border-gray-200 bg-white p-4 shadow-sm transition-shadow hover:shadow-md active:shadow-lg sm:p-6"
 						>
-							<h3 class="mb-2 text-xl font-semibold">{spec.board}</h3>
+							<h3 class="mb-2 text-lg font-semibold sm:text-xl">{spec.board}</h3>
 							<p class="mb-3 text-sm text-gray-600">{spec.name}</p>
 							<div class="space-y-1 text-sm text-gray-600">
 								{#if spec.specCode}

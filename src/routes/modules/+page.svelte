@@ -32,10 +32,13 @@
 	});
 </script>
 
-<div class="container mx-auto p-6">
-	<div class="mb-6 flex items-center justify-between">
-		<h1 class="text-3xl font-bold">Module Library</h1>
-		<Button onclick={() => (showCreateForm = !showCreateForm)}>
+<div class="container mx-auto p-4 sm:p-6">
+	<div class="mb-4 flex flex-col gap-3 sm:mb-6 sm:flex-row sm:items-center sm:justify-between">
+		<h1 class="text-2xl font-bold sm:text-3xl">Module Library</h1>
+		<Button
+			onclick={() => (showCreateForm = !showCreateForm)}
+			class="min-h-[44px] w-full sm:w-auto"
+		>
 			{showCreateForm ? 'Cancel' : 'Create New Module'}
 		</Button>
 	</div>
@@ -51,14 +54,14 @@
 	{/if}
 
 	{#if !showCreateForm && data.modules.length > 0}
-		<div class="mb-6 flex items-center gap-4">
+		<div class="mb-4 flex flex-col gap-2 sm:mb-6 sm:flex-row sm:items-center sm:gap-4">
 			<label for="specFilter" class="text-sm font-medium text-gray-700">
 				Filter by Target Specification:
 			</label>
 			<select
 				id="specFilter"
 				bind:value={filterSpecId}
-				class="rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 focus:outline-none"
+				class="min-h-[44px] w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 focus:outline-none sm:w-auto"
 			>
 				<option value={null}>All Specifications</option>
 				{#each data.examSpecs as spec (spec.id)}

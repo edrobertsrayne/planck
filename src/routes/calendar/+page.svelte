@@ -122,62 +122,81 @@
 </script>
 
 <div class="container mx-auto p-4 md:p-6">
-	<div class="mb-6 flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+	<div
+		class="mb-4 flex flex-col gap-3 sm:mb-6 sm:gap-4 md:flex-row md:items-center md:justify-between"
+	>
 		<div>
-			<h1 class="text-2xl font-bold text-gray-900">Calendar</h1>
+			<h1 class="text-2xl font-bold text-gray-900 sm:text-3xl">Calendar</h1>
 			<p class="text-sm text-gray-600">Academic Year {data.academicYear}</p>
 		</div>
 
-		<div class="flex items-center gap-2">
-			<form method="POST" action="?/setView" use:enhance>
+		<div class="flex flex-wrap items-center gap-2">
+			<form method="POST" action="?/setView" use:enhance class="inline">
 				<input type="hidden" name="currentDate" value={data.currentDate} />
 				<input type="hidden" name="view" value="day" />
-				<Button type="submit" variant={currentView === 'day' ? 'default' : 'outline'} size="sm">
+				<Button
+					type="submit"
+					variant={currentView === 'day' ? 'default' : 'outline'}
+					size="sm"
+					class="min-h-[44px] min-w-[60px]"
+				>
 					Day
 				</Button>
 			</form>
-			<form method="POST" action="?/setView" use:enhance>
+			<form method="POST" action="?/setView" use:enhance class="inline">
 				<input type="hidden" name="currentDate" value={data.currentDate} />
 				<input type="hidden" name="view" value="week" />
-				<Button type="submit" variant={currentView === 'week' ? 'default' : 'outline'} size="sm">
+				<Button
+					type="submit"
+					variant={currentView === 'week' ? 'default' : 'outline'}
+					size="sm"
+					class="min-h-[44px] min-w-[60px]"
+				>
 					Week
 				</Button>
 			</form>
-			<form method="POST" action="?/setView" use:enhance>
+			<form method="POST" action="?/setView" use:enhance class="inline">
 				<input type="hidden" name="currentDate" value={data.currentDate} />
 				<input type="hidden" name="view" value="term" />
-				<Button type="submit" variant={currentView === 'term' ? 'default' : 'outline'} size="sm">
+				<Button
+					type="submit"
+					variant={currentView === 'term' ? 'default' : 'outline'}
+					size="sm"
+					class="min-h-[44px] min-w-[60px]"
+				>
 					Term
 				</Button>
 			</form>
 		</div>
 	</div>
 
-	<div class="mb-4 flex items-center justify-between">
+	<div class="mb-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
 		<form method="POST" action="?/navigate" use:enhance>
 			<input type="hidden" name="view" value={currentView} />
 			<input type="hidden" name="currentDate" value={data.currentDate} />
 			<input type="hidden" name="academicYear" value={data.academicYear} />
 			<input type="hidden" name="direction" value="prev" />
-			<Button type="submit" variant="outline" size="sm">← Previous</Button>
+			<Button type="submit" variant="outline" size="sm" class="min-h-[44px] w-full sm:w-auto">
+				← Previous
+			</Button>
 		</form>
 
-		<div class="text-center">
+		<div class="order-first text-center sm:order-none">
 			{#if currentView === 'day'}
-				<h2 class="text-lg font-semibold">{formatDate(currentDate)}</h2>
+				<h2 class="text-base font-semibold sm:text-lg">{formatDate(currentDate)}</h2>
 				{#if data.timetableConfig?.weeks === 2}
 					<p class="text-sm text-gray-600">{getCurrentWeekLabel()}</p>
 				{/if}
 			{:else if currentView === 'week'}
 				{@const days = getDaysInWeek()}
-				<h2 class="text-lg font-semibold">
+				<h2 class="text-base font-semibold sm:text-lg">
 					{formatShortDate(days[0])} - {formatShortDate(days[days.length - 1])}
 				</h2>
 				{#if data.timetableConfig?.weeks === 2}
 					<p class="text-sm text-gray-600">Week A & Week B</p>
 				{/if}
 			{:else}
-				<h2 class="text-lg font-semibold">Term Overview</h2>
+				<h2 class="text-base font-semibold sm:text-lg">Term Overview</h2>
 			{/if}
 		</div>
 
@@ -186,7 +205,9 @@
 			<input type="hidden" name="currentDate" value={data.currentDate} />
 			<input type="hidden" name="academicYear" value={data.academicYear} />
 			<input type="hidden" name="direction" value="next" />
-			<Button type="submit" variant="outline" size="sm">Next →</Button>
+			<Button type="submit" variant="outline" size="sm" class="min-h-[44px] w-full sm:w-auto">
+				Next →
+			</Button>
 		</form>
 	</div>
 
@@ -270,26 +291,30 @@
 						{@const lesson = slot ? getLessonForSlot(currentDate, slot) : null}
 
 						<div class="flex items-stretch">
-							<div class="w-16 flex-shrink-0 border-r border-gray-100 bg-gray-50 p-3 text-center">
-								<p class="text-sm font-medium text-gray-700">P{period}</p>
+							<div
+								class="w-12 flex-shrink-0 border-r border-gray-100 bg-gray-50 p-2 text-center sm:w-16 sm:p-3"
+							>
+								<p class="text-xs font-medium text-gray-700 sm:text-sm">P{period}</p>
 							</div>
-							<div class="flex-1 p-3">
+							<div class="flex-1 p-2 sm:p-3">
 								{#if lesson}
 									<a
 										href={resolve(`/classes/${lesson.classId}#lesson-${lesson.id}`)}
-										class="block w-full rounded-md border p-3 text-left transition-colors hover:opacity-80 {data.classColors.get(
+										class="block min-h-[44px] w-full rounded-md border p-3 text-left transition-colors hover:opacity-80 active:opacity-70 {data.classColors.get(
 											lesson.classId
 										) || 'border-gray-300 bg-gray-100'}"
 									>
-										<div class="flex items-center justify-between">
-											<div>
-												<p class="font-medium">{lesson.title}</p>
-												<p class="text-sm opacity-80">
+										<div class="flex flex-col gap-1 sm:flex-row sm:items-center sm:justify-between">
+											<div class="flex-1">
+												<p class="text-sm font-medium sm:text-base">{lesson.title}</p>
+												<p class="text-xs opacity-80 sm:text-sm">
 													{lesson.className} (Year {lesson.classYearGroup})
 												</p>
 											</div>
 											{#if lesson.duration > 1}
-												<span class="rounded-full bg-white/50 px-2 py-1 text-xs font-medium">
+												<span
+													class="self-start rounded-full bg-white/50 px-2 py-1 text-xs font-medium"
+												>
 													Double
 												</span>
 											{/if}
@@ -297,9 +322,9 @@
 									</a>
 								{:else}
 									<div
-										class="flex h-16 items-center justify-center rounded-md border border-dashed border-gray-200"
+										class="flex h-14 items-center justify-center rounded-md border border-dashed border-gray-200 sm:h-16"
 									>
-										<p class="text-sm text-gray-400">No lesson scheduled</p>
+										<p class="text-xs text-gray-400 sm:text-sm">No lesson scheduled</p>
 									</div>
 								{/if}
 							</div>
@@ -312,34 +337,38 @@
 		{@const daysInWeek = getDaysInWeek()}
 
 		<div class="overflow-x-auto rounded-lg border border-gray-200 bg-white shadow-sm">
-			<table class="w-full min-w-[600px]">
+			<table class="w-full min-w-[500px] sm:min-w-[600px]">
 				<thead>
 					{#if data.timetableConfig?.weeks === 2}
 						<tr class="border-b border-gray-200">
-							<th class="w-16 bg-gray-50 p-2"></th>
+							<th class="w-10 bg-gray-50 p-1 sm:w-16 sm:p-2"></th>
 							<th
 								colspan="7"
-								class="border-r border-gray-200 bg-blue-50 p-2 text-center text-sm font-semibold text-blue-900"
+								class="border-r border-gray-200 bg-blue-50 p-1 text-center text-xs font-semibold text-blue-900 sm:p-2 sm:text-sm"
 							>
 								Week A
 							</th>
 							<th
 								colspan="7"
-								class="bg-purple-50 p-2 text-center text-sm font-semibold text-purple-900"
+								class="bg-purple-50 p-1 text-center text-xs font-semibold text-purple-900 sm:p-2 sm:text-sm"
 							>
 								Week B
 							</th>
 						</tr>
 					{/if}
 					<tr class="border-b border-gray-200">
-						<th class="w-16 bg-gray-50 p-3 text-center text-sm font-medium text-gray-700">
-							Period
+						<th
+							class="w-10 bg-gray-50 p-1 text-center text-xs font-medium text-gray-700 sm:w-16 sm:p-3 sm:text-sm"
+						>
+							P
 						</th>
 						{#each daysInWeek as day, index (day.toISOString())}
 							{@const weekIndex = Math.floor(index / 7)}
 							{@const isWeekA = weekIndex === 0}
 							<th
-								class="p-3 text-center text-sm font-medium {isToday(day)
+								class="min-w-[60px] p-1 text-center text-xs font-medium sm:min-w-[80px] sm:p-3 sm:text-sm {isToday(
+									day
+								)
 									? 'bg-blue-100 text-blue-900'
 									: isWeekA && data.timetableConfig?.weeks === 2
 										? 'bg-blue-50/30 text-gray-700'
@@ -347,8 +376,13 @@
 											? 'bg-purple-50/30 text-gray-700'
 											: 'text-gray-700'} {index === 6 ? 'border-r border-gray-300' : ''}"
 							>
-								<div>{dayNames[day.getUTCDay() === 0 ? 6 : day.getUTCDay() - 1]}</div>
-								<div class="text-xs font-normal">{formatShortDate(day)}</div>
+								<div class="hidden sm:block">
+									{dayNames[day.getUTCDay() === 0 ? 6 : day.getUTCDay() - 1]}
+								</div>
+								<div class="sm:hidden">
+									{dayNames[day.getUTCDay() === 0 ? 6 : day.getUTCDay() - 1].slice(0, 3)}
+								</div>
+								<div class="text-[10px] font-normal sm:text-xs">{formatShortDate(day)}</div>
 							</th>
 						{/each}
 					</tr>
@@ -357,42 +391,53 @@
 					{#each Array(data.timetableConfig.periodsPerDay) as periodIndex (periodIndex)}
 						{@const period = periodIndex + 1}
 						<tr>
-							<td class="bg-gray-50 p-2 text-center text-sm font-medium text-gray-700">
-								P{period}
+							<td
+								class="bg-gray-50 p-1 text-center text-xs font-medium text-gray-700 sm:p-2 sm:text-sm"
+							>
+								{period}
 							</td>
 							{#each daysInWeek as day, index (day.toISOString())}
 								{@const holidayEvent = getEventForDay(day)}
 								{@const slot = findSlotForPeriod(day, period)}
 								{@const lesson = slot ? getLessonForSlot(day, slot) : null}
 
-								<td class="p-1 {index === 6 ? 'border-r border-gray-300' : ''}">
+								<td class="p-0.5 sm:p-1 {index === 6 ? 'border-r border-gray-300' : ''}">
 									{#if holidayEvent}
 										<div
-											class="flex h-16 items-center justify-center rounded border text-xs {holidayEvent.type ===
+											class="flex h-12 items-center justify-center rounded border text-[10px] sm:h-16 sm:text-xs {holidayEvent.type ===
 											'holiday'
 												? 'border-gray-200 bg-gray-100 text-gray-600'
 												: holidayEvent.type === 'closure'
 													? 'border-red-200 bg-red-50 text-red-700'
 													: 'border-yellow-200 bg-yellow-50 text-yellow-700'}"
 										>
-											{holidayEvent.type === 'holiday'
-												? 'Holiday'
-												: holidayEvent.type === 'closure'
-													? 'Closed'
-													: 'Absent'}
+											<span class="hidden sm:inline">
+												{holidayEvent.type === 'holiday'
+													? 'Holiday'
+													: holidayEvent.type === 'closure'
+														? 'Closed'
+														: 'Absent'}
+											</span>
+											<span class="sm:hidden">
+												{holidayEvent.type === 'holiday'
+													? 'Hol'
+													: holidayEvent.type === 'closure'
+														? 'Closed'
+														: 'Abs'}
+											</span>
 										</div>
 									{:else if lesson}
 										<button
-											class="h-full w-full rounded border p-2 text-left text-xs transition-colors hover:opacity-80 {data.classColors.get(
+											class="h-full min-h-[48px] w-full rounded border p-1 text-left text-[10px] transition-colors hover:opacity-80 active:opacity-70 sm:min-h-[64px] sm:p-2 sm:text-xs {data.classColors.get(
 												lesson.classId
 											) || 'border-gray-300 bg-gray-100'}"
 										>
-											<p class="leading-tight font-medium">{lesson.title}</p>
-											<p class="mt-1 opacity-75">{lesson.className}</p>
+											<p class="line-clamp-2 leading-tight font-medium">{lesson.title}</p>
+											<p class="mt-0.5 line-clamp-1 opacity-75">{lesson.className}</p>
 										</button>
 									{:else}
 										<div
-											class="flex h-16 items-center justify-center rounded border border-dashed border-gray-200"
+											class="flex h-12 items-center justify-center rounded border border-dashed border-gray-200 sm:h-16"
 										></div>
 									{/if}
 								</td>
