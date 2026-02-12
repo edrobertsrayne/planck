@@ -1,7 +1,7 @@
 {
 	"version": "1",
-	"lastUpdated": "2026-02-12T11:52:00Z",
-	"summary": "Project has shadcn-svelte UI library configured with Tailwind CSS v4. Database schema includes examSpec, topic, specPoint, teachingClass, timetableConfig, timetableSlot, module, lesson, lessonSpecPoint, moduleAssignment, scheduledLesson, scheduledLessonSpecPoint, calendarEvent, and attachment tables. All core entity schemas are complete and clean. Seed script implemented for UK Physics exam specifications with comprehensive test coverage. Application shell layout with responsive navigation is complete. Timetable configuration view implemented with full CRUD functionality, validation, and test coverage. Classes list view implemented with create functionality, year group filtering, and navigation to detail pages. Class detail view implemented with full timetable slot management (add/edit/delete), class property editing, double period support, Week A/B labelling for 2-week timetables, and chronological scheduled lesson display. Module library view implemented with create functionality, filtering by target specification, lesson count display, and assignment count tracking.",
+	"lastUpdated": "2026-02-12T12:05:00Z",
+	"summary": "Project has shadcn-svelte UI library configured with Tailwind CSS v4. Database schema includes examSpec, topic, specPoint, teachingClass, timetableConfig, timetableSlot, module, lesson, lessonSpecPoint, moduleAssignment, scheduledLesson, scheduledLessonSpecPoint, calendarEvent, and attachment tables. All core entity schemas are complete and clean. Seed script implemented for UK Physics exam specifications with comprehensive test coverage. Application shell layout with responsive navigation is complete. Timetable configuration view implemented with full CRUD functionality, validation, and test coverage. Classes list view implemented with create functionality, year group filtering, and navigation to detail pages. Class detail view implemented with full timetable slot management (add/edit/delete), class property editing, double period support, Week A/B labelling for 2-week timetables, and chronological scheduled lesson display. Module library view implemented with create functionality, filtering by target specification, lesson count display, and assignment count tracking. Module editor view implemented with full lesson management (add/edit/delete/reorder), markdown content editor, duration setting, spec point linking, and module property editing.",
 	"tasks": [
 		{
 			"id": "setup-shadcn",
@@ -274,13 +274,13 @@
 			"id": "view-module-editor",
 			"title": "Build module editor with lesson sequencing",
 			"description": "Create module editor view for creating and editing modules. Support: module name/description/target spec, adding lessons in sequence, reordering lessons via drag-and-drop, editing lesson content (markdown), setting lesson duration (single/double), linking lessons to spec points, attaching resources to module or individual lessons.",
-			"status": "pending",
+			"status": "complete",
 			"priority": "high",
 			"specReference": "v1-specification.md#creating-a-module",
 			"affectedPaths": [
 				"src/routes/modules/[id]/+page.svelte",
 				"src/routes/modules/[id]/+page.server.ts",
-				"src/routes/modules/new/+page.svelte"
+				"src/routes/modules/[id]/page.server.test.ts"
 			],
 			"dependencies": ["view-modules-library", "schema-exam-specs"],
 			"verificationSteps": [
@@ -289,7 +289,7 @@
 				"Markdown editor for lesson content",
 				"Can set lesson duration",
 				"Can link to spec points",
-				"Can attach files/links"
+				"Can attach files/links (deferred to feature-attachments task)"
 			]
 		},
 		{
