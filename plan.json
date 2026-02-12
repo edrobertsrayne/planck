@@ -1,7 +1,7 @@
 {
 	"version": "1",
-	"lastUpdated": "2026-02-12T07:00:00Z",
-	"summary": "Project has shadcn-svelte UI library configured with Tailwind CSS v4. Database schema includes examSpec, topic, specPoint, teachingClass, timetableConfig, timetableSlot, module, lesson, lessonSpecPoint, moduleAssignment, scheduledLesson, scheduledLessonSpecPoint, calendarEvent, and attachment tables. All core entity schemas are complete. Schema still contains placeholder 'task' table that needs removal.",
+	"lastUpdated": "2026-02-12T07:02:00Z",
+	"summary": "Project has shadcn-svelte UI library configured with Tailwind CSS v4. Database schema includes examSpec, topic, specPoint, teachingClass, timetableConfig, timetableSlot, module, lesson, lessonSpecPoint, moduleAssignment, scheduledLesson, scheduledLessonSpecPoint, calendarEvent, and attachment tables. All core entity schemas are complete and clean.",
 	"tasks": [
 		{
 			"id": "setup-shadcn",
@@ -129,7 +129,7 @@
 			"id": "remove-placeholder-schema",
 			"title": "Remove placeholder task table from schema",
 			"description": "The current schema.ts contains a 'task' table that is unrelated to the application spec. Remove it once the proper schema is in place.",
-			"status": "pending",
+			"status": "complete",
 			"priority": "low",
 			"specReference": "v1-specification.md#data-model-simplified",
 			"affectedPaths": ["src/lib/server/db/schema.ts"],

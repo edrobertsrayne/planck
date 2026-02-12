@@ -1,14 +1,5 @@
 import { integer, sqliteTable, text } from 'drizzle-orm/sqlite-core';
 
-// Placeholder task table - to be removed once all schema is in place
-export const task = sqliteTable('task', {
-	id: text('id')
-		.primaryKey()
-		.$defaultFn(() => crypto.randomUUID()),
-	title: text('title').notNull(),
-	priority: integer('priority').notNull().default(1)
-});
-
 // ============================================================================
 // Exam Specifications
 // ============================================================================
