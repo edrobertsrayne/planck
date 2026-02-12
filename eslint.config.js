@@ -52,7 +52,7 @@ export default defineConfig(
 	},
 	{
 		// List views with dynamic links to detail pages use standard navigation with preload data
-		files: ['src/routes/classes/+page.svelte'],
+		files: ['src/routes/classes/+page.svelte', 'src/routes/modules/+page.svelte'],
 		rules: {
 			'svelte/no-navigation-without-resolve': 'off'
 		}

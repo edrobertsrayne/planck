@@ -1,7 +1,7 @@
 {
 	"version": "1",
-	"lastUpdated": "2026-02-12T11:45:00Z",
-	"summary": "Project has shadcn-svelte UI library configured with Tailwind CSS v4. Database schema includes examSpec, topic, specPoint, teachingClass, timetableConfig, timetableSlot, module, lesson, lessonSpecPoint, moduleAssignment, scheduledLesson, scheduledLessonSpecPoint, calendarEvent, and attachment tables. All core entity schemas are complete and clean. Seed script implemented for UK Physics exam specifications with comprehensive test coverage. Application shell layout with responsive navigation is complete. Timetable configuration view implemented with full CRUD functionality, validation, and test coverage. Classes list view implemented with create functionality, year group filtering, and navigation to detail pages. Class detail view implemented with full timetable slot management (add/edit/delete), class property editing, double period support, Week A/B labelling for 2-week timetables, and chronological scheduled lesson display.",
+	"lastUpdated": "2026-02-12T11:52:00Z",
+	"summary": "Project has shadcn-svelte UI library configured with Tailwind CSS v4. Database schema includes examSpec, topic, specPoint, teachingClass, timetableConfig, timetableSlot, module, lesson, lessonSpecPoint, moduleAssignment, scheduledLesson, scheduledLessonSpecPoint, calendarEvent, and attachment tables. All core entity schemas are complete and clean. Seed script implemented for UK Physics exam specifications with comprehensive test coverage. Application shell layout with responsive navigation is complete. Timetable configuration view implemented with full CRUD functionality, validation, and test coverage. Classes list view implemented with create functionality, year group filtering, and navigation to detail pages. Class detail view implemented with full timetable slot management (add/edit/delete), class property editing, double period support, Week A/B labelling for 2-week timetables, and chronological scheduled lesson display. Module library view implemented with create functionality, filtering by target specification, lesson count display, and assignment count tracking.",
 	"tasks": [
 		{
 			"id": "setup-shadcn",
@@ -254,10 +254,14 @@
 			"id": "view-modules-library",
 			"title": "Build module library view",
 			"description": "Create module library view listing all created modules. Show module name, description, target spec, number of lessons. Support filtering by target specification. Link to module detail and show which classes a module has been assigned to.",
-			"status": "pending",
+			"status": "complete",
 			"priority": "high",
 			"specReference": "v1-specification.md#module-library",
-			"affectedPaths": ["src/routes/modules/+page.svelte", "src/routes/modules/+page.server.ts"],
+			"affectedPaths": [
+				"src/routes/modules/+page.svelte",
+				"src/routes/modules/+page.server.ts",
+				"src/routes/modules/page.server.test.ts"
+			],
 			"dependencies": ["schema-modules", "setup-shadcn"],
 			"verificationSteps": [
 				"All modules listed",
