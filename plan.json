@@ -1,7 +1,7 @@
 {
 	"version": "1",
-	"lastUpdated": "2026-02-11T22:37:00Z",
-	"summary": "Project has shadcn-svelte UI library configured with Tailwind CSS v4. Database schema includes examSpec, topic, specPoint, teachingClass, timetableConfig, and timetableSlot tables. Schema still contains placeholder 'task' table. Remaining core entities (modules, lessons, calendar, attachments) need to be built.",
+	"lastUpdated": "2026-02-12T06:48:00Z",
+	"summary": "Project has shadcn-svelte UI library configured with Tailwind CSS v4. Database schema includes examSpec, topic, specPoint, teachingClass, timetableConfig, timetableSlot, module, lesson, and lessonSpecPoint tables. Schema still contains placeholder 'task' table. Remaining core entities (assignments, calendar, attachments) need to be built.",
 	"tasks": [
 		{
 			"id": "setup-shadcn",
@@ -68,7 +68,7 @@
 			"id": "schema-modules",
 			"title": "Create database schema for modules and lessons",
 			"description": "Create Module table (name required, description optional, targetSpecId optional) and Lesson table within modules (title required, content markdown optional, duration default 1, order within module). Create LessonSpecPoint junction table for linking lessons to spec points.",
-			"status": "pending",
+			"status": "complete",
 			"priority": "critical",
 			"specReference": "v1-specification.md#modules",
 			"affectedPaths": ["src/lib/server/db/schema.ts"],

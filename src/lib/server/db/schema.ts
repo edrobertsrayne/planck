@@ -195,4 +195,79 @@ export const timetableSlot = sqliteTable('timetable_slot', {
 		.$defaultFn(() => new Date())
 });
 
+// ============================================================================
+// Modules and Lessons
+// ============================================================================
+
+/**
+ * Module is a reusable template for a planned sequence of lessons.
+ * Modules are copied when assigned to a class.
+ */
+export const module = sqliteTable('module', {
+	id: text('id')
+		.primaryKey()
+		.$defaultFn(() => crypto.randomUUID()),
+	/** Module title (e.g., "Forces and Motion") */
+	name: text('name').notNull(),
+	/** Optional overview of the module */
+	description: text('description'),
+	/** Optional reference to target exam specification */
+	targetSpecId: text('target_spec_id').references(() => examSpec.id, { onDelete: 'set null' }),
+	createdAt: integer('created_at', { mode: 'timestamp' })
+		.notNull()
+		.$defaultFn(() => new Date()),
+	updatedAt: integer('updated_at', { mode: 'timestamp' })
+		.notNull()
+		.$defaultFn(() => new Date())
+});
+
+/**
+ * Lesson within a module.
+ * Lessons are templates that get copied when a module is assigned to a class.
+ */
+export const lesson = sqliteTable('lesson', {
+	id: text('id')
+		.primaryKey()
+		.$defaultFn(() => crypto.randomUUID()),
+	/** Reference to the containing module */
+	moduleId: text('module_id')
+		.notNull()
+		.references(() => module.id, { onDelete: 'cascade' }),
+	/** Lesson title */
+	title: text('title').notNull(),
+	/** Optional markdown-formatted lesson notes/content */
+	content: text('content'),
+	/** Number of periods this lesson takes (default: 1) */
+	duration: integer('duration').notNull().default(1),
+	/** Order of this lesson within the module for sequencing */
+	order: integer('order').notNull(),
+	createdAt: integer('created_at', { mode: 'timestamp' })
+		.notNull()
+		.$defaultFn(() => new Date()),
+	updatedAt: integer('updated_at', { mode: 'timestamp' })
+		.notNull()
+		.$defaultFn(() => new Date())
+});
+
+/**
+ * Junction table linking lessons to specification points.
+ * A lesson can cover multiple spec points.
+ */
+export const lessonSpecPoint = sqliteTable('lesson_spec_point', {
+	id: text('id')
+		.primaryKey()
+		.$defaultFn(() => crypto.randomUUID()),
+	/** Reference to the lesson */
+	lessonId: text('lesson_id')
+		.notNull()
+		.references(() => lesson.id, { onDelete: 'cascade' }),
+	/** Reference to the specification point */
+	specPointId: text('spec_point_id')
+		.notNull()
+		.references(() => specPoint.id, { onDelete: 'cascade' }),
+	createdAt: integer('created_at', { mode: 'timestamp' })
+		.notNull()
+		.$defaultFn(() => new Date())
+});
+
 export * from './auth.schema';

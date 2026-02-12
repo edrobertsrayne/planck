@@ -6,7 +6,10 @@ import {
 	specPoint,
 	teachingClass,
 	timetableConfig,
-	timetableSlot
+	timetableSlot,
+	module,
+	lesson,
+	lessonSpecPoint
 } from './schema';
 
 describe('teachingClass schema', () => {
@@ -228,5 +231,153 @@ describe('timetableSlot schema', () => {
 		const fk = config.foreignKeys[0];
 		const reference = fk.reference();
 		expect(reference.columns[0].name).toBe('class_id');
+	});
+});
+
+describe('module schema', () => {
+	const config = getTableConfig(module);
+
+	it('should have table name "module"', () => {
+		expect(config.name).toBe('module');
+	});
+
+	it('should have all required columns', () => {
+		const columnNames = config.columns.map((col) => col.name);
+		expect(columnNames).toContain('id');
+		expect(columnNames).toContain('name');
+		expect(columnNames).toContain('description');
+		expect(columnNames).toContain('target_spec_id');
+		expect(columnNames).toContain('created_at');
+		expect(columnNames).toContain('updated_at');
+	});
+
+	it('should have id as primary key', () => {
+		const idColumn = config.columns.find((col) => col.name === 'id');
+		expect(idColumn?.primary).toBe(true);
+	});
+
+	it('should have name as required', () => {
+		const nameColumn = config.columns.find((col) => col.name === 'name');
+		expect(nameColumn?.notNull).toBe(true);
+	});
+
+	it('should have description as optional', () => {
+		const descriptionColumn = config.columns.find((col) => col.name === 'description');
+		expect(descriptionColumn?.notNull).toBe(false);
+	});
+
+	it('should have target_spec_id as optional', () => {
+		const targetSpecIdColumn = config.columns.find((col) => col.name === 'target_spec_id');
+		expect(targetSpecIdColumn?.notNull).toBe(false);
+	});
+
+	it('should have foreign key to exam_spec table', () => {
+		expect(config.foreignKeys.length).toBe(1);
+
+		const fk = config.foreignKeys[0];
+		const reference = fk.reference();
+		expect(reference.columns[0].name).toBe('target_spec_id');
+	});
+});
+
+describe('lesson schema', () => {
+	const config = getTableConfig(lesson);
+
+	it('should have table name "lesson"', () => {
+		expect(config.name).toBe('lesson');
+	});
+
+	it('should have all required columns', () => {
+		const columnNames = config.columns.map((col) => col.name);
+		expect(columnNames).toContain('id');
+		expect(columnNames).toContain('module_id');
+		expect(columnNames).toContain('title');
+		expect(columnNames).toContain('content');
+		expect(columnNames).toContain('duration');
+		expect(columnNames).toContain('order');
+		expect(columnNames).toContain('created_at');
+		expect(columnNames).toContain('updated_at');
+	});
+
+	it('should have id as primary key', () => {
+		const idColumn = config.columns.find((col) => col.name === 'id');
+		expect(idColumn?.primary).toBe(true);
+	});
+
+	it('should have module_id as required', () => {
+		const moduleIdColumn = config.columns.find((col) => col.name === 'module_id');
+		expect(moduleIdColumn?.notNull).toBe(true);
+	});
+
+	it('should have title as required', () => {
+		const titleColumn = config.columns.find((col) => col.name === 'title');
+		expect(titleColumn?.notNull).toBe(true);
+	});
+
+	it('should have content as optional', () => {
+		const contentColumn = config.columns.find((col) => col.name === 'content');
+		expect(contentColumn?.notNull).toBe(false);
+	});
+
+	it('should have duration with default of 1', () => {
+		const durationColumn = config.columns.find((col) => col.name === 'duration');
+		expect(durationColumn?.notNull).toBe(true);
+		expect(durationColumn?.default).toBe(1);
+	});
+
+	it('should have order as required', () => {
+		const orderColumn = config.columns.find((col) => col.name === 'order');
+		expect(orderColumn?.notNull).toBe(true);
+	});
+
+	it('should have foreign key to module table', () => {
+		expect(config.foreignKeys.length).toBe(1);
+
+		const fk = config.foreignKeys[0];
+		const reference = fk.reference();
+		expect(reference.columns[0].name).toBe('module_id');
+	});
+});
+
+describe('lessonSpecPoint schema', () => {
+	const config = getTableConfig(lessonSpecPoint);
+
+	it('should have table name "lesson_spec_point"', () => {
+		expect(config.name).toBe('lesson_spec_point');
+	});
+
+	it('should have all required columns', () => {
+		const columnNames = config.columns.map((col) => col.name);
+		expect(columnNames).toContain('id');
+		expect(columnNames).toContain('lesson_id');
+		expect(columnNames).toContain('spec_point_id');
+		expect(columnNames).toContain('created_at');
+	});
+
+	it('should have id as primary key', () => {
+		const idColumn = config.columns.find((col) => col.name === 'id');
+		expect(idColumn?.primary).toBe(true);
+	});
+
+	it('should have lesson_id as required', () => {
+		const lessonIdColumn = config.columns.find((col) => col.name === 'lesson_id');
+		expect(lessonIdColumn?.notNull).toBe(true);
+	});
+
+	it('should have spec_point_id as required', () => {
+		const specPointIdColumn = config.columns.find((col) => col.name === 'spec_point_id');
+		expect(specPointIdColumn?.notNull).toBe(true);
+	});
+
+	it('should have foreign keys to lesson and spec_point tables', () => {
+		expect(config.foreignKeys.length).toBe(2);
+
+		const fkColumns = config.foreignKeys.map((fk) => {
+			const ref = fk.reference();
+			return ref.columns[0].name;
+		});
+
+		expect(fkColumns).toContain('lesson_id');
+		expect(fkColumns).toContain('spec_point_id');
 	});
 });
