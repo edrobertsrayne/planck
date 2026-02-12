@@ -476,6 +476,12 @@
 			</a>
 		</div>
 
+		{#if form?.message}
+			<div class="mb-4 rounded-md border border-green-200 bg-green-50 p-3 text-green-800">
+				{form.message}
+			</div>
+		{/if}
+
 		{#if data.scheduledLessons.length === 0}
 			<div class="rounded-lg border border-gray-200 bg-gray-50 p-8 text-center">
 				<p class="text-gray-600">
@@ -487,12 +493,36 @@
 				{#each data.scheduledLessons as lesson (lesson.id)}
 					<div class="rounded-md border border-gray-200 bg-white p-4">
 						<div class="flex items-start justify-between">
-							<div>
+							<div class="flex-1">
 								<h3 class="font-semibold">{lesson.title}</h3>
 								<p class="text-sm text-gray-600">{formatDate(lesson.calendarDate)}</p>
 								{#if lesson.duration > 1}
 									<p class="text-xs text-gray-500">{lesson.duration} periods</p>
 								{/if}
+							</div>
+							<div class="flex gap-2">
+								<form method="POST" action="?/pushLessonBack" use:enhance>
+									<input type="hidden" name="lessonId" value={lesson.id} />
+									<Button
+										type="submit"
+										variant="outline"
+										size="sm"
+										title="Push lesson back to previous slot"
+									>
+										← Back
+									</Button>
+								</form>
+								<form method="POST" action="?/pushLessonForward" use:enhance>
+									<input type="hidden" name="lessonId" value={lesson.id} />
+									<Button
+										type="submit"
+										variant="outline"
+										size="sm"
+										title="Push lesson forward to next slot"
+									>
+										Forward →
+									</Button>
+								</form>
 							</div>
 						</div>
 					</div>

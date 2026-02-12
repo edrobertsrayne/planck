@@ -9,6 +9,7 @@ import {
 import { eq, and, asc } from 'drizzle-orm';
 import { error } from '@sveltejs/kit';
 import type { Actions, PageServerLoad } from './$types';
+import { pushLesson } from '$lib/server/scheduling/push-lesson';
 
 export const load: PageServerLoad = async ({ params }) => {
 	const classId = params.id;
@@ -245,5 +246,53 @@ export const actions: Actions = {
 		await db.delete(timetableSlot).where(eq(timetableSlot.id, slotId));
 
 		return { success: true };
+	},
+
+	pushLessonForward: async ({ request }) => {
+		const data = await request.formData();
+		const lessonId = data.get('lessonId')?.toString() || '';
+
+		if (!lessonId) {
+			return { error: 'Lesson ID is required' };
+		}
+
+		try {
+			const result = await pushLesson({
+				lessonId,
+				direction: 'forward'
+			});
+
+			return {
+				success: true,
+				message: `Moved ${result.lessonsAffected} lesson(s) forward`
+			};
+		} catch (err) {
+			const error = err as Error;
+			return { error: error.message };
+		}
+	},
+
+	pushLessonBack: async ({ request }) => {
+		const data = await request.formData();
+		const lessonId = data.get('lessonId')?.toString() || '';
+
+		if (!lessonId) {
+			return { error: 'Lesson ID is required' };
+		}
+
+		try {
+			const result = await pushLesson({
+				lessonId,
+				direction: 'back'
+			});
+
+			return {
+				success: true,
+				message: `Moved ${result.lessonsAffected} lesson(s) backward`
+			};
+		} catch (err) {
+			const error = err as Error;
+			return { error: error.message };
+		}
 	}
 };
