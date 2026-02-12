@@ -469,7 +469,12 @@
 
 	<!-- Scheduled Lessons Section -->
 	<div class="mb-8 rounded-lg border border-gray-200 bg-white p-6 shadow-sm">
-		<h2 class="mb-4 text-2xl font-semibold">Scheduled Lessons</h2>
+		<div class="mb-4 flex items-center justify-between">
+			<h2 class="text-2xl font-semibold">Scheduled Lessons</h2>
+			<a href={resolve(`/classes/${data.class.id}/assign`)}>
+				<Button>Assign Module</Button>
+			</a>
+		</div>
 
 		{#if data.scheduledLessons.length === 0}
 			<div class="rounded-lg border border-gray-200 bg-gray-50 p-8 text-center">
