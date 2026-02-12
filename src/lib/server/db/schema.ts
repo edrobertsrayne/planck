@@ -390,4 +390,41 @@ export const calendarEvent = sqliteTable('calendar_event', {
 		.$defaultFn(() => new Date())
 });
 
+// ============================================================================
+// Attachments
+// ============================================================================
+
+/**
+ * Attachments for various entities in the system.
+ * Supports both file uploads and link attachments with polymorphic associations.
+ * Entities that can have attachments: specifications, classes, modules, lessons, and scheduled lessons.
+ */
+export const attachment = sqliteTable('attachment', {
+	id: text('id')
+		.primaryKey()
+		.$defaultFn(() => crypto.randomUUID()),
+	/** Type of attachment: file (uploaded) or link (URL) */
+	type: text('type', { enum: ['file', 'link'] }).notNull(),
+	/** Entity type this attachment belongs to */
+	entityType: text('entity_type', {
+		enum: ['class', 'module', 'lesson', 'scheduledLesson', 'spec']
+	}).notNull(),
+	/** ID of the entity this attachment belongs to (polymorphic) */
+	entityId: text('entity_id').notNull(),
+	/** File path for uploaded files (relative to configured uploads directory) */
+	filePath: text('file_path'),
+	/** URL for link attachments */
+	url: text('url'),
+	/** Original file name or link title */
+	fileName: text('file_name'),
+	/** MIME type for files (e.g., application/pdf, image/png) */
+	mimeType: text('mime_type'),
+	createdAt: integer('created_at', { mode: 'timestamp' })
+		.notNull()
+		.$defaultFn(() => new Date()),
+	updatedAt: integer('updated_at', { mode: 'timestamp' })
+		.notNull()
+		.$defaultFn(() => new Date())
+});
+
 export * from './auth.schema';

@@ -1,7 +1,7 @@
 {
 	"version": "1",
-	"lastUpdated": "2026-02-12T06:56:00Z",
-	"summary": "Project has shadcn-svelte UI library configured with Tailwind CSS v4. Database schema includes examSpec, topic, specPoint, teachingClass, timetableConfig, timetableSlot, module, lesson, lessonSpecPoint, moduleAssignment, scheduledLesson, scheduledLessonSpecPoint, and calendarEvent tables. Schema still contains placeholder 'task' table. Remaining core entity (attachments) needs to be built.",
+	"lastUpdated": "2026-02-12T07:00:00Z",
+	"summary": "Project has shadcn-svelte UI library configured with Tailwind CSS v4. Database schema includes examSpec, topic, specPoint, teachingClass, timetableConfig, timetableSlot, module, lesson, lessonSpecPoint, moduleAssignment, scheduledLesson, scheduledLessonSpecPoint, calendarEvent, and attachment tables. All core entity schemas are complete. Schema still contains placeholder 'task' table that needs removal.",
 	"tasks": [
 		{
 			"id": "setup-shadcn",
@@ -114,7 +114,7 @@
 			"id": "schema-attachments",
 			"title": "Create database schema for attachments",
 			"description": "Create Attachment table with polymorphic association: type (file/link), entityType (class/module/lesson/scheduledLesson/spec), entityId, filePath or url, fileName, mimeType. Support attachments on specs, classes, modules, lessons, and scheduled lessons.",
-			"status": "pending",
+			"status": "complete",
 			"priority": "high",
 			"specReference": "v1-specification.md#file-attachments",
 			"affectedPaths": ["src/lib/server/db/schema.ts"],

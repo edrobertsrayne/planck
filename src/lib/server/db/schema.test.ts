@@ -13,7 +13,8 @@ import {
 	moduleAssignment,
 	scheduledLesson,
 	scheduledLessonSpecPoint,
-	calendarEvent
+	calendarEvent,
+	attachment
 } from './schema';
 
 describe('teachingClass schema', () => {
@@ -616,6 +617,72 @@ describe('calendarEvent schema', () => {
 	});
 
 	it('should have no foreign keys', () => {
+		expect(config.foreignKeys.length).toBe(0);
+	});
+});
+
+describe('attachment schema', () => {
+	const config = getTableConfig(attachment);
+
+	it('should have table name "attachment"', () => {
+		expect(config.name).toBe('attachment');
+	});
+
+	it('should have all required columns', () => {
+		const columnNames = config.columns.map((col) => col.name);
+		expect(columnNames).toContain('id');
+		expect(columnNames).toContain('type');
+		expect(columnNames).toContain('entity_type');
+		expect(columnNames).toContain('entity_id');
+		expect(columnNames).toContain('file_path');
+		expect(columnNames).toContain('url');
+		expect(columnNames).toContain('file_name');
+		expect(columnNames).toContain('mime_type');
+		expect(columnNames).toContain('created_at');
+		expect(columnNames).toContain('updated_at');
+	});
+
+	it('should have id as primary key', () => {
+		const idColumn = config.columns.find((col) => col.name === 'id');
+		expect(idColumn?.primary).toBe(true);
+	});
+
+	it('should have type as required', () => {
+		const typeColumn = config.columns.find((col) => col.name === 'type');
+		expect(typeColumn?.notNull).toBe(true);
+	});
+
+	it('should have entity_type as required', () => {
+		const entityTypeColumn = config.columns.find((col) => col.name === 'entity_type');
+		expect(entityTypeColumn?.notNull).toBe(true);
+	});
+
+	it('should have entity_id as required', () => {
+		const entityIdColumn = config.columns.find((col) => col.name === 'entity_id');
+		expect(entityIdColumn?.notNull).toBe(true);
+	});
+
+	it('should have file_path as optional (only for file type)', () => {
+		const filePathColumn = config.columns.find((col) => col.name === 'file_path');
+		expect(filePathColumn?.notNull).toBe(false);
+	});
+
+	it('should have url as optional (only for link type)', () => {
+		const urlColumn = config.columns.find((col) => col.name === 'url');
+		expect(urlColumn?.notNull).toBe(false);
+	});
+
+	it('should have file_name as optional', () => {
+		const fileNameColumn = config.columns.find((col) => col.name === 'file_name');
+		expect(fileNameColumn?.notNull).toBe(false);
+	});
+
+	it('should have mime_type as optional', () => {
+		const mimeTypeColumn = config.columns.find((col) => col.name === 'mime_type');
+		expect(mimeTypeColumn?.notNull).toBe(false);
+	});
+
+	it('should have no foreign keys (polymorphic association)', () => {
 		expect(config.foreignKeys.length).toBe(0);
 	});
 });
