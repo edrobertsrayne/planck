@@ -1,7 +1,7 @@
 {
 	"version": "1",
-	"lastUpdated": "2026-02-12T09:05:00Z",
-	"summary": "Project has shadcn-svelte UI library configured with Tailwind CSS v4. Database schema includes examSpec, topic, specPoint, teachingClass, timetableConfig, timetableSlot, module, lesson, lessonSpecPoint, moduleAssignment, scheduledLesson, scheduledLessonSpecPoint, calendarEvent, and attachment tables. All core entity schemas are complete and clean. Seed script implemented for UK Physics exam specifications with comprehensive test coverage. Application shell layout with responsive navigation is complete. Timetable configuration view implemented with full CRUD functionality, validation, and test coverage. Classes list view implemented with create functionality, year group filtering, and navigation to detail pages.",
+	"lastUpdated": "2026-02-12T11:45:00Z",
+	"summary": "Project has shadcn-svelte UI library configured with Tailwind CSS v4. Database schema includes examSpec, topic, specPoint, teachingClass, timetableConfig, timetableSlot, module, lesson, lessonSpecPoint, moduleAssignment, scheduledLesson, scheduledLessonSpecPoint, calendarEvent, and attachment tables. All core entity schemas are complete and clean. Seed script implemented for UK Physics exam specifications with comprehensive test coverage. Application shell layout with responsive navigation is complete. Timetable configuration view implemented with full CRUD functionality, validation, and test coverage. Classes list view implemented with create functionality, year group filtering, and navigation to detail pages. Class detail view implemented with full timetable slot management (add/edit/delete), class property editing, double period support, Week A/B labelling for 2-week timetables, and chronological scheduled lesson display.",
 	"tasks": [
 		{
 			"id": "setup-shadcn",
@@ -233,12 +233,13 @@
 			"id": "view-class-detail",
 			"title": "Build class detail view with timetable slot management",
 			"description": "Create class detail view showing: class properties, assigned exam spec, timetable slots configuration (add/edit slots with day, period, double period support, week A/B for 2-week timetables), all scheduled lessons chronologically, attached documents, and progress through assigned modules.",
-			"status": "pending",
+			"status": "complete",
 			"priority": "high",
 			"specReference": "v1-specification.md#class-view",
 			"affectedPaths": [
 				"src/routes/classes/[id]/+page.svelte",
-				"src/routes/classes/[id]/+page.server.ts"
+				"src/routes/classes/[id]/+page.server.ts",
+				"src/routes/classes/[id]/page.server.test.ts"
 			],
 			"dependencies": ["view-classes-list", "schema-timetable"],
 			"verificationSteps": [
