@@ -10,7 +10,20 @@ import {
 	saveFile
 } from './index';
 import { db } from '$lib/server/db';
-import { attachment, examSpec } from '$lib/server/db/schema';
+import {
+	attachment,
+	examSpec,
+	topic,
+	specPoint,
+	teachingClass,
+	module,
+	timetableSlot,
+	scheduledLessonSpecPoint,
+	scheduledLesson,
+	moduleAssignment,
+	lessonSpecPoint,
+	lesson
+} from '$lib/server/db/schema';
 import { existsSync } from 'fs';
 import { unlink } from 'fs/promises';
 import { join } from 'path';
@@ -22,8 +35,18 @@ describe('Attachment Utilities', () => {
 	let createdFiles: string[] = [];
 
 	beforeEach(async () => {
-		// Clean up test data
+		// Clean up test data in foreign key dependency order
 		await db.delete(attachment);
+		await db.delete(scheduledLessonSpecPoint);
+		await db.delete(scheduledLesson);
+		await db.delete(moduleAssignment);
+		await db.delete(timetableSlot);
+		await db.delete(teachingClass);
+		await db.delete(lessonSpecPoint);
+		await db.delete(lesson);
+		await db.delete(module);
+		await db.delete(specPoint);
+		await db.delete(topic);
 		await db.delete(examSpec);
 
 		// Create test exam spec

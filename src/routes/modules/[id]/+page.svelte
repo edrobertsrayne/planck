@@ -19,9 +19,16 @@
 	let attachmentSuccess = $state('');
 
 	// Module form state
-	let moduleName = $state(data.module.name);
-	let moduleDescription = $state(data.module.description || '');
-	let moduleTargetSpecId = $state(data.module.targetSpecId || '');
+	let moduleName = $state('');
+	let moduleDescription = $state('');
+	let moduleTargetSpecId = $state('');
+
+	// Sync module form state with data when it changes
+	$effect(() => {
+		moduleName = data.module.name;
+		moduleDescription = data.module.description || '';
+		moduleTargetSpecId = data.module.targetSpecId || '';
+	});
 
 	// Lesson form state
 	let lessonTitle = $state('');

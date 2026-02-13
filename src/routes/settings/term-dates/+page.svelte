@@ -39,7 +39,9 @@
 		// Wait for the form to submit and then redirect to show the events
 		setTimeout(() => {
 			if (year) {
-				goto(resolve(`/settings/term-dates?year=${year}`));
+				// Note: We need to add query params after resolve(), which only works with pathnames
+				// eslint-disable-next-line svelte/no-navigation-without-resolve
+				goto(`${resolve('/settings/term-dates')}?year=${year}`);
 			}
 		}, 500);
 	}

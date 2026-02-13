@@ -64,8 +64,8 @@
 			</div>
 
 			<!-- Start Point Selection -->
-			<div class="space-y-3">
-				<label class="block text-sm font-medium text-gray-700">Start Point</label>
+			<fieldset class="space-y-3">
+				<legend class="block text-sm font-medium text-gray-700">Start Point</legend>
 
 				<div class="space-y-2">
 					<!-- Next Available Option -->
@@ -125,7 +125,7 @@
 				</div>
 
 				<input type="hidden" name="useNextAvailable" value={useNextAvailable.toString()} />
-			</div>
+			</fieldset>
 
 			<!-- Submit Buttons -->
 			<div class="flex gap-3 pt-4">

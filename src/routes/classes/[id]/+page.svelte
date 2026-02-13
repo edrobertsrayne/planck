@@ -19,12 +19,22 @@
 	let attachmentSuccess = $state('');
 
 	// Form states for class editing
-	let name = $state(data.class.name);
-	let yearGroup = $state(data.class.yearGroup);
-	let academicYear = $state(data.class.academicYear);
-	let studentCount = $state(data.class.studentCount?.toString() || '');
-	let room = $state(data.class.room || '');
-	let notes = $state(data.class.notes || '');
+	let name = $state('');
+	let yearGroup = $state(7);
+	let academicYear = $state('');
+	let studentCount = $state('');
+	let room = $state('');
+	let notes = $state('');
+
+	// Sync form state with data when it changes (e.g., after navigation or form submission)
+	$effect(() => {
+		name = data.class.name;
+		yearGroup = data.class.yearGroup;
+		academicYear = data.class.academicYear;
+		studentCount = data.class.studentCount?.toString() || '';
+		room = data.class.room || '';
+		notes = data.class.notes || '';
+	});
 
 	// Form states for slot management
 	let slotDay = $state(1);

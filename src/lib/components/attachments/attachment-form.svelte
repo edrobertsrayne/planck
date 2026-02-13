@@ -77,8 +77,8 @@
 	<h4 class="mb-4 text-sm font-medium text-gray-700">Add Attachment</h4>
 
 	<form onsubmit={handleSubmit} class="space-y-4">
-		<div>
-			<label class="mb-2 block text-sm font-medium text-gray-700">Attachment Type</label>
+		<fieldset>
+			<legend class="mb-2 block text-sm font-medium text-gray-700">Attachment Type</legend>
 			<div class="flex gap-4">
 				<label class="flex items-center gap-2">
 					<input
@@ -101,7 +101,7 @@
 					<span class="text-sm">Link</span>
 				</label>
 			</div>
-		</div>
+		</fieldset>
 
 		{#if attachmentType === 'file'}
 			<div>
