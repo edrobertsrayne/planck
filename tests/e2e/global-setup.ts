@@ -1,6 +1,6 @@
 import type { FullConfig } from '@playwright/test';
 import { createTestDb, seedExamSpecs, seedTimetableConfig } from './helpers/db-helpers';
-import { migrate } from 'drizzle-orm/better-sqlite3/migrator';
+import { migrate } from 'drizzle-orm/bun-sqlite/migrator';
 import { execSync } from 'child_process';
 import path from 'path';
 

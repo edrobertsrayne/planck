@@ -1,5 +1,5 @@
-import Database from 'better-sqlite3';
-import { drizzle } from 'drizzle-orm/better-sqlite3';
+import { Database } from 'bun:sqlite';
+import { drizzle } from 'drizzle-orm/bun-sqlite';
 import * as schema from '../../../src/lib/server/db/schema';
 
 // Test database path
@@ -10,14 +10,14 @@ const TEST_DB_PATH = process.env.TEST_DATABASE_URL || ':memory:';
  */
 export function createTestDb() {
 	const sqlite = new Database(TEST_DB_PATH);
-	const db = drizzle(sqlite, { schema });
+	const db = drizzle({ client: sqlite, schema });
 	return { db, sqlite };
 }
 
 /**
  * Clean all tables in the database
  */
-export function cleanDatabase(sqlite: Database.Database) {
+export function cleanDatabase(sqlite: Database) {
 	// Get all table names from schema
 	const tables = [
 		'scheduled_lesson_spec_point',
@@ -44,7 +44,7 @@ export function cleanDatabase(sqlite: Database.Database) {
 	// Delete in reverse order to respect foreign key constraints
 	for (const table of tables) {
 		try {
-			sqlite.exec(`DELETE FROM ${table}`);
+			sqlite.run(`DELETE FROM ${table}`);
 		} catch {
 			// Table might not exist yet, ignore
 		}
