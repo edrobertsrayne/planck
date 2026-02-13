@@ -11,7 +11,8 @@ import {
 } from '$lib/server/db/schema';
 import { eq, sql, asc } from 'drizzle-orm';
 import { error } from '@sveltejs/kit';
-import type { PageServerLoad } from './$types';
+import type { PageServerLoad, Actions } from './$types';
+import { getAttachments, deleteAttachment } from '$lib/server/attachments';
 
 export const load: PageServerLoad = async ({ params }) => {
 	const specId = params.id;
@@ -149,9 +150,27 @@ export const load: PageServerLoad = async ({ params }) => {
 		}
 	}
 
+	// Get attachments for this specification
+	const attachments = await getAttachments('spec', specId);
+
 	return {
 		spec,
 		topics: rootTopics,
-		usageMap: Object.fromEntries(usageMap)
+		usageMap: Object.fromEntries(usageMap),
+		attachments
 	};
+};
+
+export const actions: Actions = {
+	deleteAttachment: async ({ request }) => {
+		const formData = await request.formData();
+		const id = formData.get('id') as string;
+
+		if (!id) {
+			throw error(400, 'Attachment ID is required');
+		}
+
+		await deleteAttachment(id);
+		return { success: true };
+	}
 };

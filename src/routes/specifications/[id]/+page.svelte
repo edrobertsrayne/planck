@@ -1,12 +1,19 @@
 <script lang="ts">
 	/* eslint-disable svelte/prefer-svelte-reactivity */
 	import { resolve } from '$app/paths';
+	import { invalidateAll } from '$app/navigation';
 	import type { PageData } from './$types';
+	import AttachmentList from '$lib/components/attachments/attachment-list.svelte';
+	import AttachmentForm from '$lib/components/attachments/attachment-form.svelte';
+	import Button from '$lib/components/ui/button/button.svelte';
 
 	let { data }: { data: PageData } = $props();
 
 	// Track which topics are expanded
 	let expandedTopics = $state(new Set<string>());
+	let showAttachmentForm = $state(false);
+	let errorMessage = $state('');
+	let successMessage = $state('');
 
 	function toggleTopic(topicId: string) {
 		if (expandedTopics.has(topicId)) {
@@ -16,6 +23,50 @@
 		}
 		// Create new Set to trigger reactivity
 		expandedTopics = new Set(expandedTopics);
+	}
+
+	async function handleDeleteAttachment(id: string) {
+		const formData = new FormData();
+		formData.append('id', id);
+
+		const response = await fetch('?/deleteAttachment', {
+			method: 'POST',
+			body: formData
+		});
+
+		if (response.ok) {
+			successMessage = 'Attachment deleted successfully';
+			errorMessage = '';
+			await invalidateAll();
+		} else {
+			errorMessage = 'Failed to delete attachment';
+			successMessage = '';
+		}
+
+		setTimeout(() => {
+			errorMessage = '';
+			successMessage = '';
+		}, 3000);
+	}
+
+	function handleAttachmentSuccess() {
+		showAttachmentForm = false;
+		successMessage = 'Attachment added successfully';
+		errorMessage = '';
+		invalidateAll();
+
+		setTimeout(() => {
+			successMessage = '';
+		}, 3000);
+	}
+
+	function handleAttachmentError(message: string) {
+		errorMessage = message;
+		successMessage = '';
+
+		setTimeout(() => {
+			errorMessage = '';
+		}, 3000);
 	}
 </script>
 
@@ -35,6 +86,41 @@
 				<p><span class="font-medium">Year:</span> {data.spec.specYear}</p>
 			{/if}
 		</div>
+	</div>
+
+	<!-- Attachments Section -->
+	<div class="mb-6 rounded-lg border border-gray-200 bg-white p-6">
+		<div class="mb-4 flex items-center justify-between">
+			<h2 class="text-xl font-semibold">Specification Documents</h2>
+			<Button onclick={() => (showAttachmentForm = !showAttachmentForm)}>
+				{showAttachmentForm ? 'Cancel' : 'Add Document'}
+			</Button>
+		</div>
+
+		{#if errorMessage}
+			<div class="mb-4 rounded-md bg-red-50 p-3 text-sm text-red-800">
+				{errorMessage}
+			</div>
+		{/if}
+
+		{#if successMessage}
+			<div class="mb-4 rounded-md bg-green-50 p-3 text-sm text-green-800">
+				{successMessage}
+			</div>
+		{/if}
+
+		{#if showAttachmentForm}
+			<div class="mb-4">
+				<AttachmentForm
+					entityType="spec"
+					entityId={data.spec.id}
+					onSuccess={handleAttachmentSuccess}
+					onError={handleAttachmentError}
+				/>
+			</div>
+		{/if}
+
+		<AttachmentList attachments={data.attachments} onDelete={handleDeleteAttachment} />
 	</div>
 
 	{#if data.topics.length === 0}

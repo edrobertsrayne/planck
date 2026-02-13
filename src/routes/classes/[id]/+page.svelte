@@ -1,8 +1,11 @@
 <script lang="ts">
 	import { enhance } from '$app/forms';
 	import { resolve } from '$app/paths';
+	import { invalidateAll } from '$app/navigation';
 	import type { PageData, ActionData } from './$types';
 	import Button from '$lib/components/ui/button/button.svelte';
+	import AttachmentList from '$lib/components/attachments/attachment-list.svelte';
+	import AttachmentForm from '$lib/components/attachments/attachment-form.svelte';
 
 	let { data, form }: { data: PageData; form: ActionData } = $props();
 
@@ -11,6 +14,9 @@
 	let addingSlot = $state(false);
 	let editingSlot = $state<string | null>(null);
 	let editingLesson = $state<string | null>(null);
+	let showAttachmentForm = $state(false);
+	let attachmentError = $state('');
+	let attachmentSuccess = $state('');
 
 	// Form states for class editing
 	let name = $state(data.class.name);
@@ -135,6 +141,50 @@
 			resetLessonForm();
 		}
 	});
+
+	async function handleDeleteAttachment(id: string) {
+		const formData = new FormData();
+		formData.append('id', id);
+
+		const response = await fetch('?/deleteAttachment', {
+			method: 'POST',
+			body: formData
+		});
+
+		if (response.ok) {
+			attachmentSuccess = 'Attachment deleted successfully';
+			attachmentError = '';
+			await invalidateAll();
+		} else {
+			attachmentError = 'Failed to delete attachment';
+			attachmentSuccess = '';
+		}
+
+		setTimeout(() => {
+			attachmentError = '';
+			attachmentSuccess = '';
+		}, 3000);
+	}
+
+	function handleAttachmentSuccess() {
+		showAttachmentForm = false;
+		attachmentSuccess = 'Attachment added successfully';
+		attachmentError = '';
+		invalidateAll();
+
+		setTimeout(() => {
+			attachmentSuccess = '';
+		}, 3000);
+	}
+
+	function handleAttachmentError(message: string) {
+		attachmentError = message;
+		attachmentSuccess = '';
+
+		setTimeout(() => {
+			attachmentError = '';
+		}, 3000);
+	}
 </script>
 
 <div class="container mx-auto p-4 sm:p-6">
@@ -297,6 +347,44 @@
 				{/if}
 			</div>
 		{/if}
+	</div>
+
+	<!-- Attachments Section -->
+	<div class="mb-6 rounded-lg border border-gray-200 bg-white p-4 shadow-sm sm:mb-8 sm:p-6">
+		<div class="mb-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+			<h2 class="text-xl font-semibold sm:text-2xl">Attachments</h2>
+			<Button
+				onclick={() => (showAttachmentForm = !showAttachmentForm)}
+				class="min-h-[44px] w-full sm:w-auto"
+			>
+				{showAttachmentForm ? 'Cancel' : 'Add Attachment'}
+			</Button>
+		</div>
+
+		{#if attachmentError}
+			<div class="mb-4 rounded-md bg-red-50 p-3 text-sm text-red-800">
+				{attachmentError}
+			</div>
+		{/if}
+
+		{#if attachmentSuccess}
+			<div class="mb-4 rounded-md bg-green-50 p-3 text-sm text-green-800">
+				{attachmentSuccess}
+			</div>
+		{/if}
+
+		{#if showAttachmentForm}
+			<div class="mb-4">
+				<AttachmentForm
+					entityType="class"
+					entityId={data.class.id}
+					onSuccess={handleAttachmentSuccess}
+					onError={handleAttachmentError}
+				/>
+			</div>
+		{/if}
+
+		<AttachmentList attachments={data.attachments} onDelete={handleDeleteAttachment} />
 	</div>
 
 	<!-- Timetable Slots Section -->

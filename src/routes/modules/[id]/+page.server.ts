@@ -3,6 +3,7 @@ import { module, lesson, examSpec, specPoint, topic, lessonSpecPoint } from '$li
 import { eq, asc, and, inArray } from 'drizzle-orm';
 import { error } from '@sveltejs/kit';
 import type { Actions, PageServerLoad } from './$types';
+import { getAttachments, deleteAttachment } from '$lib/server/attachments';
 
 export const load: PageServerLoad = async ({ params }) => {
 	const moduleId = params.id;
@@ -99,11 +100,24 @@ export const load: PageServerLoad = async ({ params }) => {
 			.orderBy(asc(specPoint.sortOrder));
 	}
 
+	// Get attachments for both module and lessons
+	const moduleAttachments = await getAttachments('module', moduleId);
+
+	// For lessons, we'll load them individually when needed
+	// But we can provide attachment counts here
+	const lessonAttachmentCounts = new Map<string, number>();
+	for (const lesson of lessons) {
+		const attachments = await getAttachments('lesson', lesson.id);
+		lessonAttachmentCounts.set(lesson.id, attachments.length);
+	}
+
 	return {
 		module: moduleData,
 		lessons: lessonsWithSpecPoints,
 		examSpecs,
-		specPoints
+		specPoints,
+		moduleAttachments,
+		lessonAttachmentCounts: Object.fromEntries(lessonAttachmentCounts)
 	};
 };
 
@@ -323,6 +337,18 @@ export const actions: Actions = {
 				and(eq(lessonSpecPoint.lessonId, lessonId), eq(lessonSpecPoint.specPointId, specPointId))
 			);
 
+		return { success: true };
+	},
+
+	deleteAttachment: async ({ request }) => {
+		const formData = await request.formData();
+		const id = formData.get('id') as string;
+
+		if (!id) {
+			throw error(400, 'Attachment ID is required');
+		}
+
+		await deleteAttachment(id);
 		return { success: true };
 	}
 };

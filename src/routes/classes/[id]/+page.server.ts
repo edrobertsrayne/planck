@@ -13,6 +13,7 @@ import { eq, and, asc, inArray } from 'drizzle-orm';
 import { error } from '@sveltejs/kit';
 import type { Actions, PageServerLoad } from './$types';
 import { pushLesson } from '$lib/server/scheduling/push-lesson';
+import { getAttachments, deleteAttachment } from '$lib/server/attachments';
 
 export const load: PageServerLoad = async ({ params }) => {
 	const classId = params.id;
@@ -103,12 +104,16 @@ export const load: PageServerLoad = async ({ params }) => {
 				.orderBy(asc(specPoint.reference))
 		: [];
 
+	// Get attachments for this class
+	const attachments = await getAttachments('class', classId);
+
 	return {
 		class: classData,
 		timetableSlots: slots,
 		scheduledLessons: lessons,
 		specPointLinks,
-		availableSpecPoints
+		availableSpecPoints,
+		attachments
 	};
 };
 
@@ -400,6 +405,18 @@ export const actions: Actions = {
 			}
 		}
 
+		return { success: true };
+	},
+
+	deleteAttachment: async ({ request }) => {
+		const formData = await request.formData();
+		const id = formData.get('id') as string;
+
+		if (!id) {
+			throw error(400, 'Attachment ID is required');
+		}
+
+		await deleteAttachment(id);
 		return { success: true };
 	}
 };
