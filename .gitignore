@@ -21,6 +21,13 @@ Thumbs.db
 # Test database
 test.db
 test.db-journal
+test-e2e.db
+test-e2e.db-journal
+
+# Playwright
+test-results/
+playwright-report/
+tests/e2e/.auth/
 
 # Vite
 vite.config.js.timestamp-*

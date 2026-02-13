@@ -1,0 +1,547 @@
+{
+	"project": "Planck E2E Testing Suite",
+	"description": "Comprehensive automated E2E testing suite using Playwright to verify all Planck functionality",
+	"version": "1.0.0",
+	"environment": {
+		"runtime": "Bun",
+		"framework": "Playwright",
+		"browser": "Chromium (headless)",
+		"testDatabase": "test-e2e.db",
+		"devServer": "http://localhost:5173"
+	},
+	"currentState": {
+		"playwrightVersion": "1.58.2",
+		"configurationComplete": true,
+		"globalSetupCreated": true,
+		"globalTeardownCreated": true,
+		"fixturesCreated": ["auth.fixture.ts"],
+		"helpersCreated": ["db-helpers.ts"],
+		"testsImplemented": ["navigation.spec.ts"],
+		"status": "Initial setup complete, migration issue needs resolution"
+	},
+	"infrastructure": {
+		"configuration": {
+			"file": "playwright.config.ts",
+			"status": "complete",
+			"features": [
+				"Headless mode only (server environment)",
+				"Auto-start dev server",
+				"Test database configuration",
+				"Screenshot/video on failure",
+				"Trace collection on failure",
+				"Global setup/teardown hooks"
+			]
+		},
+		"globalSetup": {
+			"file": "tests/e2e/global-setup.ts",
+			"status": "needs-fix",
+			"tasks": [
+				"Create test database",
+				"Run migrations (currently failing)",
+				"Seed exam specifications",
+				"Seed timetable configuration",
+				"Create test user",
+				"Save authentication state"
+			],
+			"issue": "Database migration not auto-confirming, tables not being created"
+		},
+		"globalTeardown": {
+			"file": "tests/e2e/global-teardown.ts",
+			"status": "complete",
+			"tasks": ["Remove test database", "Clean auth state files"]
+		},
+		"fixtures": [
+			{
+				"name": "auth.fixture.ts",
+				"purpose": "Provides authenticated user context",
+				"status": "complete"
+			},
+			{
+				"name": "database.fixture.ts",
+				"purpose": "Database setup/teardown and transactions",
+				"status": "not-created"
+			},
+			{
+				"name": "test-data.fixture.ts",
+				"purpose": "Factory functions for test entities",
+				"status": "not-created"
+			}
+		],
+		"helpers": [
+			{
+				"name": "db-helpers.ts",
+				"purpose": "Database operations, seeding, factory functions",
+				"status": "complete",
+				"exports": [
+					"createTestDb()",
+					"cleanDatabase()",
+					"seedExamSpecs()",
+					"seedTimetableConfig()",
+					"createTestClass()",
+					"createTestModule()",
+					"createTestLesson()"
+				]
+			},
+			{
+				"name": "date-helpers.ts",
+				"purpose": "Date manipulation for calendar tests",
+				"status": "not-created"
+			},
+			{
+				"name": "navigation-helpers.ts",
+				"purpose": "Common navigation patterns",
+				"status": "not-created"
+			},
+			{
+				"name": "assertion-helpers.ts",
+				"purpose": "Custom assertions",
+				"status": "not-created"
+			}
+		]
+	},
+	"pageObjectModels": {
+		"description": "Encapsulate page interactions to reduce code duplication",
+		"location": "tests/e2e/pages/",
+		"pages": [
+			{
+				"name": "base.page.ts",
+				"purpose": "Common methods for all pages",
+				"status": "not-created",
+				"methods": ["goto()", "waitForLoading()", "getErrorMessage()", "getSuccessMessage()"]
+			},
+			{
+				"name": "auth.page.ts",
+				"purpose": "Authentication interactions",
+				"status": "not-created",
+				"methods": ["login()", "register()", "logout()"]
+			},
+			{
+				"name": "classes.page.ts",
+				"purpose": "Classes list page",
+				"status": "not-created",
+				"methods": ["createClass()", "filterByYearGroup()", "navigateToClass()"]
+			},
+			{
+				"name": "class-detail.page.ts",
+				"purpose": "Class details page",
+				"status": "not-created",
+				"methods": ["editClass()", "addTimetableSlot()", "deleteTimetableSlot()"]
+			},
+			{
+				"name": "modules.page.ts",
+				"purpose": "Modules list page",
+				"status": "not-created",
+				"methods": ["createModule()", "filterBySpec()", "navigateToModule()"]
+			},
+			{
+				"name": "module-detail.page.ts",
+				"purpose": "Module details page",
+				"status": "not-created",
+				"methods": [
+					"editModule()",
+					"addLesson()",
+					"editLesson()",
+					"deleteLesson()",
+					"linkSpecPoint()"
+				]
+			},
+			{
+				"name": "calendar.page.ts",
+				"purpose": "Calendar view",
+				"status": "not-created",
+				"methods": ["switchView()", "navigatePeriod()", "verifyLesson()"]
+			},
+			{
+				"name": "nav.page.ts",
+				"purpose": "Navigation component",
+				"status": "not-created",
+				"methods": ["navigateTo()", "toggleMobileMenu()"]
+			}
+		]
+	},
+	"testSuites": {
+		"priority1": {
+			"description": "Must have - Core functionality",
+			"suites": [
+				{
+					"name": "auth.spec.ts",
+					"status": "not-created",
+					"tests": [
+						"User registration",
+						"Login with valid credentials",
+						"Login with invalid credentials",
+						"Logout",
+						"Session persistence",
+						"Protected route access"
+					]
+				},
+				{
+					"name": "navigation.spec.ts",
+					"status": "created",
+					"tests": [
+						"Load homepage",
+						"Navigate to specifications",
+						"Navigate to classes",
+						"Navigate to modules",
+						"Navigate to calendar",
+						"Navigate to settings"
+					]
+				},
+				{
+					"name": "classes.spec.ts",
+					"status": "not-created",
+					"tests": [
+						"View classes list",
+						"Create new class",
+						"Edit class",
+						"Filter by year group",
+						"Form validation",
+						"Navigate to class details"
+					]
+				},
+				{
+					"name": "modules.spec.ts",
+					"status": "not-created",
+					"tests": [
+						"View modules list",
+						"Create new module",
+						"Edit module",
+						"Filter by specification",
+						"Navigate to module details"
+					]
+				},
+				{
+					"name": "assignment.spec.ts",
+					"status": "not-created",
+					"tests": [
+						"Assign module to class",
+						"View scheduled lessons",
+						"Edit scheduled lesson",
+						"Push lessons forward",
+						"Push lessons back"
+					]
+				},
+				{
+					"name": "calendar.spec.ts",
+					"status": "not-created",
+					"tests": [
+						"Day view displays lessons",
+						"Navigate between days",
+						"Week view displays lessons",
+						"Navigate between weeks",
+						"Term view displays statistics"
+					]
+				}
+			]
+		},
+		"priority2": {
+			"description": "Should have - Extended functionality",
+			"suites": [
+				{
+					"name": "class-details.spec.ts",
+					"status": "not-created",
+					"tests": [
+						"View class details",
+						"Edit class information",
+						"Add timetable slot",
+						"Edit timetable slot",
+						"Delete timetable slot",
+						"Manage attachments"
+					]
+				},
+				{
+					"name": "module-details.spec.ts",
+					"status": "not-created",
+					"tests": [
+						"View module details",
+						"Add lesson",
+						"Edit lesson",
+						"Delete lesson",
+						"Reorder lessons",
+						"Link spec points to lesson",
+						"Unlink spec points",
+						"Manage attachments"
+					]
+				},
+				{
+					"name": "specifications.spec.ts",
+					"status": "not-created",
+					"tests": [
+						"View specifications list",
+						"Filter by level (GCSE/A-Level)",
+						"View specification details",
+						"View topics",
+						"View spec points"
+					]
+				},
+				{
+					"name": "settings.spec.ts",
+					"status": "not-created",
+					"tests": [
+						"View timetable configuration",
+						"Create timetable config",
+						"Edit timetable config",
+						"Validate periods per day",
+						"Validate days per week",
+						"Switch between 1-week and 2-week timetables"
+					]
+				},
+				{
+					"name": "calendar-events.spec.ts",
+					"status": "not-created",
+					"tests": [
+						"Create holiday event",
+						"Create closure event",
+						"Create absence event",
+						"Delete event",
+						"Events display on calendar",
+						"Events affect lesson scheduling"
+					]
+				}
+			]
+		},
+		"priority3": {
+			"description": "Nice to have - Edge cases and advanced features",
+			"suites": [
+				{
+					"name": "responsive.spec.ts",
+					"status": "not-created",
+					"tests": [
+						"Mobile navigation menu",
+						"Mobile class list layout",
+						"Mobile module list layout",
+						"Mobile calendar view",
+						"Touch target sizes",
+						"Viewport-specific behaviors"
+					]
+				},
+				{
+					"name": "edge-cases.spec.ts",
+					"status": "not-created",
+					"tests": [
+						"Browser back button navigation",
+						"Direct URL navigation to details page",
+						"Invalid ID in URL",
+						"Cascading deletes (class -> slots)",
+						"Timetable type switching (1-week to 2-week)",
+						"Concurrent edits",
+						"Empty states"
+					]
+				},
+				{
+					"name": "form-validation.spec.ts",
+					"status": "not-created",
+					"tests": [
+						"Required field validation",
+						"Email format validation",
+						"Number range validation",
+						"Date validation",
+						"Custom validation rules"
+					]
+				}
+			]
+		}
+	},
+	"testData": {
+		"seededData": {
+			"description": "Reference data seeded in global setup",
+			"items": [
+				{
+					"type": "exam_spec",
+					"id": "test-gcse-aqa",
+					"name": "AQA GCSE Physics (8463)",
+					"level": "GCSE"
+				},
+				{
+					"type": "exam_spec",
+					"id": "test-alevel-aqa",
+					"name": "AQA A-Level Physics (7408)",
+					"level": "A-Level"
+				},
+				{
+					"type": "topic",
+					"id": "test-topic-energy",
+					"name": "Energy",
+					"examSpecId": "test-gcse-aqa"
+				},
+				{
+					"type": "topic",
+					"id": "test-topic-mechanics",
+					"name": "Mechanics",
+					"examSpecId": "test-alevel-aqa"
+				},
+				{
+					"type": "timetable_config",
+					"academicYear": "2024-25",
+					"weeks": 2,
+					"periodsPerDay": 6,
+					"daysPerWeek": 5
+				},
+				{
+					"type": "user",
+					"email": "test@example.com",
+					"password": "password123",
+					"name": "Test User"
+				}
+			]
+		},
+		"factoryFunctions": {
+			"description": "Functions to create test entities",
+			"functions": [
+				"createTestClass()",
+				"createTestModule()",
+				"createTestLesson()",
+				"createTimetableSlot()",
+				"createModuleAssignment()",
+				"createCalendarEvent()"
+			]
+		}
+	},
+	"executionStrategy": {
+		"parallelization": {
+			"enabled": false,
+			"reason": "Database conflicts with concurrent access",
+			"workers": 1
+		},
+		"retries": {
+			"local": 0,
+			"ci": 2
+		},
+		"timeout": {
+			"test": "30s",
+			"navigation": "10s",
+			"action": "5s"
+		},
+		"artifacts": {
+			"screenshots": "only-on-failure",
+			"videos": "retain-on-failure",
+			"traces": "retain-on-failure"
+		}
+	},
+	"cicdIntegration": {
+		"status": "not-implemented",
+		"platform": "GitHub Actions",
+		"workflow": ".github/workflows/e2e-tests.yml",
+		"triggers": ["pull_request"],
+		"steps": [
+			"Checkout code",
+			"Setup Bun",
+			"Install dependencies",
+			"Run E2E tests",
+			"Upload artifacts on failure"
+		]
+	},
+	"issuesAndNextSteps": {
+		"currentIssues": [
+			{
+				"issue": "Database migration not auto-confirming",
+				"description": "drizzle-kit push requires interactive confirmation, tables not being created",
+				"priority": "critical",
+				"possibleSolutions": [
+					"Use drizzle-kit migrate with generated migrations",
+					"Use Drizzle migrate API programmatically",
+					"Create tables directly using SQL in global setup",
+					"Find drizzle-kit push --force flag if available"
+				]
+			}
+		],
+		"nextSteps": [
+			{
+				"step": 1,
+				"task": "Fix database migration in global setup",
+				"priority": "critical",
+				"status": "in-progress"
+			},
+			{
+				"step": 2,
+				"task": "Verify basic navigation test passes",
+				"priority": "high",
+				"status": "pending"
+			},
+			{
+				"step": 3,
+				"task": "Create remaining Page Object Models",
+				"priority": "high",
+				"status": "pending"
+			},
+			{
+				"step": 4,
+				"task": "Implement Priority 1 test suites",
+				"priority": "high",
+				"status": "pending"
+			},
+			{
+				"step": 5,
+				"task": "Create helper utilities",
+				"priority": "medium",
+				"status": "pending"
+			},
+			{
+				"step": 6,
+				"task": "Implement Priority 2 test suites",
+				"priority": "medium",
+				"status": "pending"
+			},
+			{
+				"step": 7,
+				"task": "Set up CI/CD integration",
+				"priority": "medium",
+				"status": "pending"
+			},
+			{
+				"step": 8,
+				"task": "Implement Priority 3 test suites",
+				"priority": "low",
+				"status": "pending"
+			}
+		]
+	},
+	"successCriteria": [
+		"Playwright configuration complete and working",
+		"Test fixtures provide authentication and database setup",
+		"Page Object Models reduce code duplication",
+		"At least Priority 1 tests implemented and passing",
+		"Tests run reliably and can be repeated",
+		"Test execution documentation complete",
+		"CI/CD integration configured (optional)"
+	],
+	"documentation": {
+		"readme": {
+			"file": "tests/e2e/README.md",
+			"status": "complete",
+			"sections": [
+				"Overview",
+				"Running Tests",
+				"Test Organization",
+				"Test Infrastructure",
+				"Database Helpers",
+				"Page Object Models",
+				"Writing Tests",
+				"Troubleshooting"
+			]
+		}
+	},
+	"routes": {
+		"description": "Application routes to be tested",
+		"count": 17,
+		"routes": [
+			"/",
+			"/demo/better-auth/login",
+			"/demo/better-auth/register",
+			"/specifications",
+			"/specifications/[id]",
+			"/classes",
+			"/classes/[id]",
+			"/modules",
+			"/modules/[id]",
+			"/modules/[id]/assign",
+			"/assignments/[id]",
+			"/assignments/[id]/lessons/[lessonId]",
+			"/calendar",
+			"/calendar/day",
+			"/calendar/week",
+			"/calendar/term",
+			"/settings"
+		]
+	}
+}
