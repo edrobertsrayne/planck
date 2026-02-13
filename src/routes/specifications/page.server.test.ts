@@ -3,12 +3,15 @@
 import { describe, it, expect, beforeEach } from 'vitest';
 import { load } from './+page.server.js';
 import { db } from '$lib/server/db';
-import { examSpec } from '$lib/server/db/schema';
+import { examSpec, teachingClass, module } from '$lib/server/db/schema';
 import type { RequestEvent } from '@sveltejs/kit';
 
 describe('Specifications List Page Server', () => {
 	beforeEach(async () => {
 		// Clean up test data before each test
+		// Must delete dependent tables first due to foreign key constraints
+		await db.delete(teachingClass);
+		await db.delete(module);
 		await db.delete(examSpec);
 	});
 

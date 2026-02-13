@@ -10,14 +10,13 @@ Planck is a lesson planning and scheduling tool for UK secondary Physics teacher
 
 This section is the single source of truth for the project's technology choices.
 
-| Layer          | Technology              | Documentation                    |
-| -------------- | ----------------------- | -------------------------------- |
-| Framework      | SvelteKit with Svelte 5 | https://svelte.dev/docs          |
-| UI Components  | shadcn-svelte           | https://www.shadcn-svelte.com/   |
-| Styling        | Tailwind CSS v4         | https://tailwindcss.com/docs     |
-| Database       | SQLite with Drizzle ORM | https://orm.drizzle.team/docs    |
-| Authentication | Better Auth             | https://www.better-auth.com/docs |
-| Runtime        | Bun                     | https://bun.sh/docs              |
+| Layer         | Technology              | Documentation                 |
+| ------------- | ----------------------- | ----------------------------- |
+| Framework     | SvelteKit with Svelte 5 | https://svelte.dev/docs       |
+| UI Components | shadcn-svelte           | https://www.shadcn-svelte.com |
+| Styling       | Tailwind CSS v4         | https://tailwindcss.com/docs  |
+| Database      | SQLite with Drizzle ORM | https://orm.drizzle.team/docs |
+| Runtime       | Bun                     | https://bun.sh/docs           |
 
 ## Development Commands
 
@@ -55,34 +54,20 @@ Tests in `src/lib/server/**` are automatically excluded from browser tests.
 
 ## Database Management
 
-The project uses Drizzle ORM with Bun's native SQLite (`drizzle-orm/bun-sqlite`). Database configuration is in `drizzle.config.ts`:
+The project uses Drizzle ORM with libSQL (`drizzle-orm/libsql`). Database configuration is in `drizzle.config.ts`:
 
 - Schema location: `src/lib/server/db/schema.ts`
-- Additional auth schema: `src/lib/server/db/auth.schema.ts`
 - Database client: `src/lib/server/db/index.ts`
 
-The database client uses `bun:sqlite` which provides a synchronous API with `client.run()` for executing SQL statements.
+The database client uses `@libsql/client` which provides an async API with `client.execute()` for executing SQL statements. Local files use the `file:` URL prefix (e.g., `file:local.db`).
 
 Database URL must be set in `.env` as `DATABASE_URL` (defaults to `local.db` for local development).
-
-## Authentication Architecture
-
-Better Auth is integrated with SvelteKit:
-
-- **Auth instance**: `src/lib/server/auth.ts` - Uses Drizzle adapter with SQLite and email/password authentication
-- **Server hooks**: `src/hooks.server.ts` - Injects session/user into `event.locals` for all requests
-- **Type definitions**: `src/app.d.ts` - Defines `App.Locals` with optional `user` and `session` properties
-- **Demo routes**: `src/routes/demo/better-auth/` - Example authentication implementation
-
-The auth system requires `ORIGIN` and `BETTER_AUTH_SECRET` environment variables (see `.env.example`).
 
 ## Environment Configuration
 
 Required environment variables (see `.env.example`):
 
 - `DATABASE_URL`: SQLite database file path
-- `ORIGIN`: Base URL for Better Auth
-- `BETTER_AUTH_SECRET`: 32-character high-entropy secret for production
 
 ## Project Structure
 
@@ -91,11 +76,9 @@ src/
 ├── lib/
 │   ├── assets/           # Static assets
 │   ├── server/
-│   │   ├── db/          # Database schemas and client
-│   │   └── auth.ts      # Better Auth configuration
+│   │   └── db/          # Database schemas and client
 │   └── index.ts         # Public library exports
 ├── routes/              # SvelteKit file-based routing
-│   ├── demo/           # Demo pages (e.g., authentication)
 │   ├── +layout.svelte  # Root layout
 │   └── +page.svelte    # Homepage
 ├── app.d.ts            # TypeScript app definitions

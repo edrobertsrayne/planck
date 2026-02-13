@@ -417,5 +417,3 @@ export const attachment = sqliteTable('attachment', {
 		.notNull()
 		.$defaultFn(() => new Date())
 });
-
-export * from './auth.schema';

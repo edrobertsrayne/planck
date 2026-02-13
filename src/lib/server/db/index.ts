@@ -1,14 +1,22 @@
-import { drizzle } from 'drizzle-orm/bun-sqlite';
-import { Database } from 'bun:sqlite';
+import { drizzle } from 'drizzle-orm/libsql';
+import { createClient } from '@libsql/client';
 import * as schema from './schema';
 import { env } from '$env/dynamic/private';
 
 if (!env.DATABASE_URL) throw new Error('DATABASE_URL is not set');
 
-const client = new Database(env.DATABASE_URL);
+// Convert DATABASE_URL to libsql format (file: prefix for local files)
+const url =
+	env.DATABASE_URL === ':memory:'
+		? ':memory:'
+		: env.DATABASE_URL.startsWith('file:')
+			? env.DATABASE_URL
+			: `file:${env.DATABASE_URL}`;
+
+const client = createClient({ url });
 
 // Enable foreign key constraints
-client.run('PRAGMA foreign_keys = ON');
+await client.execute('PRAGMA foreign_keys = ON');
 
 // For in-memory test databases, create the schema
 if (env.DATABASE_URL === ':memory:') {
@@ -139,7 +147,7 @@ if (env.DATABASE_URL === ':memory:') {
 	];
 
 	for (const stmt of statements) {
-		client.run(stmt);
+		await client.execute(stmt);
 	}
 }
 
