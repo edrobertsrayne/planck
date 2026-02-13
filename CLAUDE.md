@@ -55,11 +55,13 @@ Tests in `src/lib/server/**` are automatically excluded from browser tests.
 
 ## Database Management
 
-The project uses Drizzle ORM with better-sqlite3. Database configuration is in `drizzle.config.ts`:
+The project uses Drizzle ORM with Bun's built-in SQLite driver (`bun:sqlite` via `drizzle-orm/bun-sqlite`). Database configuration is in `drizzle.config.ts`:
 
 - Schema location: `src/lib/server/db/schema.ts`
 - Additional auth schema: `src/lib/server/db/auth.schema.ts`
 - Database client: `src/lib/server/db/index.ts`
+
+**Important**: This project uses `bun:sqlite` (Bun's native SQLite) instead of `better-sqlite3` because better-sqlite3 is not compatible with Bun runtime. The API is similar but uses `client.run()` instead of `client.exec()` for executing SQL statements.
 
 Database URL must be set in `.env` as `DATABASE_URL` (defaults to `local.db` for local development).
 

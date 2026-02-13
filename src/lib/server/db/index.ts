@@ -1,5 +1,5 @@
-import { drizzle } from 'drizzle-orm/better-sqlite3';
-import Database from 'better-sqlite3';
+import { drizzle } from 'drizzle-orm/bun-sqlite';
+import { Database } from 'bun:sqlite';
 import * as schema from './schema';
 import { env } from '$env/dynamic/private';
 
@@ -8,7 +8,7 @@ if (!env.DATABASE_URL) throw new Error('DATABASE_URL is not set');
 const client = new Database(env.DATABASE_URL);
 
 // Enable foreign key constraints
-client.exec('PRAGMA foreign_keys = ON');
+client.run('PRAGMA foreign_keys = ON');
 
 // For in-memory test databases, create the schema
 if (env.DATABASE_URL === ':memory:') {
@@ -139,7 +139,7 @@ if (env.DATABASE_URL === ':memory:') {
 	];
 
 	for (const stmt of statements) {
-		client.exec(stmt);
+		client.run(stmt);
 	}
 }
 
