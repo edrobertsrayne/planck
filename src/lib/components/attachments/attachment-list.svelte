@@ -49,15 +49,16 @@
 								{attachment.fileName}
 							</a>
 						{:else if attachment.type === 'link'}
-							{@const linkHref = attachment.url || '#'}
+							<!-- eslint-disable svelte/no-navigation-without-resolve -->
 							<a
-								href={resolve(linkHref)}
+								href={attachment.url || '#'}
 								class="text-sm text-blue-600 hover:underline"
 								target="_blank"
 								rel="noopener noreferrer"
 							>
 								{attachment.fileName}
 							</a>
+							<!-- eslint-enable svelte/no-navigation-without-resolve -->
 						{/if}
 					</div>
 					{#if canEdit}
