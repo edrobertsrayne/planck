@@ -10,6 +10,7 @@
     just
     bun
     chromium
+    sqlite
   ];
 
   env.CHROMIUM_PATH = "${pkgs.chromium}/bin/chromium";

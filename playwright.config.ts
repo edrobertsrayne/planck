@@ -63,7 +63,15 @@ export default defineConfig({
 			name: 'chromium',
 			use: {
 				...devices['Desktop Chrome'],
-				headless: true // Ensure headless mode for server environment
+				headless: true, // Ensure headless mode for server environment
+				// Use devenv's Chromium if CHROMIUM_PATH is set
+				// Otherwise Playwright will download its own
+				...(process.env.CHROMIUM_PATH && {
+					channel: undefined,
+					launchOptions: {
+						executablePath: process.env.CHROMIUM_PATH
+					}
+				})
 			}
 		}
 

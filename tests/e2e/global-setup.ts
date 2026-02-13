@@ -1,5 +1,6 @@
-import { chromium, type FullConfig } from '@playwright/test';
+import type { FullConfig } from '@playwright/test';
 import { createTestDb, seedExamSpecs, seedTimetableConfig } from './helpers/db-helpers';
+import { migrate } from 'drizzle-orm/better-sqlite3/migrator';
 import { execSync } from 'child_process';
 import path from 'path';
 
@@ -7,10 +8,10 @@ import path from 'path';
  * Global setup runs once before all tests
  * - Sets up test database
  * - Runs migrations
- * - Seeds reference data (exam specs)
- * - Creates test user and stores auth state
+ * - Seeds reference data (exam specs, timetable config)
  */
-async function globalSetup(config: FullConfig) {
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+async function globalSetup(_config: FullConfig) {
 	console.log('🧪 Setting up E2E test environment...');
 
 	// Set test database URL
@@ -27,22 +28,19 @@ async function globalSetup(config: FullConfig) {
 		// Ignore if file doesn't exist
 	}
 
+	// Create database connection
+	const { db, sqlite } = createTestDb();
+
 	// Run database migrations
 	console.log('🔄 Running database migrations...');
 	try {
-		// Use sh -c to pipe yes into drizzle-kit push
-		execSync('sh -c \'echo "yes" | bun drizzle-kit push\'', {
-			env: { ...process.env, DATABASE_URL: testDbPath },
-			stdio: 'pipe'
-		});
+		migrate(db, { migrationsFolder: path.join(process.cwd(), 'drizzle') });
 		console.log('✅ Database migrations complete');
 	} catch (error) {
 		console.error('Failed to run migrations:', error);
+		sqlite.close();
 		throw error;
 	}
-
-	// Create database connection and seed data
-	const { db, sqlite } = createTestDb();
 
 	try {
 		console.log('🌱 Seeding test data...');
@@ -59,45 +57,6 @@ async function globalSetup(config: FullConfig) {
 		throw error;
 	} finally {
 		sqlite.close();
-	}
-
-	// Create authenticated user state
-	console.log('🔐 Setting up test authentication...');
-	const baseURL = config.projects[0].use.baseURL || 'http://localhost:5173';
-
-	const browser = await chromium.launch({ headless: true });
-	const context = await browser.newContext({ baseURL });
-	const page = await context.newPage();
-
-	try {
-		// Navigate to register page
-		await page.goto('/demo/better-auth/register');
-		await page.waitForLoadState('networkidle');
-
-		// Fill registration form
-		await page.fill('input[name="name"]', 'Test User');
-		await page.fill('input[name="email"]', 'test@example.com');
-		await page.fill('input[name="password"]', 'password123');
-
-		// Submit form
-		await page.click('button[type="submit"]');
-
-		// Wait for redirect after successful registration
-		await page.waitForURL('/', { timeout: 5000 }).catch(() => {
-			// If already registered, login instead
-			console.log('User already exists, skipping registration');
-		});
-
-		// Save authenticated state
-		const authFile = path.join(process.cwd(), 'tests/e2e/.auth/user.json');
-		await context.storageState({ path: authFile });
-		console.log(`✅ Auth state saved to ${authFile}`);
-	} catch (error) {
-		console.error('Failed to setup authentication:', error);
-		// Don't throw - tests should handle authentication themselves if needed
-	} finally {
-		await context.close();
-		await browser.close();
 	}
 }
 
