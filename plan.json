@@ -1,7 +1,7 @@
 {
 	"version": "1",
-	"lastUpdated": "2026-02-15T17:58:00Z",
-	"summary": "All core v1 functionality is implemented and complete. The application supports exam specifications, classes, timetable configuration, modules with lessons, module assignment with automatic scheduling, calendar views (day/week/term), calendar events with automatic rescheduling, push forward/back functionality, scheduled lesson editing, file and link attachments, and term date import. shadcn-svelte components (Input, Textarea, Label, Alert, Checkbox, RadioGroup, Dialog, Card) are now installed and consistently used throughout the application. Raw HTML form elements have been replaced with proper shadcn components. Drag-and-drop lesson reordering with full keyboard accessibility is now implemented in the module editor. Outstanding UI work includes: custom typography (Fraunces/Inter fonts), custom color system from design guidelines, dark mode toggle, key stage color indicators, Settings in main navigation with landing page, and user accent color preferences.",
+	"lastUpdated": "2026-02-15T18:02:00Z",
+	"summary": "All core v1 functionality is implemented and complete. The application supports exam specifications, classes, timetable configuration, modules with lessons, module assignment with automatic scheduling, calendar views (day/week/term), calendar events with automatic rescheduling, push forward/back functionality, scheduled lesson editing, file and link attachments, and term date import. shadcn-svelte components (Input, Textarea, Label, Alert, Checkbox, RadioGroup, Dialog, Card) are now installed and consistently used throughout the application. Raw HTML form elements have been replaced with proper shadcn components. Drag-and-drop lesson reordering with full keyboard accessibility is now implemented in the module editor. Custom typography (Fraunces/Inter fonts) and custom color system from design guidelines are now fully implemented. Outstanding UI work includes: dark mode toggle, key stage color indicators, Settings in main navigation with landing page, and user accent color preferences.",
 	"tasks": [
 		{
 			"id": "setup-shadcn",
@@ -624,7 +624,7 @@
 			"id": "ui-color-system",
 			"title": "Implement custom color palette from design guidelines",
 			"description": "Replace current oklch color system with the hex-based palette from ui-design-guidelines.md. Implement Amber (#F0A868) as primary accent, Steel (#6D9DC5) as secondary, Sage (#88BB92) for success/KS3, Coral (#E54F6D) for A-Level/destructive. Define all semantic color tokens for light and dark modes.",
-			"status": "pending",
+			"status": "complete",
 			"priority": "medium",
 			"specReference": "ui-design-guidelines.md#color-system",
 			"affectedPaths": ["src/routes/layout.css"],
