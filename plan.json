@@ -1,7 +1,7 @@
 {
 	"version": "1",
-	"lastUpdated": "2026-02-15T17:45:00Z",
-	"summary": "All core v1 functionality is implemented and complete. The application supports exam specifications, classes, timetable configuration, modules with lessons, module assignment with automatic scheduling, calendar views (day/week/term), calendar events with automatic rescheduling, push forward/back functionality, scheduled lesson editing, file and link attachments, and term date import. shadcn-svelte components (Input, Textarea, Label, Alert, Checkbox, RadioGroup, Dialog, Card) are now installed and consistently used throughout the application. Raw HTML form elements have been replaced with proper shadcn components. Outstanding UI work includes: custom typography (Fraunces/Inter fonts), custom color system from design guidelines, dark mode toggle, drag-and-drop for lesson reordering, key stage color indicators, Settings in main navigation with landing page, and user accent color preferences.",
+	"lastUpdated": "2026-02-15T17:52:00Z",
+	"summary": "All core v1 functionality is implemented and complete. The application supports exam specifications, classes, timetable configuration, modules with lessons, module assignment with automatic scheduling, calendar views (day/week/term), calendar events with automatic rescheduling, push forward/back functionality, scheduled lesson editing, file and link attachments, and term date import. shadcn-svelte components (Input, Textarea, Label, Alert, Checkbox, RadioGroup, Dialog, Card) are now installed and consistently used throughout the application. Raw HTML form elements have been replaced with proper shadcn components. Drag-and-drop lesson reordering with full keyboard accessibility is now implemented in the module editor. Outstanding UI work includes: custom typography (Fraunces/Inter fonts), custom color system from design guidelines, dark mode toggle, key stage color indicators, Settings in main navigation with landing page, and user accent color preferences.",
 	"tasks": [
 		{
 			"id": "setup-shadcn",
@@ -698,13 +698,14 @@
 			"id": "ui-drag-drop-lessons",
 			"title": "Implement drag-and-drop for lesson reordering in module editor",
 			"description": "Add drag-and-drop functionality to reorder lessons within a module. Implement draggable card styling with cursor:grab, lift effect on hover, and dragging state with scale/rotation. Show drop indicator line between items. Include keyboard accessibility (Space to pick up, arrows to move, Space to drop, Escape to cancel). Respect prefers-reduced-motion.",
-			"status": "pending",
+			"status": "complete",
 			"priority": "high",
 			"specReference": "ui-design-guidelines.md#drag-and-drop",
 			"affectedPaths": [
 				"src/routes/modules/[id]/+page.svelte",
 				"src/routes/modules/[id]/+page.server.ts",
-				"src/routes/layout.css"
+				"src/routes/layout.css",
+				"src/routes/modules/[id]/drag-drop.svelte.test.ts"
 			],
 			"dependencies": [],
 			"verificationSteps": [

@@ -119,3 +119,79 @@
 		@apply bg-background text-foreground;
 	}
 }
+
+/* Drag and Drop Styles */
+.draggable {
+	cursor: grab;
+	transition:
+		transform 0.15s ease,
+		box-shadow 0.15s ease;
+	user-select: none;
+}
+
+.draggable:hover {
+	transform: translateY(-2px);
+	box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+}
+
+.draggable.dragging {
+	cursor: grabbing;
+	transform: scale(1.02) rotate(1deg);
+	box-shadow: 0 12px 32px rgba(0, 0, 0, 0.15);
+	z-index: 100;
+	opacity: 0.95;
+}
+
+.dark .draggable.dragging {
+	box-shadow: 0 12px 32px rgba(0, 0, 0, 0.4);
+}
+
+.draggable.keyboard-dragging {
+	outline: 3px solid var(--primary);
+	outline-offset: 2px;
+	transform: scale(1.02);
+	box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
+}
+
+.drop-indicator {
+	height: 3px;
+	background: var(--primary);
+	border-radius: 2px;
+	margin: 4px 0;
+	animation: drop-pulse 1s ease-in-out infinite;
+}
+
+@keyframes drop-pulse {
+	0%,
+	100% {
+		opacity: 1;
+		box-shadow: 0 0 8px var(--primary);
+	}
+	50% {
+		opacity: 0.7;
+		box-shadow: 0 0 4px var(--primary);
+	}
+}
+
+/* Screen reader only */
+.sr-only {
+	position: absolute;
+	width: 1px;
+	height: 1px;
+	padding: 0;
+	margin: -1px;
+	overflow: hidden;
+	clip: rect(0, 0, 0, 0);
+	white-space: nowrap;
+	border-width: 0;
+}
+
+/* Reduced motion preferences */
+@media (prefers-reduced-motion: reduce) {
+	.draggable,
+	.drop-indicator {
+		transition: opacity 0.2s ease;
+		transform: none !important;
+		animation: none !important;
+	}
+}

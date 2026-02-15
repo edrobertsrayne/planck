@@ -22,6 +22,15 @@
 	let attachmentError = $state('');
 	let attachmentSuccess = $state('');
 
+	// Drag and drop state
+	let draggedLessonId = $state<string | null>(null);
+	let dragOverIndex = $state<number | null>(null);
+	let isReordering = $state(false);
+
+	// Keyboard drag and drop state
+	let keyboardDragActive = $state(false);
+	let keyboardDragLessonIndex = $state<number | null>(null);
+
 	// Module form state
 	let moduleName = $state('');
 	let moduleDescription = $state('');
@@ -127,6 +136,152 @@
 		setTimeout(() => {
 			attachmentError = '';
 		}, 3000);
+	}
+
+	// Drag and drop handlers
+	function handleDragStart(e: DragEvent, lessonId: string) {
+		if (!e.dataTransfer) return;
+		draggedLessonId = lessonId;
+		e.dataTransfer.effectAllowed = 'move';
+		e.dataTransfer.setData('text/plain', lessonId);
+
+		// Add dragging class to the element
+		const target = e.currentTarget as HTMLElement;
+		setTimeout(() => {
+			target.classList.add('dragging');
+		}, 0);
+	}
+
+	function handleDragEnd(e: DragEvent) {
+		draggedLessonId = null;
+		dragOverIndex = null;
+		const target = e.currentTarget as HTMLElement;
+		target.classList.remove('dragging');
+	}
+
+	function handleDragOver(e: DragEvent, index: number) {
+		e.preventDefault();
+		if (!e.dataTransfer) return;
+		e.dataTransfer.dropEffect = 'move';
+		dragOverIndex = index;
+	}
+
+	function handleDragLeave() {
+		dragOverIndex = null;
+	}
+
+	function handleDrop(e: DragEvent, dropIndex: number) {
+		e.preventDefault();
+		dragOverIndex = null;
+
+		if (!draggedLessonId) return;
+
+		const draggedIndex = data.lessons.findIndex((l) => l.id === draggedLessonId);
+		if (draggedIndex === -1 || draggedIndex === dropIndex) return;
+
+		// Create new order
+		const reorderedLessons = [...data.lessons];
+		const [draggedLesson] = reorderedLessons.splice(draggedIndex, 1);
+		reorderedLessons.splice(dropIndex, 0, draggedLesson);
+
+		// Submit reorder
+		submitReorder(reorderedLessons.map((l) => l.id));
+	}
+
+	async function submitReorder(lessonIds: string[]) {
+		isReordering = true;
+
+		const formData = new FormData();
+		formData.append('lessonIds', JSON.stringify(lessonIds));
+
+		try {
+			const response = await fetch('?/reorderLessons', {
+				method: 'POST',
+				body: formData
+			});
+
+			if (response.ok) {
+				await invalidateAll();
+			}
+		} finally {
+			isReordering = false;
+		}
+	}
+
+	// Keyboard handlers for accessibility
+	function handleKeyDown(e: KeyboardEvent, index: number) {
+		// Ignore if form is open or already reordering
+		if (showLessonForm || isReordering) return;
+
+		// Space or Enter to pick up/drop
+		if (e.key === ' ' || e.key === 'Enter') {
+			e.preventDefault();
+
+			if (!keyboardDragActive) {
+				// Pick up
+				keyboardDragActive = true;
+				keyboardDragLessonIndex = index;
+				announceToScreenReader(
+					`Picked up lesson ${index + 1}. Use arrow keys to move, Space or Enter to drop, Escape to cancel.`
+				);
+			} else if (keyboardDragLessonIndex !== null) {
+				// Drop
+				moveLessonKeyboard(keyboardDragLessonIndex, index);
+				keyboardDragActive = false;
+				keyboardDragLessonIndex = null;
+			}
+			return;
+		}
+
+		// Only handle arrow keys if actively dragging
+		if (!keyboardDragActive || keyboardDragLessonIndex === null) return;
+
+		if (e.key === 'ArrowDown') {
+			e.preventDefault();
+			if (keyboardDragLessonIndex < data.lessons.length - 1) {
+				keyboardDragLessonIndex++;
+				announceToScreenReader(`Moving to position ${keyboardDragLessonIndex + 1}`);
+			}
+		} else if (e.key === 'ArrowUp') {
+			e.preventDefault();
+			if (keyboardDragLessonIndex > 0) {
+				keyboardDragLessonIndex--;
+				announceToScreenReader(`Moving to position ${keyboardDragLessonIndex + 1}`);
+			}
+		} else if (e.key === 'Escape') {
+			e.preventDefault();
+			keyboardDragActive = false;
+			keyboardDragLessonIndex = null;
+			announceToScreenReader('Reordering cancelled');
+		}
+	}
+
+	function moveLessonKeyboard(fromIndex: number, toIndex: number) {
+		if (fromIndex === toIndex) {
+			announceToScreenReader('No change in position');
+			return;
+		}
+
+		const reorderedLessons = [...data.lessons];
+		const [movedLesson] = reorderedLessons.splice(fromIndex, 1);
+		reorderedLessons.splice(toIndex, 0, movedLesson);
+
+		submitReorder(reorderedLessons.map((l) => l.id));
+		announceToScreenReader(`Lesson moved to position ${toIndex + 1}`);
+	}
+
+	function announceToScreenReader(message: string) {
+		// Create or update aria-live region for screen reader announcements
+		let liveRegion = document.getElementById('drag-drop-announcer');
+		if (!liveRegion) {
+			liveRegion = document.createElement('div');
+			liveRegion.id = 'drag-drop-announcer';
+			liveRegion.setAttribute('aria-live', 'polite');
+			liveRegion.setAttribute('aria-atomic', 'true');
+			liveRegion.className = 'sr-only';
+			document.body.appendChild(liveRegion);
+		}
+		liveRegion.textContent = message;
 	}
 </script>
 
@@ -337,8 +492,25 @@
 			</p>
 		{:else}
 			<div class="space-y-3">
-				{#each data.lessons as lesson (lesson.id)}
-					<div class="rounded-lg border border-gray-200 bg-gray-50 p-3 sm:p-4">
+				{#each data.lessons as lesson, index (lesson.id)}
+					{#if dragOverIndex === index && draggedLessonId !== lesson.id}
+						<div class="drop-indicator"></div>
+					{/if}
+					<div
+						class="draggable rounded-lg border border-gray-200 bg-gray-50 p-3 sm:p-4"
+						class:keyboard-dragging={keyboardDragActive && keyboardDragLessonIndex === index}
+						draggable={!showLessonForm && !isReordering}
+						ondragstart={(e) => handleDragStart(e, lesson.id)}
+						ondragend={handleDragEnd}
+						ondragover={(e) => handleDragOver(e, index)}
+						ondragleave={handleDragLeave}
+						ondrop={(e) => handleDrop(e, index)}
+						onkeydown={(e) => handleKeyDown(e, index)}
+						tabindex={showLessonForm || isReordering ? -1 : 0}
+						role="button"
+						aria-label={`Lesson ${lesson.order}: ${lesson.title}. ${!showLessonForm && !isReordering ? 'Press Space or Enter to reorder.' : ''}`}
+						aria-grabbed={keyboardDragActive && keyboardDragLessonIndex === index}
+					>
 						<div class="mb-2 flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
 							<div class="flex-1">
 								<h3 class="text-base font-semibold sm:text-lg">
@@ -410,6 +582,9 @@
 							</Button>
 						{/if}
 					</div>
+					{#if dragOverIndex === data.lessons.length && index === data.lessons.length - 1}
+						<div class="drop-indicator"></div>
+					{/if}
 				{/each}
 			</div>
 		{/if}
