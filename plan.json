@@ -1,6 +1,6 @@
 {
 	"version": "1",
-	"lastUpdated": "2026-02-15T18:02:00Z",
+	"lastUpdated": "2026-02-15T21:23:00Z",
 	"summary": "All core v1 functionality is implemented and complete. The application supports exam specifications, classes, timetable configuration, modules with lessons, module assignment with automatic scheduling, calendar views (day/week/term), calendar events with automatic rescheduling, push forward/back functionality, scheduled lesson editing, file and link attachments, and term date import. shadcn-svelte components (Input, Textarea, Label, Alert, Checkbox, RadioGroup, Dialog, Card) are now installed and consistently used throughout the application. Raw HTML form elements have been replaced with proper shadcn components. Drag-and-drop lesson reordering with full keyboard accessibility is now implemented in the module editor. Custom typography (Fraunces/Inter fonts) and custom color system from design guidelines are now fully implemented. Outstanding UI work includes: dark mode toggle, key stage color indicators, Settings in main navigation with landing page, and user accent color preferences.",
 	"tasks": [
 		{
@@ -678,7 +678,7 @@
 			"id": "ui-settings-nav",
 			"title": "Add Settings to main navigation",
 			"description": "Add Settings link to the main navigation alongside Calendar, Classes, Modules, Specifications. Settings should link to /settings which needs a landing page with links to Timetable and Term Dates settings.",
-			"status": "pending",
+			"status": "complete",
 			"priority": "medium",
 			"specReference": "ui-design-guidelines.md#navigation-structure",
 			"affectedPaths": [

@@ -8,7 +8,8 @@
 		{ href: '/calendar', label: 'Calendar' },
 		{ href: '/classes', label: 'Classes' },
 		{ href: '/modules', label: 'Modules' },
-		{ href: '/specifications', label: 'Specifications' }
+		{ href: '/specifications', label: 'Specifications' },
+		{ href: '/settings', label: 'Settings' }
 	];
 
 	function isActive(href: string): boolean {
