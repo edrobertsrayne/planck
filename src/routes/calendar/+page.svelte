@@ -30,19 +30,44 @@
 		});
 	}
 
-	function getWeekNumber(date: Date): number {
-		const year = date.getUTCFullYear();
-		const startDate = new Date(year, 8, 1);
-		const diff = date.getTime() - startDate.getTime();
-		return Math.floor(diff / (7 * 24 * 60 * 60 * 1000)) + 1;
-	}
-
 	function getCurrentWeekLabel(): string {
-		if (data.timetableConfig?.weeks === 2) {
-			const weekNum = getWeekNumber(currentDate);
-			return weekNum % 2 === 1 ? 'Week A' : 'Week B';
+		if (data.weeksConfig === 2) {
+			return `Week ${data.currentWeekLabel}`;
 		}
 		return '';
+	}
+
+	/**
+	 * Calculate week label for any date based on the server-provided current week info.
+	 * This assumes holidays don't change within the displayed range.
+	 * For accurate holiday-aware calculations, server would need to compute all dates.
+	 */
+	function getWeekLabelForDate(date: Date): 'A' | 'B' {
+		// Get Monday of the week containing the current date
+		const getCurrentWeekMonday = (d: Date): Date => {
+			const day = d.getUTCDay();
+			const monday = new Date(d);
+			const diff = d.getUTCDate() - day + (day === 0 ? -6 : 1);
+			monday.setUTCDate(diff);
+			monday.setUTCHours(0, 0, 0, 0);
+			return monday;
+		};
+
+		const currentMonday = getCurrentWeekMonday(currentDate);
+		const targetMonday = getCurrentWeekMonday(date);
+
+		// Calculate week difference
+		const weeksDiff = Math.floor(
+			(targetMonday.getTime() - currentMonday.getTime()) / (7 * 24 * 60 * 60 * 1000)
+		);
+
+		// Apply offset from current week label
+		const currentWeekNum = data.currentWeekLabel === 'A' ? 1 : 2;
+		const targetWeekNum = currentWeekNum + weeksDiff;
+
+		// Normalize to 1 or 2 (odd = A, even = B)
+		const normalized = ((targetWeekNum - 1) % 2) + 1;
+		return normalized === 1 ? 'A' : 'B';
 	}
 
 	function getDaysInWeek(): Date[] {
@@ -106,10 +131,9 @@
 		return (
 			data.slots.find((slot) => {
 				if (slot.day !== dayOfWeek) return false;
-				if (data.timetableConfig?.weeks === 2 && slot.week) {
-					const weekNum = getWeekNumber(date);
-					const slotWeek = weekNum % 2 === 1 ? 'A' : 'B';
-					if (slot.week !== slotWeek) return false;
+				if (data.weeksConfig === 2 && slot.week) {
+					const weekLabel = getWeekLabelForDate(date);
+					if (slot.week !== weekLabel) return false;
 				}
 				return slot.periodStart <= period && slot.periodEnd >= period;
 			}) || null
@@ -570,10 +594,10 @@
 										>
 											{day.getUTCDate()}
 										</button>
-										{#if data.timetableConfig?.weeks === 2}
-											{@const weekNum = getWeekNumber(day)}
+										{#if data.weeksConfig === 2}
+											{@const weekLabel = getWeekLabelForDate(day)}
 											<span class="text-[10px] text-gray-500">
-												{weekNum % 2 === 1 ? 'A' : 'B'}
+												{weekLabel}
 											</span>
 										{/if}
 									</div>

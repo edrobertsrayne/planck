@@ -1,18 +1,27 @@
 import { db } from '$lib/server/db';
 import { timetableConfig } from '$lib/server/db/schema';
-import { eq, desc } from 'drizzle-orm';
+import { eq, desc, ne } from 'drizzle-orm';
 import type { Actions, PageServerLoad } from './$types';
 
 export const load: PageServerLoad = async () => {
-	// Get the most recent timetable config (ordered by academic year descending)
-	const configs = await db
+	// Get GLOBAL config for school-wide settings (weeks)
+	const globalConfigs = await db
 		.select()
 		.from(timetableConfig)
+		.where(eq(timetableConfig.academicYear, 'GLOBAL'))
+		.limit(1);
+
+	// Get the most recent year-specific timetable config
+	const yearConfigs = await db
+		.select()
+		.from(timetableConfig)
+		.where(ne(timetableConfig.academicYear, 'GLOBAL'))
 		.orderBy(desc(timetableConfig.academicYear))
 		.limit(1);
 
 	return {
-		config: configs[0] || null
+		globalConfig: globalConfigs[0] || null,
+		config: yearConfigs[0] || null
 	};
 };
 
@@ -41,29 +50,54 @@ export const actions: Actions = {
 			return { error: 'Days per week must be between 1 and 7' };
 		}
 
-		// Check if config exists for this academic year
-		const existing = await db
+		// Save weeks to GLOBAL config
+		const existingGlobal = await db
+			.select()
+			.from(timetableConfig)
+			.where(eq(timetableConfig.academicYear, 'GLOBAL'))
+			.limit(1);
+
+		if (existingGlobal.length > 0) {
+			// Update existing GLOBAL config
+			await db
+				.update(timetableConfig)
+				.set({
+					weeks,
+					updatedAt: new Date()
+				})
+				.where(eq(timetableConfig.academicYear, 'GLOBAL'));
+		} else {
+			// Insert new GLOBAL config
+			await db.insert(timetableConfig).values({
+				academicYear: 'GLOBAL',
+				weeks,
+				periodsPerDay: 6, // Default values for GLOBAL (not used)
+				daysPerWeek: 5
+			});
+		}
+
+		// Save periodsPerDay and daysPerWeek to year-specific config
+		const existingYear = await db
 			.select()
 			.from(timetableConfig)
 			.where(eq(timetableConfig.academicYear, academicYear))
 			.limit(1);
 
-		if (existing.length > 0) {
-			// Update existing config
+		if (existingYear.length > 0) {
+			// Update existing year config
 			await db
 				.update(timetableConfig)
 				.set({
-					weeks,
 					periodsPerDay,
 					daysPerWeek,
 					updatedAt: new Date()
 				})
 				.where(eq(timetableConfig.academicYear, academicYear));
 		} else {
-			// Insert new config
+			// Insert new year config
 			await db.insert(timetableConfig).values({
 				academicYear,
-				weeks,
+				weeks: 1, // Default value (not used, GLOBAL config is used instead)
 				periodsPerDay,
 				daysPerWeek
 			});

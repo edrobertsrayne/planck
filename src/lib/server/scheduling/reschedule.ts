@@ -8,6 +8,7 @@ import {
 	calendarEvent
 } from '$lib/server/db/schema';
 import { eq, and, gte, lte, asc } from 'drizzle-orm';
+import { getTimetableWeeksConfig } from '$lib/server/utils/week-calculator';
 
 /**
  * Represents a scheduled lesson that needs to be rescheduled
@@ -138,6 +139,7 @@ export async function rescheduleLessonsForEvent(
 		const classData = await db.select().from(teachingClass).where(eq(teachingClass.id, classId));
 		if (classData.length === 0) continue;
 
+		// Check year-specific config exists
 		const configResult = await db
 			.select()
 			.from(timetableConfig)
@@ -145,7 +147,8 @@ export async function rescheduleLessonsForEvent(
 
 		if (configResult.length === 0) continue;
 
-		const config = configResult[0];
+		// Get GLOBAL config for weeks
+		const weeksConfig = await getTimetableWeeksConfig(db);
 
 		// Get timetable slots for the class
 		const slots = await db
@@ -209,7 +212,7 @@ export async function rescheduleLessonsForEvent(
 			allLessonsToReschedule,
 			slotsWithDuration,
 			searchStartDate,
-			config.weeks,
+			weeksConfig,
 			occupiedSlots,
 			allEvents
 		);

@@ -27,7 +27,7 @@
       playwright = {
         type = "stdio";
         command = "docker";
-        args = ["run" "-i" "--rm" "mcp/playwright"];
+        args = ["run" "-i" "--rm" "--network=host" "mcp/playwright"];
       };
     };
   };

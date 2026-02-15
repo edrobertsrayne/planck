@@ -137,18 +137,23 @@ export const teachingClass = sqliteTable('class', {
 /**
  * Timetable configuration for an academic year.
  * Defines the structure of the school timetable.
+ *
+ * SPECIAL CONVENTION: A record with academicYear = 'GLOBAL' stores school-wide settings:
+ * - weeks: Applies to all academic years (school-wide timetable type)
+ * Year-specific records (academicYear = "YYYY-YY") store:
+ * - periodsPerDay and daysPerWeek: Vary by academic year
  */
 export const timetableConfig = sqliteTable('timetable_config', {
 	id: text('id')
 		.primaryKey()
 		.$defaultFn(() => crypto.randomUUID()),
-	/** Academic year in format "YYYY-YY" (e.g., "2024-25") */
+	/** Academic year in format "YYYY-YY" (e.g., "2024-25") or "GLOBAL" for school-wide settings */
 	academicYear: text('academic_year').notNull().unique(),
-	/** Number of weeks in the timetable cycle: 1 (standard) or 2 (Week A/B) */
+	/** Number of weeks in the timetable cycle: 1 (standard) or 2 (Week A/B). Stored in GLOBAL record for school-wide application */
 	weeks: integer('weeks').notNull().default(1),
-	/** Number of periods per day (1-10) */
+	/** Number of periods per day (1-10). Stored in year-specific records */
 	periodsPerDay: integer('periods_per_day').notNull().default(6),
-	/** Number of days per week (1-7, typically 5 for Mon-Fri) */
+	/** Number of days per week (1-7, typically 5 for Mon-Fri). Stored in year-specific records */
 	daysPerWeek: integer('days_per_week').notNull().default(5),
 	createdAt: integer('created_at', { mode: 'timestamp' })
 		.notNull()

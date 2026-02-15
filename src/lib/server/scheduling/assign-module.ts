@@ -11,6 +11,7 @@ import {
 	scheduledLessonSpecPoint
 } from '$lib/server/db/schema';
 import { eq, and, asc, gte } from 'drizzle-orm';
+import { getTimetableWeeksConfig } from '$lib/server/utils/week-calculator';
 
 /**
  * Options for assigning a module to a class
@@ -63,7 +64,7 @@ export async function assignModuleToClass(options: AssignModuleOptions): Promise
 		throw new Error('Module not found');
 	}
 
-	// Get timetable config for the academic year
+	// Check that year-specific timetable config exists
 	const configs = await db
 		.select()
 		.from(timetableConfig)
@@ -72,7 +73,9 @@ export async function assignModuleToClass(options: AssignModuleOptions): Promise
 	if (configs.length === 0) {
 		throw new Error('Timetable configuration not found for academic year');
 	}
-	const config = configs[0];
+
+	// Get GLOBAL config for weeks
+	const weeksConfig = await getTimetableWeeksConfig(db);
 
 	// Get timetable slots for the class
 	const slots = await db
@@ -117,7 +120,7 @@ export async function assignModuleToClass(options: AssignModuleOptions): Promise
 		lessons,
 		slotsWithDuration,
 		actualStartDate,
-		config.weeks,
+		weeksConfig,
 		occupiedSlots
 	);
 
@@ -199,17 +202,8 @@ export async function findNextAvailableSlot(
 		throw new Error('Class not found');
 	}
 
-	// Get timetable config
-	const configs = await db
-		.select()
-		.from(timetableConfig)
-		.where(eq(timetableConfig.academicYear, classes[0].academicYear));
-
-	if (configs.length === 0) {
-		throw new Error('Timetable configuration not found');
-	}
-
-	const config = configs[0];
+	// Get GLOBAL config for weeks
+	const weeksConfig = await getTimetableWeeksConfig(db);
 
 	// Start from the beginning of fromDate (use UTC to avoid timezone issues)
 	const searchDate = new Date(fromDate);
@@ -241,7 +235,7 @@ export async function findNextAvailableSlot(
 			if (slot.day !== ourDayOfWeek) continue;
 
 			// For 2-week timetables, check week
-			if (config.weeks === 2 && slot.week) {
+			if (weeksConfig === 2 && slot.week) {
 				const weekNumber = getWeekNumber(candidateDate, searchDate);
 				const isWeekA = weekNumber % 2 === 1;
 				const slotWeek = isWeekA ? 'A' : 'B';

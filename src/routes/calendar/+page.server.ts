@@ -10,6 +10,11 @@ import {
 } from '$lib/server/db/schema';
 import { eq, and, asc, gte, lte } from 'drizzle-orm';
 import type { Actions, PageServerLoad } from './$types';
+import {
+	getSchoolWeekNumber,
+	getWeekLabel,
+	getTimetableWeeksConfig
+} from '$lib/server/utils/week-calculator';
 
 export const load: PageServerLoad = async ({ url }) => {
 	const today = new Date();
@@ -34,6 +39,7 @@ export const load: PageServerLoad = async ({ url }) => {
 
 	const currentAcademicYear = getAcademicYear(currentDate);
 
+	// Get year-specific config for periods/days
 	const configResult = await db
 		.select()
 		.from(timetableConfig)
@@ -41,6 +47,9 @@ export const load: PageServerLoad = async ({ url }) => {
 		.limit(1);
 
 	const timetableConfigData = configResult[0] || null;
+
+	// Get GLOBAL config for weeks
+	const weeksConfig = await getTimetableWeeksConfig(db);
 
 	const classes = await db
 		.select({
@@ -69,7 +78,7 @@ export const load: PageServerLoad = async ({ url }) => {
 	} else if (view === 'week') {
 		const startOfWeek = getStartOfWeek(currentDate);
 		const endOfWeek = new Date(startOfWeek);
-		const numWeeks = timetableConfigData?.weeks === 2 ? 2 : 1;
+		const numWeeks = weeksConfig === 2 ? 2 : 1;
 		endOfWeek.setUTCDate(endOfWeek.getUTCDate() + numWeeks * 7 - 1);
 		dateRange = { start: startOfWeek, end: endOfWeek };
 	} else {
@@ -122,16 +131,23 @@ export const load: PageServerLoad = async ({ url }) => {
 
 	const classColors = generateClassColors(classes);
 
+	// Calculate school week number and label for current date
+	const schoolWeekNumber = await getSchoolWeekNumber(currentDate, currentAcademicYear, db);
+	const weekLabel = getWeekLabel(schoolWeekNumber);
+
 	return {
 		view,
 		currentDate: currentDate.toISOString(),
 		timetableConfig: timetableConfigData,
+		weeksConfig,
 		classes,
 		slots,
 		scheduledLessons: scheduled,
 		events,
 		classColors,
-		academicYear: currentAcademicYear
+		academicYear: currentAcademicYear,
+		currentWeekNumber: schoolWeekNumber,
+		currentWeekLabel: weekLabel
 	};
 };
 
@@ -141,7 +157,6 @@ export const actions: Actions = {
 		const direction = data.get('direction')?.toString();
 		const view = (data.get('view')?.toString() || 'day') as 'day' | 'week' | 'term';
 		const currentDateStr = data.get('currentDate')?.toString();
-		const academicYearStr = data.get('academicYear')?.toString();
 
 		if (!direction || !currentDateStr) {
 			return { error: 'Missing navigation parameters' };
@@ -155,14 +170,7 @@ export const actions: Actions = {
 		if (view === 'day') {
 			newDate.setUTCDate(newDate.getUTCDate() + (direction === 'next' ? 1 : -1));
 		} else if (view === 'week') {
-			const configResult = academicYearStr
-				? await db
-						.select()
-						.from(timetableConfig)
-						.where(eq(timetableConfig.academicYear, academicYearStr))
-						.limit(1)
-				: [];
-			const weeksConfig = configResult[0]?.weeks || 1;
+			const weeksConfig = await getTimetableWeeksConfig(db);
 			const daysToMove = (direction === 'next' ? 1 : -1) * weeksConfig * 7;
 			newDate.setUTCDate(newDate.getUTCDate() + daysToMove);
 		} else {

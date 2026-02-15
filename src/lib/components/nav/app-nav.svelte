@@ -49,7 +49,12 @@
 		<div class="flex h-16 justify-between">
 			<div class="flex">
 				<div class="flex flex-shrink-0 items-center">
-					<a href="/" data-sveltekit-preload-data class="text-xl font-bold">Planck</a>
+					<a
+						href="/"
+						data-sveltekit-preload-data
+						class="text-xl font-bold"
+						style="font-family: var(--font-display)">Planck</a
+					>
 				</div>
 				<!-- Desktop navigation -->
 				<div class="hidden sm:ml-6 sm:flex sm:space-x-8">

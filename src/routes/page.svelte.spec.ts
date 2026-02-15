@@ -5,7 +5,18 @@ import Page from './+page.svelte';
 
 describe('/+page.svelte', () => {
 	it('should render h1', async () => {
-		render(Page);
+		const mockData = {
+			academicYear: '2024-25',
+			stats: {
+				totalClasses: 0,
+				upcomingLessonsThisWeek: 0,
+				totalModules: 0,
+				nextHoliday: null
+			},
+			todaysLessons: []
+		};
+
+		render(Page, { data: mockData });
 
 		const heading = page.getByRole('heading', { level: 1 });
 		await expect.element(heading).toBeInTheDocument();
