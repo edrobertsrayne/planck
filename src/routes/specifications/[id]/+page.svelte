@@ -6,6 +6,7 @@
 	import AttachmentList from '$lib/components/attachments/attachment-list.svelte';
 	import AttachmentForm from '$lib/components/attachments/attachment-form.svelte';
 	import Button from '$lib/components/ui/button/button.svelte';
+	import * as Alert from '$lib/components/ui/alert/index.js';
 
 	let { data }: { data: PageData } = $props();
 
@@ -76,7 +77,7 @@
 			← Back to Specifications
 		</a>
 		<h1 class="mt-2 text-3xl font-bold">{data.spec.name}</h1>
-		<div class="mt-2 flex gap-4 text-sm text-gray-600">
+		<div class="mt-2 flex gap-4 text-sm text-muted-foreground">
 			<p><span class="font-medium">Board:</span> {data.spec.board}</p>
 			<p><span class="font-medium">Level:</span> {data.spec.level}</p>
 			{#if data.spec.specCode}
@@ -98,15 +99,15 @@
 		</div>
 
 		{#if errorMessage}
-			<div class="mb-4 rounded-md bg-red-50 p-3 text-sm text-red-800">
-				{errorMessage}
-			</div>
+			<Alert.Root variant="destructive" class="mb-4">
+				<Alert.Description>{errorMessage}</Alert.Description>
+			</Alert.Root>
 		{/if}
 
 		{#if successMessage}
-			<div class="mb-4 rounded-md bg-green-50 p-3 text-sm text-green-800">
-				{successMessage}
-			</div>
+			<Alert.Root class="mb-4">
+				<Alert.Description>{successMessage}</Alert.Description>
+			</Alert.Root>
 		{/if}
 
 		{#if showAttachmentForm}
@@ -125,7 +126,7 @@
 
 	{#if data.topics.length === 0}
 		<div class="rounded-lg border border-gray-200 bg-gray-50 p-8 text-center">
-			<p class="text-gray-600">No topics found for this specification.</p>
+			<p class="text-muted-foreground">No topics found for this specification.</p>
 		</div>
 	{:else}
 		<div class="space-y-4">

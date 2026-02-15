@@ -6,6 +6,10 @@
 	import Button from '$lib/components/ui/button/button.svelte';
 	import AttachmentList from '$lib/components/attachments/attachment-list.svelte';
 	import AttachmentForm from '$lib/components/attachments/attachment-form.svelte';
+	import Input from '$lib/components/ui/input/input.svelte';
+	import Textarea from '$lib/components/ui/textarea/textarea.svelte';
+	import Label from '$lib/components/ui/label/label.svelte';
+	import * as Alert from '$lib/components/ui/alert/index.js';
 
 	let { data, form }: { data: PageData; form: ActionData } = $props();
 
@@ -137,13 +141,15 @@
 	</div>
 
 	{#if form?.success}
-		<div class="mb-4 rounded-md bg-green-50 p-4 text-green-800">Changes saved successfully!</div>
+		<Alert.Root class="mb-4">
+			<Alert.Description>Changes saved successfully!</Alert.Description>
+		</Alert.Root>
 	{/if}
 
 	{#if form?.error}
-		<div class="mb-4 rounded-md bg-red-50 p-4 text-red-800">
-			{form.error}
-		</div>
+		<Alert.Root variant="destructive" class="mb-4">
+			<Alert.Description>{form.error}</Alert.Description>
+		</Alert.Root>
 	{/if}
 
 	<!-- Module Details Section -->
@@ -161,41 +167,30 @@
 		{#if showModuleEditForm}
 			<form method="POST" action="?/updateModule" use:enhance class="space-y-4">
 				<div>
-					<label for="name" class="mb-2 block text-sm font-medium text-gray-700">
+					<Label for="name">
 						Module Name <span class="text-red-500">*</span>
-					</label>
-					<input
-						type="text"
-						id="name"
-						name="name"
-						bind:value={moduleName}
-						required
-						class="block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 focus:outline-none"
+					</Label>
+					<Input type="text" id="name" name="name" bind:value={moduleName} required class="mt-2" />
+				</div>
+
+				<div>
+					<Label for="description">Description</Label>
+					<Textarea
+						id="description"
+						name="description"
+						bind:value={moduleDescription}
+						rows={3}
+						class="mt-2"
 					/>
 				</div>
 
 				<div>
-					<label for="description" class="mb-2 block text-sm font-medium text-gray-700">
-						Description
-					</label>
-					<textarea
-						id="description"
-						name="description"
-						bind:value={moduleDescription}
-						rows="3"
-						class="block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 focus:outline-none"
-					></textarea>
-				</div>
-
-				<div>
-					<label for="targetSpecId" class="mb-2 block text-sm font-medium text-gray-700">
-						Target Specification
-					</label>
+					<Label for="targetSpecId">Target Specification</Label>
 					<select
 						id="targetSpecId"
 						name="targetSpecId"
 						bind:value={moduleTargetSpecId}
-						class="block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 focus:outline-none"
+						class="mt-2 flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-base shadow-sm transition-colors file:border-0 file:bg-transparent file:text-sm file:font-medium file:text-foreground placeholder:text-muted-foreground focus-visible:ring-1 focus-visible:ring-ring focus-visible:outline-none disabled:cursor-not-allowed disabled:opacity-50 md:text-sm"
 					>
 						<option value="">None (generic module)</option>
 						{#each data.examSpecs as spec (spec.id)}
@@ -239,15 +234,15 @@
 		</div>
 
 		{#if attachmentError}
-			<div class="mb-4 rounded-md bg-red-50 p-3 text-sm text-red-800">
-				{attachmentError}
-			</div>
+			<Alert.Root variant="destructive" class="mb-4">
+				<Alert.Description>{attachmentError}</Alert.Description>
+			</Alert.Root>
 		{/if}
 
 		{#if attachmentSuccess}
-			<div class="mb-4 rounded-md bg-green-50 p-3 text-sm text-green-800">
-				{attachmentSuccess}
-			</div>
+			<Alert.Root class="mb-4">
+				<Alert.Description>{attachmentSuccess}</Alert.Description>
+			</Alert.Root>
 		{/if}
 
 		{#if showAttachmentForm}
@@ -291,45 +286,41 @@
 				{/if}
 
 				<div>
-					<label for="title" class="mb-2 block text-sm font-medium text-gray-700">
+					<Label for="title">
 						Lesson Title <span class="text-red-500">*</span>
-					</label>
-					<input
+					</Label>
+					<Input
 						type="text"
 						id="title"
 						name="title"
 						bind:value={lessonTitle}
 						required
-						class="block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 focus:outline-none"
+						class="mt-2"
 					/>
 				</div>
 
 				<div>
-					<label for="content" class="mb-2 block text-sm font-medium text-gray-700">
-						Content (Markdown)
-					</label>
-					<textarea
+					<Label for="content">Content (Markdown)</Label>
+					<Textarea
 						id="content"
 						name="content"
 						bind:value={lessonContent}
-						rows="6"
+						rows={6}
 						placeholder="Use markdown for formatting..."
-						class="block w-full rounded-md border border-gray-300 px-3 py-2 font-mono text-sm shadow-sm focus:border-indigo-500 focus:ring-indigo-500 focus:outline-none"
-					></textarea>
+						class="mt-2 font-mono text-sm"
+					/>
 				</div>
 
 				<div>
-					<label for="duration" class="mb-2 block text-sm font-medium text-gray-700">
-						Duration (periods)
-					</label>
-					<input
+					<Label for="duration">Duration (periods)</Label>
+					<Input
 						type="number"
 						id="duration"
 						name="duration"
 						bind:value={lessonDuration}
 						min="1"
 						max="10"
-						class="block w-32 rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 focus:outline-none"
+						class="mt-2 w-32"
 					/>
 				</div>
 
@@ -341,7 +332,7 @@
 		{/if}
 
 		{#if data.lessons.length === 0}
-			<p class="text-center text-gray-600">
+			<p class="text-center text-muted-foreground">
 				No lessons yet. Click "Add Lesson" to create your first lesson.
 			</p>
 		{:else}

@@ -197,8 +197,8 @@
 		class="mb-4 flex flex-col gap-3 sm:mb-6 sm:gap-4 md:flex-row md:items-center md:justify-between"
 	>
 		<div>
-			<h1 class="text-2xl font-bold text-gray-900 sm:text-3xl">Calendar</h1>
-			<p class="text-sm text-gray-600">Academic Year {data.academicYear}</p>
+			<h1 class="text-2xl font-bold sm:text-3xl">Calendar</h1>
+			<p class="text-sm text-muted-foreground">Academic Year {data.academicYear}</p>
 		</div>
 
 		<div class="flex flex-wrap items-center gap-2">
@@ -294,7 +294,7 @@
 		</div>
 	{:else if data.classes.length === 0}
 		<div class="rounded-lg border border-gray-200 bg-gray-50 p-8 text-center">
-			<p class="text-gray-600">No classes found for academic year {data.academicYear}.</p>
+			<p class="text-muted-foreground">No classes found for academic year {data.academicYear}.</p>
 			<a href={resolve('/classes')} class="mt-4 inline-block">
 				<Button>Create a Class</Button>
 			</a>

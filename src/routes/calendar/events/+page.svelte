@@ -2,6 +2,9 @@
 	import { enhance } from '$app/forms';
 	import type { PageData, ActionData } from './$types';
 	import Button from '$lib/components/ui/button/button.svelte';
+	import Input from '$lib/components/ui/input/input.svelte';
+	import Label from '$lib/components/ui/label/label.svelte';
+	import * as Alert from '$lib/components/ui/alert/index.js';
 
 	let { data, form }: { data: PageData; form: ActionData } = $props();
 
@@ -58,7 +61,9 @@
 	<div class="mb-6 flex items-center justify-between">
 		<div>
 			<h1 class="text-3xl font-bold">Calendar Events</h1>
-			<p class="mt-2 text-gray-600">Manage holidays, school closures, and teacher absences</p>
+			<p class="mt-2 text-muted-foreground">
+				Manage holidays, school closures, and teacher absences
+			</p>
 		</div>
 		<Button onclick={() => (showCreateForm = !showCreateForm)}>
 			{showCreateForm ? 'Cancel' : 'Add Event'}
@@ -66,17 +71,21 @@
 	</div>
 
 	{#if form?.success && !form?.deleted}
-		<div class="mb-4 rounded-md bg-green-50 p-4 text-green-800">Event created successfully!</div>
+		<Alert.Root class="mb-4">
+			<Alert.Description>Event created successfully!</Alert.Description>
+		</Alert.Root>
 	{/if}
 
 	{#if form?.success && form?.deleted}
-		<div class="mb-4 rounded-md bg-green-50 p-4 text-green-800">Event deleted successfully!</div>
+		<Alert.Root class="mb-4">
+			<Alert.Description>Event deleted successfully!</Alert.Description>
+		</Alert.Root>
 	{/if}
 
 	{#if form?.error}
-		<div class="mb-4 rounded-md bg-red-50 p-4 text-red-800">
-			{form.error}
-		</div>
+		<Alert.Root variant="destructive" class="mb-4">
+			<Alert.Description>{form.error}</Alert.Description>
+		</Alert.Root>
 	{/if}
 
 	{#if showCreateForm}
@@ -85,15 +94,13 @@
 			<form method="POST" action="?/create" use:enhance>
 				<div class="grid gap-4">
 					<div>
-						<label for="type" class="mb-1 block text-sm font-medium text-gray-700">
-							Event Type
-						</label>
+						<Label for="type">Event Type</Label>
 						<select
 							id="type"
 							name="type"
 							bind:value={type}
 							required
-							class="w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 focus:outline-none"
+							class="mt-2 flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-base shadow-sm transition-colors file:border-0 file:bg-transparent file:text-sm file:font-medium file:text-foreground placeholder:text-muted-foreground focus-visible:ring-1 focus-visible:ring-ring focus-visible:outline-none disabled:cursor-not-allowed disabled:opacity-50 md:text-sm"
 						>
 							<option value="holiday">Holiday (Term Break, Bank Holiday)</option>
 							<option value="closure">School Closure (INSET Day, Snow Day)</option>
@@ -102,46 +109,40 @@
 					</div>
 
 					<div>
-						<label for="title" class="mb-1 block text-sm font-medium text-gray-700">
-							Event Title
-						</label>
-						<input
+						<Label for="title">Event Title</Label>
+						<Input
 							type="text"
 							id="title"
 							name="title"
 							bind:value={title}
 							required
 							placeholder="e.g., Half Term, INSET Day, Personal Absence"
-							class="w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 focus:outline-none"
+							class="mt-2"
 						/>
 					</div>
 
 					<div class="grid gap-4 md:grid-cols-2">
 						<div>
-							<label for="startDate" class="mb-1 block text-sm font-medium text-gray-700">
-								Start Date
-							</label>
-							<input
+							<Label for="startDate">Start Date</Label>
+							<Input
 								type="date"
 								id="startDate"
 								name="startDate"
 								bind:value={startDate}
 								required
-								class="w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 focus:outline-none"
+								class="mt-2"
 							/>
 						</div>
 
 						<div>
-							<label for="endDate" class="mb-1 block text-sm font-medium text-gray-700">
-								End Date
-							</label>
-							<input
+							<Label for="endDate">End Date</Label>
+							<Input
 								type="date"
 								id="endDate"
 								name="endDate"
 								bind:value={endDate}
 								required
-								class="w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 focus:outline-none"
+								class="mt-2"
 							/>
 						</div>
 					</div>
@@ -155,9 +156,7 @@
 							value="true"
 							class="h-4 w-4 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500"
 						/>
-						<label for="affectsAllClasses" class="text-sm text-gray-700">
-							Affects all classes
-						</label>
+						<Label for="affectsAllClasses" class="text-sm font-normal">Affects all classes</Label>
 					</div>
 
 					<div class="flex justify-end gap-3">

@@ -2,6 +2,10 @@
 	import { enhance } from '$app/forms';
 	import type { PageData, ActionData } from './$types';
 	import Button from '$lib/components/ui/button/button.svelte';
+	import Input from '$lib/components/ui/input/input.svelte';
+	import Textarea from '$lib/components/ui/textarea/textarea.svelte';
+	import Label from '$lib/components/ui/label/label.svelte';
+	import * as Alert from '$lib/components/ui/alert';
 
 	let { data, form }: { data: PageData; form: ActionData } = $props();
 
@@ -44,24 +48,26 @@
 	</div>
 
 	{#if form?.success}
-		<div class="mb-4 rounded-md bg-green-50 p-4 text-green-800">Module created successfully!</div>
+		<Alert.Root class="mb-4">
+			<Alert.Title>Success</Alert.Title>
+			<Alert.Description>Module created successfully!</Alert.Description>
+		</Alert.Root>
 	{/if}
 
 	{#if form?.error}
-		<div class="mb-4 rounded-md bg-red-50 p-4 text-red-800">
-			{form.error}
-		</div>
+		<Alert.Root variant="destructive" class="mb-4">
+			<Alert.Title>Error</Alert.Title>
+			<Alert.Description>{form.error}</Alert.Description>
+		</Alert.Root>
 	{/if}
 
 	{#if !showCreateForm && data.modules.length > 0}
 		<div class="mb-4 flex flex-col gap-2 sm:mb-6 sm:flex-row sm:items-center sm:gap-4">
-			<label for="specFilter" class="text-sm font-medium text-gray-700">
-				Filter by Target Specification:
-			</label>
+			<Label for="specFilter">Filter by Target Specification:</Label>
 			<select
 				id="specFilter"
 				bind:value={filterSpecId}
-				class="min-h-[44px] w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 focus:outline-none sm:w-auto"
+				class="min-h-[44px] w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:outline-none sm:w-auto"
 			>
 				<option value={null}>All Specifications</option>
 				{#each data.examSpecs as spec (spec.id)}
@@ -76,50 +82,46 @@
 			<h2 class="mb-4 text-xl font-semibold">Create New Module</h2>
 			<form method="POST" action="?/create" use:enhance class="space-y-4">
 				<div>
-					<label for="name" class="mb-2 block text-sm font-medium text-gray-700">
+					<Label for="name">
 						Module Name <span class="text-red-500">*</span>
-					</label>
-					<input
+					</Label>
+					<Input
 						type="text"
 						id="name"
 						name="name"
 						bind:value={name}
 						placeholder="e.g., Forces and Motion"
 						required
-						class="block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 focus:outline-none"
+						class="mt-2"
 					/>
 				</div>
 
 				<div>
-					<label for="description" class="mb-2 block text-sm font-medium text-gray-700">
-						Description
-					</label>
-					<textarea
+					<Label for="description">Description</Label>
+					<Textarea
 						id="description"
 						name="description"
 						bind:value={description}
-						rows="3"
+						rows={3}
 						placeholder="Optional overview of the module"
-						class="block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 focus:outline-none"
-					></textarea>
+						class="mt-2"
+					/>
 				</div>
 
 				<div>
-					<label for="targetSpecId" class="mb-2 block text-sm font-medium text-gray-700">
-						Target Specification
-					</label>
+					<Label for="targetSpecId">Target Specification</Label>
 					<select
 						id="targetSpecId"
 						name="targetSpecId"
 						bind:value={targetSpecId}
-						class="block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 focus:outline-none"
+						class="mt-2 block w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:outline-none"
 					>
 						<option value="">None (generic module)</option>
 						{#each data.examSpecs as spec (spec.id)}
 							<option value={spec.id}>{spec.name}</option>
 						{/each}
 					</select>
-					<p class="mt-1 text-sm text-gray-500">
+					<p class="mt-1 text-sm text-muted-foreground">
 						Which exam specification is this module designed for?
 					</p>
 				</div>

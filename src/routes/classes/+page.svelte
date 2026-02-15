@@ -2,6 +2,10 @@
 	import { enhance } from '$app/forms';
 	import type { PageData, ActionData } from './$types';
 	import Button from '$lib/components/ui/button/button.svelte';
+	import Input from '$lib/components/ui/input/input.svelte';
+	import Textarea from '$lib/components/ui/textarea/textarea.svelte';
+	import Label from '$lib/components/ui/label/label.svelte';
+	import * as Alert from '$lib/components/ui/alert';
 
 	let { data, form }: { data: PageData; form: ActionData } = $props();
 
@@ -52,24 +56,26 @@
 	</div>
 
 	{#if form?.success}
-		<div class="mb-4 rounded-md bg-green-50 p-4 text-green-800">Class created successfully!</div>
+		<Alert.Root class="mb-4">
+			<Alert.Title>Success</Alert.Title>
+			<Alert.Description>Class created successfully!</Alert.Description>
+		</Alert.Root>
 	{/if}
 
 	{#if form?.error}
-		<div class="mb-4 rounded-md bg-red-50 p-4 text-red-800">
-			{form.error}
-		</div>
+		<Alert.Root variant="destructive" class="mb-4">
+			<Alert.Title>Error</Alert.Title>
+			<Alert.Description>{form.error}</Alert.Description>
+		</Alert.Root>
 	{/if}
 
 	{#if !showCreateForm && data.classes.length > 0}
 		<div class="mb-4 flex flex-col gap-2 sm:mb-6 sm:flex-row sm:items-center sm:gap-4">
-			<label for="yearGroupFilter" class="text-sm font-medium text-gray-700">
-				Filter by Year Group:
-			</label>
+			<Label for="yearGroupFilter">Filter by Year Group:</Label>
 			<select
 				id="yearGroupFilter"
 				bind:value={filterYearGroup}
-				class="min-h-[44px] w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 focus:outline-none sm:w-auto"
+				class="min-h-[44px] w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:outline-none sm:w-auto"
 			>
 				<option value={null}>All Year Groups</option>
 				{#each [7, 8, 9, 10, 11, 12, 13] as year (year)}
@@ -85,30 +91,30 @@
 			<form method="POST" action="?/create" use:enhance class="space-y-4">
 				<div class="grid gap-4 md:grid-cols-2">
 					<div>
-						<label for="name" class="mb-2 block text-sm font-medium text-gray-700">
+						<Label for="name">
 							Class Name <span class="text-red-500">*</span>
-						</label>
-						<input
+						</Label>
+						<Input
 							type="text"
 							id="name"
 							name="name"
 							bind:value={name}
 							placeholder="e.g., 11X/Ph1, Year 12 Physics"
 							required
-							class="block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 focus:outline-none"
+							class="mt-2"
 						/>
 					</div>
 
 					<div>
-						<label for="yearGroup" class="mb-2 block text-sm font-medium text-gray-700">
+						<Label for="yearGroup">
 							Year Group <span class="text-red-500">*</span>
-						</label>
+						</Label>
 						<select
 							id="yearGroup"
 							name="yearGroup"
 							bind:value={yearGroup}
 							required
-							class="block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 focus:outline-none"
+							class="mt-2 block w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:outline-none"
 						>
 							{#each [7, 8, 9, 10, 11, 12, 13] as year (year)}
 								<option value={year}>Year {year}</option>
@@ -117,15 +123,15 @@
 					</div>
 
 					<div>
-						<label for="examSpecId" class="mb-2 block text-sm font-medium text-gray-700">
+						<Label for="examSpecId">
 							Exam Specification <span class="text-red-500">*</span>
-						</label>
+						</Label>
 						<select
 							id="examSpecId"
 							name="examSpecId"
 							bind:value={examSpecId}
 							required
-							class="block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 focus:outline-none"
+							class="mt-2 block w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:outline-none"
 						>
 							<option value="">Select a specification...</option>
 							{#each data.examSpecs as spec (spec.id)}
@@ -135,59 +141,57 @@
 					</div>
 
 					<div>
-						<label for="academicYear" class="mb-2 block text-sm font-medium text-gray-700">
+						<Label for="academicYear">
 							Academic Year <span class="text-red-500">*</span>
-						</label>
-						<input
+						</Label>
+						<Input
 							type="text"
 							id="academicYear"
 							name="academicYear"
 							bind:value={academicYear}
 							placeholder="e.g., 2024-25"
 							required
-							class="block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 focus:outline-none"
+							class="mt-2"
 						/>
-						<p class="mt-1 text-sm text-gray-500">Format: YYYY-YY</p>
+						<p class="mt-1 text-sm text-muted-foreground">Format: YYYY-YY</p>
 					</div>
 
 					<div>
-						<label for="studentCount" class="mb-2 block text-sm font-medium text-gray-700">
-							Student Count
-						</label>
-						<input
+						<Label for="studentCount">Student Count</Label>
+						<Input
 							type="number"
 							id="studentCount"
 							name="studentCount"
 							bind:value={studentCount}
 							placeholder="Optional"
 							min="1"
-							class="block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 focus:outline-none"
+							class="mt-2"
 						/>
 					</div>
 
 					<div>
-						<label for="room" class="mb-2 block text-sm font-medium text-gray-700"> Room </label>
-						<input
+						<Label for="room">Room</Label>
+						<Input
 							type="text"
 							id="room"
 							name="room"
 							bind:value={room}
 							placeholder="e.g., Lab 3"
-							class="block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 focus:outline-none"
+							class="mt-2"
 						/>
 					</div>
 				</div>
 
 				<div>
-					<label for="notes" class="mb-2 block text-sm font-medium text-gray-700"> Notes </label>
-					<textarea
+					<Label for="notes">Notes</Label>
+					<Textarea
 						id="notes"
 						name="notes"
 						bind:value={notes}
-						rows="3"
+						rows={3}
 						placeholder="Optional notes about the class"
-						class="block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 focus:outline-none"
-					></textarea>
+						class="mt-2"
+					/>
 				</div>
 
 				<div class="flex justify-end gap-2">

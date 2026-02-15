@@ -1,7 +1,7 @@
 {
 	"version": "1",
-	"lastUpdated": "2026-02-13T07:30:00Z",
-	"summary": "Project has shadcn-svelte UI library configured with Tailwind CSS v4. Database schema includes examSpec, topic, specPoint, teachingClass, timetableConfig, timetableSlot, module, lesson, lessonSpecPoint, moduleAssignment, scheduledLesson, scheduledLessonSpecPoint, calendarEvent, and attachment tables. All core entity schemas are complete and clean. Seed script implemented for UK Physics exam specifications with comprehensive test coverage. UK academic year term date templates implemented with seedTermDates function covering Autumn, Spring, and Summer terms, half-term breaks, and bank holidays. Application shell layout with responsive navigation is complete. Timetable configuration view implemented with full CRUD functionality, validation, and test coverage. Classes list view implemented with create functionality, year group filtering, and navigation to detail pages. Class detail view implemented with full timetable slot management (add/edit/delete), class property editing, double period support, Week A/B labelling for 2-week timetables, and chronological scheduled lesson display. Module library view implemented with create functionality, filtering by target specification, lesson count display, and assignment count tracking. Module editor view implemented with full lesson management (add/edit/delete/reorder), markdown content editor, duration setting, spec point linking, and module property editing. Module assignment workflow complete with scheduling logic that copies lessons to scheduled instances, fills timetable slots sequentially, handles single and double period lessons, respects Week A/B cycles, skips occupied slots, and supports both specific start dates and 'next available slot' option. UI provides module selection, start date picker, and assignment confirmation with comprehensive test coverage. Calendar view implemented with day/week/term navigation and scheduled lessons colour-coded by class. Week view dynamically displays 1 or 2 weeks based on timetable configuration, with Week A/B section headers, color-coded columns, and navigation that respects the timetable type. Term view provides full term overview with calendar grid layout showing all days in Autumn/Spring/Summer terms, condensed lesson blocks (up to 2 previews per day with '+X more' indicator), color-coded holidays/closures/absences, clickable drill-down to day view, Week A/B indicators for 2-week timetables, and summary statistics (total lessons, holidays, closures, teaching days). Navigation between terms works via Previous/Next buttons (3-month intervals). All calendar views display holidays, closures, and absences appropriately. Specification browser view implemented with list page showing all exam specifications filtered by level (GCSE/A-Level), and detail page displaying hierarchical topic structure with spec points. Spec points show linked lessons and modules. One level of subtopics is displayed for organizational clarity. Full test coverage for both views. Calendar events management page implemented at /calendar/events with full CRUD functionality for holidays, school closures, and teacher absences. Supports date range selection, event type selection, and affects-all-classes flag. Events are loaded and displayed in calendar views. Comprehensive test coverage with 19 passing tests covering all event types, validation, and error cases. Automatic lesson rescheduling engine implemented with cascade functionality. When calendar events (holidays, closures, absences) overlap scheduled lessons, the system automatically shifts affected lessons forward to next available slots. All subsequent lessons cascade accordingly. Handles edge cases including double period lessons requiring double slots, Week A/B timetable patterns, multiple overlapping events, and slot availability. Supports preview mode to show changes before applying. Comprehensive test coverage with 9 passing tests covering single-day events, multi-day events, double periods, 2-week timetables, preview functionality, and multiple calendar events. Manual push forward/back lesson functionality implemented with full cascade support. Teachers can manually push scheduled lessons forward or backward to next/previous available slots. All subsequent lessons cascade in the same direction. Handles double period lessons, respects Week A/B timetable patterns, skips calendar events, and prevents impossible moves. UI buttons added to class detail view for pushing individual lessons. Comprehensive test coverage with 9 passing tests covering forward push, backward push, cascading, calendar event avoidance, double periods, 2-week timetables, preview mode, and error handling. Scheduled lesson editing functionality implemented with full support for editing title, content (markdown), duration, and spec point links. Lessons can be edited from class detail view with inline edit forms, and calendar view links to class detail for editing. Edits affect only scheduled instances, not source modules. Spec points loaded from class exam specification and displayed/managed with checkboxes. Server-side validation ensures data integrity. Comprehensive test coverage with 4 new passing tests covering successful updates, validation, duration ranges, and cross-class security. Full mobile responsiveness implemented across all views with touch-friendly tap targets (minimum 44x44px), responsive layouts that adapt from mobile to desktop, improved button layouts and navigation controls on mobile, adaptive text sizing, mobile-optimized calendar week view with horizontal scroll, stacked button layouts on small screens, flexible forms and filters, and properly sized modal dialogs. Navigation includes mobile hamburger menu. All core features are accessible and functional on mobile devices. File and link attachment system fully implemented with server-side handlers, API endpoints, and UI components. Attachments support file uploads (PDF, DOCX, PPTX, images up to 10MB) and URL links. Integrated into specifications, classes, and modules with full CRUD functionality. Files validated by type and size, stored in configurable directory, and served via download endpoint. Comprehensive test coverage with 19 passing tests for attachment utilities and API endpoints. Term date import workflow implemented at /settings/term-dates allowing teachers to import UK term date templates for any academic year. Users can select an academic year, import the template (which calls seedTermDates), view all imported events, and edit individual dates (title, start, end) to match their school calendar. Events can also be deleted. Import is idempotent and safe to re-run. Comprehensive test coverage with 14 passing tests covering import validation, event loading, update/delete operations, and date range validation.",
+	"lastUpdated": "2026-02-15T17:45:00Z",
+	"summary": "All core v1 functionality is implemented and complete. The application supports exam specifications, classes, timetable configuration, modules with lessons, module assignment with automatic scheduling, calendar views (day/week/term), calendar events with automatic rescheduling, push forward/back functionality, scheduled lesson editing, file and link attachments, and term date import. shadcn-svelte components (Input, Textarea, Label, Alert, Checkbox, RadioGroup, Dialog, Card) are now installed and consistently used throughout the application. Raw HTML form elements have been replaced with proper shadcn components. Outstanding UI work includes: custom typography (Fraunces/Inter fonts), custom color system from design guidelines, dark mode toggle, drag-and-drop for lesson reordering, key stage color indicators, Settings in main navigation with landing page, and user accent color preferences.",
 	"tasks": [
 		{
 			"id": "setup-shadcn",
@@ -559,18 +559,206 @@
 				"Import creates calendar events",
 				"Can re-import/update dates"
 			]
-		}
-	],
-	"missingSpecs": [
-		{
-			"proposedPath": "specs/exam-spec-data-format.md",
-			"description": "Document the exact structure and format for exam specification seed data, including how to parse topic hierarchies and spec point references from official specification documents",
-			"reason": "The v1 spec mentions predefined specifications will be parsed from official documents but doesn't specify the data format or parsing approach needed for implementation"
 		},
 		{
-			"proposedPath": "specs/scheduling-algorithm.md",
-			"description": "Detail the scheduling algorithm for placing lessons into timetable slots, handling double periods, respecting slot availability, and cascade rescheduling logic when events are added",
-			"reason": "The cascade rescheduling and slot-filling logic is complex and needs clear rules for edge cases like double periods spanning unavailable slots, term boundaries, and conflict resolution"
+			"id": "ui-shadcn-components",
+			"title": "Install and use shadcn-svelte components consistently",
+			"description": "Installed shadcn-svelte components (Input, Textarea, Label, Alert, Checkbox, RadioGroup, Dialog, Card, Separator, Select) and replaced all raw HTML form elements throughout the application. Text inputs, textareas, labels, and alerts now use proper shadcn components with consistent styling. Native select elements retained with shadcn-compatible styling classes. Radio groups and checkboxes converted to shadcn components. All text color classes updated to design tokens (text-gray-* → text-muted-foreground, etc.).",
+			"status": "complete",
+			"priority": "high",
+			"specReference": "CLAUDE.md#tech-stack",
+			"affectedPaths": [
+				"src/lib/components/ui/",
+				"src/routes/classes/+page.svelte",
+				"src/routes/classes/[id]/+page.svelte",
+				"src/routes/classes/[id]/assign/+page.svelte",
+				"src/routes/modules/+page.svelte",
+				"src/routes/modules/[id]/+page.svelte",
+				"src/routes/calendar/+page.svelte",
+				"src/routes/calendar/events/+page.svelte",
+				"src/routes/specifications/+page.svelte",
+				"src/routes/specifications/[id]/+page.svelte",
+				"src/routes/settings/timetable/+page.svelte",
+				"src/routes/settings/term-dates/+page.svelte",
+				"src/lib/components/lesson/scheduled-lesson-editor.svelte",
+				"src/lib/components/attachments/attachment-form.svelte"
+			],
+			"dependencies": ["setup-shadcn"],
+			"verificationSteps": [
+				"Input, Textarea, Alert, Checkbox, RadioGroup, Dialog, Label, Card components installed",
+				"All <input type='text'> replaced with Input component",
+				"All <textarea> replaced with Textarea component",
+				"All success/error alert divs replaced with Alert component",
+				"All <input type='checkbox'> replaced with Checkbox component",
+				"All <input type='radio'> groups replaced with RadioGroup component",
+				"All raw <label> elements replaced with Label component",
+				"Native <select> elements kept with shadcn-style classes",
+				"Text color classes updated to design tokens",
+				"Consistent styling across all form elements",
+				"Type checking passes",
+				"All tests pass"
+			]
+		},
+		{
+			"id": "ui-typography",
+			"title": "Implement custom typography (Fraunces/Inter fonts)",
+			"description": "Import and configure Fraunces (display) and Inter (body) fonts as specified in ui-design-guidelines.md. Define CSS custom properties for --font-display, --font-body, --font-mono. Apply Fraunces to page headings (h1, h2, h3) and Inter to body text. Set up the type scale with semantic tokens.",
+			"status": "pending",
+			"priority": "medium",
+			"specReference": "ui-design-guidelines.md#typography",
+			"affectedPaths": [
+				"src/routes/layout.css",
+				"src/app.html",
+				"src/lib/components/nav/app-nav.svelte"
+			],
+			"dependencies": [],
+			"verificationSteps": [
+				"Google Fonts import for Fraunces and Inter present",
+				"CSS custom properties defined for fonts",
+				"Headings use Fraunces display font",
+				"Body text uses Inter",
+				"Type scale tokens match spec"
+			]
+		},
+		{
+			"id": "ui-color-system",
+			"title": "Implement custom color palette from design guidelines",
+			"description": "Replace current oklch color system with the hex-based palette from ui-design-guidelines.md. Implement Amber (#F0A868) as primary accent, Steel (#6D9DC5) as secondary, Sage (#88BB92) for success/KS3, Coral (#E54F6D) for A-Level/destructive. Define all semantic color tokens for light and dark modes.",
+			"status": "pending",
+			"priority": "medium",
+			"specReference": "ui-design-guidelines.md#color-system",
+			"affectedPaths": ["src/routes/layout.css"],
+			"dependencies": [],
+			"verificationSteps": [
+				"Core palette colors (Amber, Charcoal, Sage, Coral, Steel) defined",
+				"Semantic tokens match spec (--accent-primary, --success, --warning, --error, --info)",
+				"Light mode variables defined correctly",
+				"Dark mode variables defined correctly",
+				"Colors render consistently across components"
+			]
+		},
+		{
+			"id": "ui-dark-mode-toggle",
+			"title": "Add dark mode toggle to navigation header",
+			"description": "Implement dark mode toggle button in the navigation header using Sun/Moon icons from Lucide. Save preference to localStorage and respect prefers-color-scheme system preference as default. Toggle adds/removes .dark class on document root.",
+			"status": "pending",
+			"priority": "medium",
+			"specReference": "ui-design-guidelines.md#dark-mode",
+			"affectedPaths": ["src/lib/components/nav/app-nav.svelte", "src/routes/+layout.svelte"],
+			"dependencies": ["ui-color-system"],
+			"verificationSteps": [
+				"Sun/Moon toggle button visible in header",
+				"Clicking toggle switches between light and dark modes",
+				"Preference saved to localStorage",
+				"System preference used as default on first visit",
+				"No flash of wrong theme on page load"
+			]
+		},
+		{
+			"id": "ui-key-stage-colors",
+			"title": "Add key stage color indicators to classes",
+			"description": "Implement visual color coding for classes based on key stage: KS3 (Years 7-9) uses Sage (#88BB92), GCSE (Years 10-11) uses Steel (#6D9DC5), A-Level (Years 12-13) uses Coral (#E54F6D). Display as color indicators on class list and class detail views.",
+			"status": "pending",
+			"priority": "low",
+			"specReference": "ui-design-guidelines.md#key-stage-colors",
+			"affectedPaths": [
+				"src/routes/classes/+page.svelte",
+				"src/routes/classes/[id]/+page.svelte",
+				"src/routes/layout.css"
+			],
+			"dependencies": ["ui-color-system"],
+			"verificationSteps": [
+				"Classes list shows key stage color indicator",
+				"Class detail page shows key stage color",
+				"Colors match spec: Sage for KS3, Steel for GCSE, Coral for A-Level",
+				"Works in both light and dark modes"
+			]
+		},
+		{
+			"id": "ui-settings-nav",
+			"title": "Add Settings to main navigation",
+			"description": "Add Settings link to the main navigation alongside Calendar, Classes, Modules, Specifications. Settings should link to /settings which needs a landing page with links to Timetable and Term Dates settings.",
+			"status": "pending",
+			"priority": "medium",
+			"specReference": "ui-design-guidelines.md#navigation-structure",
+			"affectedPaths": [
+				"src/lib/components/nav/app-nav.svelte",
+				"src/routes/settings/+page.svelte"
+			],
+			"dependencies": [],
+			"verificationSteps": [
+				"Settings link visible in desktop navigation",
+				"Settings link visible in mobile menu",
+				"Settings landing page exists at /settings",
+				"Landing page links to Timetable and Term Dates sub-pages",
+				"Active state styling works for settings routes"
+			]
+		},
+		{
+			"id": "ui-drag-drop-lessons",
+			"title": "Implement drag-and-drop for lesson reordering in module editor",
+			"description": "Add drag-and-drop functionality to reorder lessons within a module. Implement draggable card styling with cursor:grab, lift effect on hover, and dragging state with scale/rotation. Show drop indicator line between items. Include keyboard accessibility (Space to pick up, arrows to move, Space to drop, Escape to cancel). Respect prefers-reduced-motion.",
+			"status": "pending",
+			"priority": "high",
+			"specReference": "ui-design-guidelines.md#drag-and-drop",
+			"affectedPaths": [
+				"src/routes/modules/[id]/+page.svelte",
+				"src/routes/modules/[id]/+page.server.ts",
+				"src/routes/layout.css"
+			],
+			"dependencies": [],
+			"verificationSteps": [
+				"Lessons can be dragged to reorder",
+				"Visual feedback during drag (lift, scale, rotation)",
+				"Drop indicator shows insertion point",
+				"Order persists to database",
+				"Keyboard alternative works",
+				"Reduced motion respected"
+			]
+		},
+		{
+			"id": "ui-empty-states",
+			"title": "Improve empty state components with design system styling",
+			"description": "Enhance empty state messages to follow ui-design-guidelines.md structure: large icon (32-48px Lucide icon), friendly heading using Fraunces font, brief description, and action button to resolve the empty state. Apply to classes list, modules list, calendar, and scheduled lessons sections.",
+			"status": "pending",
+			"priority": "low",
+			"specReference": "ui-design-guidelines.md#empty-states",
+			"affectedPaths": [
+				"src/routes/classes/+page.svelte",
+				"src/routes/modules/+page.svelte",
+				"src/routes/calendar/+page.svelte",
+				"src/routes/classes/[id]/+page.svelte"
+			],
+			"dependencies": ["ui-typography"],
+			"verificationSteps": [
+				"Empty states have centered icon, heading, description, and action button",
+				"Heading uses Fraunces font",
+				"Icons are appropriately sized (32-48px)",
+				"Action buttons navigate to create/setup flows",
+				"Consistent structure across all empty states"
+			]
+		},
+		{
+			"id": "ui-user-accent-preference",
+			"title": "Add user accent color preference to settings",
+			"description": "Create appearance settings section allowing users to select their preferred accent color from preset options: Amber (default), Coral, Steel, Sage, Lavender, Teal. Selection should update --accent-primary CSS variable throughout the app and persist to localStorage.",
+			"status": "pending",
+			"priority": "low",
+			"specReference": "ui-design-guidelines.md#user-accent-customisation",
+			"affectedPaths": [
+				"src/routes/settings/+page.svelte",
+				"src/routes/settings/appearance/+page.svelte",
+				"src/routes/layout.css",
+				"src/routes/+layout.svelte"
+			],
+			"dependencies": ["ui-settings-nav", "ui-color-system"],
+			"verificationSteps": [
+				"Appearance settings page exists",
+				"Six accent color options displayed",
+				"Selecting color updates UI immediately",
+				"Preference persists across sessions",
+				"All buttons and links use selected accent color"
+			]
 		}
 	]
 }

@@ -6,6 +6,10 @@
 	import Button from '$lib/components/ui/button/button.svelte';
 	import AttachmentList from '$lib/components/attachments/attachment-list.svelte';
 	import AttachmentForm from '$lib/components/attachments/attachment-form.svelte';
+	import Input from '$lib/components/ui/input/input.svelte';
+	import Textarea from '$lib/components/ui/textarea/textarea.svelte';
+	import Label from '$lib/components/ui/label/label.svelte';
+	import * as Alert from '$lib/components/ui/alert/index.js';
 
 	let { data, form }: { data: PageData; form: ActionData } = $props();
 
@@ -210,14 +214,16 @@
 
 	<!-- Success message -->
 	{#if form?.success}
-		<div class="mb-4 rounded-md bg-green-50 p-4 text-green-800">Changes saved successfully!</div>
+		<Alert.Root class="mb-4">
+			<Alert.Description>Changes saved successfully!</Alert.Description>
+		</Alert.Root>
 	{/if}
 
 	<!-- Error message -->
 	{#if form?.error}
-		<div class="mb-4 rounded-md bg-red-50 p-4 text-red-800">
-			{form.error}
-		</div>
+		<Alert.Root variant="destructive" class="mb-4">
+			<Alert.Description>{form.error}</Alert.Description>
+		</Alert.Root>
 	{/if}
 
 	<!-- Class Details Section -->
@@ -233,29 +239,22 @@
 			<form method="POST" action="?/updateClass" use:enhance class="space-y-4">
 				<div class="grid gap-4 md:grid-cols-2">
 					<div>
-						<label for="name" class="mb-2 block text-sm font-medium text-gray-700">
+						<Label for="name">
 							Class Name <span class="text-red-500">*</span>
-						</label>
-						<input
-							type="text"
-							id="name"
-							name="name"
-							bind:value={name}
-							required
-							class="block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 focus:outline-none"
-						/>
+						</Label>
+						<Input type="text" id="name" name="name" bind:value={name} required class="mt-2" />
 					</div>
 
 					<div>
-						<label for="yearGroup" class="mb-2 block text-sm font-medium text-gray-700">
+						<Label for="yearGroup">
 							Year Group <span class="text-red-500">*</span>
-						</label>
+						</Label>
 						<select
 							id="yearGroup"
 							name="yearGroup"
 							bind:value={yearGroup}
 							required
-							class="block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 focus:outline-none"
+							class="mt-2 flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-base shadow-sm transition-colors file:border-0 file:bg-transparent file:text-sm file:font-medium file:text-foreground placeholder:text-muted-foreground focus-visible:ring-1 focus-visible:ring-ring focus-visible:outline-none disabled:cursor-not-allowed disabled:opacity-50 md:text-sm"
 						>
 							{#each [7, 8, 9, 10, 11, 12, 13] as year (year)}
 								<option value={year}>Year {year}</option>
@@ -264,58 +263,56 @@
 					</div>
 
 					<div>
-						<label for="academicYear" class="mb-2 block text-sm font-medium text-gray-700">
+						<Label for="academicYear">
 							Academic Year <span class="text-red-500">*</span>
-						</label>
-						<input
+						</Label>
+						<Input
 							type="text"
 							id="academicYear"
 							name="academicYear"
 							bind:value={academicYear}
 							placeholder="e.g., 2024-25"
 							required
-							class="block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 focus:outline-none"
+							class="mt-2"
 						/>
 					</div>
 
 					<div>
-						<label for="studentCount" class="mb-2 block text-sm font-medium text-gray-700">
-							Student Count
-						</label>
-						<input
+						<Label for="studentCount">Student Count</Label>
+						<Input
 							type="number"
 							id="studentCount"
 							name="studentCount"
 							bind:value={studentCount}
 							placeholder="Optional"
 							min="1"
-							class="block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 focus:outline-none"
+							class="mt-2"
 						/>
 					</div>
 
 					<div>
-						<label for="room" class="mb-2 block text-sm font-medium text-gray-700"> Room </label>
-						<input
+						<Label for="room">Room</Label>
+						<Input
 							type="text"
 							id="room"
 							name="room"
 							bind:value={room}
 							placeholder="e.g., Lab 3"
-							class="block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 focus:outline-none"
+							class="mt-2"
 						/>
 					</div>
 				</div>
 
 				<div>
-					<label for="notes" class="mb-2 block text-sm font-medium text-gray-700"> Notes </label>
-					<textarea
+					<Label for="notes">Notes</Label>
+					<Textarea
 						id="notes"
 						name="notes"
 						bind:value={notes}
-						rows="3"
+						rows={3}
 						placeholder="Optional notes about the class"
-						class="block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 focus:outline-none"
-					></textarea>
+						class="mt-2"
+					/>
 				</div>
 
 				<div class="flex justify-end gap-2">
@@ -372,15 +369,15 @@
 		</div>
 
 		{#if attachmentError}
-			<div class="mb-4 rounded-md bg-red-50 p-3 text-sm text-red-800">
-				{attachmentError}
-			</div>
+			<Alert.Root variant="destructive" class="mb-4">
+				<Alert.Description>{attachmentError}</Alert.Description>
+			</Alert.Root>
 		{/if}
 
 		{#if attachmentSuccess}
-			<div class="mb-4 rounded-md bg-green-50 p-3 text-sm text-green-800">
-				{attachmentSuccess}
-			</div>
+			<Alert.Root class="mb-4">
+				<Alert.Description>{attachmentSuccess}</Alert.Description>
+			</Alert.Root>
 		{/if}
 
 		{#if showAttachmentForm}
@@ -410,15 +407,15 @@
 			<form method="POST" action="?/addSlot" use:enhance class="mb-6 space-y-4">
 				<div class="grid gap-4 md:grid-cols-4">
 					<div>
-						<label for="day" class="mb-2 block text-sm font-medium text-gray-700">
+						<Label for="day">
 							Day <span class="text-red-500">*</span>
-						</label>
+						</Label>
 						<select
 							id="day"
 							name="day"
 							bind:value={slotDay}
 							required
-							class="block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 focus:outline-none"
+							class="mt-2 flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-base shadow-sm transition-colors file:border-0 file:bg-transparent file:text-sm file:font-medium file:text-foreground placeholder:text-muted-foreground focus-visible:ring-1 focus-visible:ring-ring focus-visible:outline-none disabled:cursor-not-allowed disabled:opacity-50 md:text-sm"
 						>
 							{#each dayNames as dayName, i (i)}
 								<option value={i + 1}>{dayName}</option>
@@ -427,10 +424,10 @@
 					</div>
 
 					<div>
-						<label for="periodStart" class="mb-2 block text-sm font-medium text-gray-700">
+						<Label for="periodStart">
 							Period Start <span class="text-red-500">*</span>
-						</label>
-						<input
+						</Label>
+						<Input
 							type="number"
 							id="periodStart"
 							name="periodStart"
@@ -438,15 +435,15 @@
 							min="1"
 							max="10"
 							required
-							class="block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 focus:outline-none"
+							class="mt-2"
 						/>
 					</div>
 
 					<div>
-						<label for="periodEnd" class="mb-2 block text-sm font-medium text-gray-700">
+						<Label for="periodEnd">
 							Period End <span class="text-red-500">*</span>
-						</label>
-						<input
+						</Label>
+						<Input
 							type="number"
 							id="periodEnd"
 							name="periodEnd"
@@ -454,17 +451,17 @@
 							min="1"
 							max="10"
 							required
-							class="block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 focus:outline-none"
+							class="mt-2"
 						/>
 					</div>
 
 					<div>
-						<label for="week" class="mb-2 block text-sm font-medium text-gray-700"> Week </label>
+						<Label for="week">Week</Label>
 						<select
 							id="week"
 							name="week"
 							bind:value={slotWeek}
-							class="block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 focus:outline-none"
+							class="mt-2 flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-base shadow-sm transition-colors file:border-0 file:bg-transparent file:text-sm file:font-medium file:text-foreground placeholder:text-muted-foreground focus-visible:ring-1 focus-visible:ring-ring focus-visible:outline-none disabled:cursor-not-allowed disabled:opacity-50 md:text-sm"
 						>
 							<option value="">None (1-week timetable)</option>
 							<option value="A">Week A</option>
@@ -482,7 +479,7 @@
 
 		{#if data.timetableSlots.length === 0}
 			<div class="rounded-lg border border-gray-200 bg-gray-50 p-8 text-center">
-				<p class="text-gray-600">
+				<p class="text-muted-foreground">
 					No timetable slots configured. Click "Add Slot" to add the first slot.
 				</p>
 			</div>
@@ -499,18 +496,13 @@
 							<input type="hidden" name="slotId" value={slot.id} />
 							<div class="grid gap-4 md:grid-cols-5">
 								<div>
-									<label
-										for="editDay-{slot.id}"
-										class="mb-1 block text-xs font-medium text-gray-700"
-									>
-										Day
-									</label>
+									<Label for="editDay-{slot.id}" class="text-xs">Day</Label>
 									<select
 										id="editDay-{slot.id}"
 										name="day"
 										bind:value={slotDay}
 										required
-										class="block w-full rounded-md border border-gray-300 px-2 py-1 text-sm shadow-sm focus:border-indigo-500 focus:ring-indigo-500 focus:outline-none"
+										class="mt-1 flex h-8 w-full rounded-md border border-input bg-transparent px-2 py-1 text-sm shadow-sm transition-colors file:border-0 file:bg-transparent file:text-sm file:font-medium file:text-foreground placeholder:text-muted-foreground focus-visible:ring-1 focus-visible:ring-ring focus-visible:outline-none disabled:cursor-not-allowed disabled:opacity-50"
 									>
 										{#each dayNames as dayName, i (i)}
 											<option value={i + 1}>{dayName}</option>
@@ -519,13 +511,8 @@
 								</div>
 
 								<div>
-									<label
-										for="editPeriodStart-{slot.id}"
-										class="mb-1 block text-xs font-medium text-gray-700"
-									>
-										Start
-									</label>
-									<input
+									<Label for="editPeriodStart-{slot.id}" class="text-xs">Start</Label>
+									<Input
 										type="number"
 										id="editPeriodStart-{slot.id}"
 										name="periodStart"
@@ -533,18 +520,13 @@
 										min="1"
 										max="10"
 										required
-										class="block w-full rounded-md border border-gray-300 px-2 py-1 text-sm shadow-sm focus:border-indigo-500 focus:ring-indigo-500 focus:outline-none"
+										class="mt-1 h-8 text-sm"
 									/>
 								</div>
 
 								<div>
-									<label
-										for="editPeriodEnd-{slot.id}"
-										class="mb-1 block text-xs font-medium text-gray-700"
-									>
-										End
-									</label>
-									<input
+									<Label for="editPeriodEnd-{slot.id}" class="text-xs">End</Label>
+									<Input
 										type="number"
 										id="editPeriodEnd-{slot.id}"
 										name="periodEnd"
@@ -552,22 +534,17 @@
 										min="1"
 										max="10"
 										required
-										class="block w-full rounded-md border border-gray-300 px-2 py-1 text-sm shadow-sm focus:border-indigo-500 focus:ring-indigo-500 focus:outline-none"
+										class="mt-1 h-8 text-sm"
 									/>
 								</div>
 
 								<div>
-									<label
-										for="editWeek-{slot.id}"
-										class="mb-1 block text-xs font-medium text-gray-700"
-									>
-										Week
-									</label>
+									<Label for="editWeek-{slot.id}" class="text-xs">Week</Label>
 									<select
 										id="editWeek-{slot.id}"
 										name="week"
 										bind:value={slotWeek}
-										class="block w-full rounded-md border border-gray-300 px-2 py-1 text-sm shadow-sm focus:border-indigo-500 focus:ring-indigo-500 focus:outline-none"
+										class="mt-1 flex h-8 w-full rounded-md border border-input bg-transparent px-2 py-1 text-sm shadow-sm transition-colors file:border-0 file:bg-transparent file:text-sm file:font-medium file:text-foreground placeholder:text-muted-foreground focus-visible:ring-1 focus-visible:ring-ring focus-visible:outline-none disabled:cursor-not-allowed disabled:opacity-50"
 									>
 										<option value="">None</option>
 										<option value="A">Week A</option>
@@ -624,14 +601,14 @@
 		</div>
 
 		{#if form?.message}
-			<div class="mb-4 rounded-md border border-green-200 bg-green-50 p-3 text-green-800">
-				{form.message}
-			</div>
+			<Alert.Root class="mb-4">
+				<Alert.Description>{form.message}</Alert.Description>
+			</Alert.Root>
 		{/if}
 
 		{#if data.scheduledLessons.length === 0}
 			<div class="rounded-lg border border-gray-200 bg-gray-50 p-8 text-center">
-				<p class="text-gray-600">
+				<p class="text-muted-foreground">
 					No lessons scheduled yet. Assign a module to this class to create scheduled lessons.
 				</p>
 			</div>
@@ -652,60 +629,47 @@
 
 							<div class="space-y-3">
 								<div>
-									<label
-										for="title-{lesson.id}"
-										class="mb-1 block text-sm font-medium text-gray-700"
-									>
+									<Label for="title-{lesson.id}">
 										Lesson Title <span class="text-red-500">*</span>
-									</label>
-									<input
+									</Label>
+									<Input
 										type="text"
 										id="title-{lesson.id}"
 										name="title"
 										bind:value={lessonTitle}
 										required
-										class="block w-full rounded-md border border-gray-300 px-3 py-2 text-sm shadow-sm focus:border-indigo-500 focus:ring-indigo-500 focus:outline-none"
+										class="mt-2 text-sm"
 									/>
 								</div>
 
 								<div>
-									<label
-										for="content-{lesson.id}"
-										class="mb-1 block text-sm font-medium text-gray-700"
-									>
-										Content (Markdown)
-									</label>
-									<textarea
+									<Label for="content-{lesson.id}">Content (Markdown)</Label>
+									<Textarea
 										id="content-{lesson.id}"
 										name="content"
 										bind:value={lessonContent}
-										rows="4"
+										rows={4}
 										placeholder="Use markdown for formatting..."
-										class="block w-full rounded-md border border-gray-300 px-3 py-2 font-mono text-sm shadow-sm focus:border-indigo-500 focus:ring-indigo-500 focus:outline-none"
-									></textarea>
+										class="mt-2 font-mono text-sm"
+									/>
 								</div>
 
 								<div>
-									<label
-										for="duration-{lesson.id}"
-										class="mb-1 block text-sm font-medium text-gray-700"
-									>
-										Duration (periods)
-									</label>
-									<input
+									<Label for="duration-{lesson.id}">Duration (periods)</Label>
+									<Input
 										type="number"
 										id="duration-{lesson.id}"
 										name="duration"
 										bind:value={lessonDuration}
 										min="1"
 										max="10"
-										class="block w-24 rounded-md border border-gray-300 px-3 py-2 text-sm shadow-sm focus:border-indigo-500 focus:ring-indigo-500 focus:outline-none"
+										class="mt-2 w-24 text-sm"
 									/>
 								</div>
 
 								<div>
 									<div class="mb-2 flex items-center justify-between">
-										<span class="text-sm font-medium text-gray-700">Specification Points</span>
+										<Label class="text-sm">Specification Points</Label>
 										{#if data.availableSpecPoints.length > 0}
 											<Button
 												type="button"

@@ -1,5 +1,8 @@
 <script lang="ts">
 	import Button from '$lib/components/ui/button/button.svelte';
+	import Input from '$lib/components/ui/input/input.svelte';
+	import Label from '$lib/components/ui/label/label.svelte';
+	import * as RadioGroup from '$lib/components/ui/radio-group';
 
 	let {
 		entityType,
@@ -73,41 +76,29 @@
 	}
 </script>
 
-<div class="rounded-lg border border-gray-200 bg-white p-4">
-	<h4 class="mb-4 text-sm font-medium text-gray-700">Add Attachment</h4>
+<div class="rounded-lg border border-border bg-background p-4">
+	<h4 class="mb-4 text-sm font-medium">Add Attachment</h4>
 
 	<form onsubmit={handleSubmit} class="space-y-4">
-		<fieldset>
-			<legend class="mb-2 block text-sm font-medium text-gray-700">Attachment Type</legend>
+		<RadioGroup.Root bind:value={attachmentType}>
+			<Label class="mb-2 block">Attachment Type</Label>
 			<div class="flex gap-4">
-				<label class="flex items-center gap-2">
-					<input
-						type="radio"
-						name="attachmentType"
-						value="file"
-						bind:group={attachmentType}
-						class="h-4 w-4 text-blue-600"
-					/>
-					<span class="text-sm">File Upload</span>
-				</label>
-				<label class="flex items-center gap-2">
-					<input
-						type="radio"
-						name="attachmentType"
-						value="link"
-						bind:group={attachmentType}
-						class="h-4 w-4 text-blue-600"
-					/>
-					<span class="text-sm">Link</span>
-				</label>
+				<div class="flex items-center gap-2">
+					<RadioGroup.Item value="file" id="type-file" />
+					<Label for="type-file" class="font-normal">File Upload</Label>
+				</div>
+				<div class="flex items-center gap-2">
+					<RadioGroup.Item value="link" id="type-link" />
+					<Label for="type-link" class="font-normal">Link</Label>
+				</div>
 			</div>
-		</fieldset>
+		</RadioGroup.Root>
 
 		{#if attachmentType === 'file'}
 			<div>
-				<label for="file" class="mb-2 block text-sm font-medium text-gray-700">
+				<Label for="file">
 					Choose File <span class="text-red-500">*</span>
-				</label>
+				</Label>
 				<input
 					type="file"
 					id="file"
@@ -115,39 +106,39 @@
 					bind:this={fileInput}
 					accept=".pdf,.docx,.pptx,.jpg,.jpeg,.png,.gif,.webp"
 					required
-					class="block w-full text-sm text-gray-500 file:mr-4 file:rounded-md file:border-0 file:bg-blue-50 file:px-4 file:py-2 file:text-sm file:font-semibold file:text-blue-700 hover:file:bg-blue-100"
+					class="mt-2 block w-full text-sm file:mr-4 file:rounded-md file:border-0 file:bg-primary/10 file:px-4 file:py-2 file:text-sm file:font-semibold file:text-primary hover:file:bg-primary/20"
 				/>
-				<p class="mt-1 text-xs text-gray-500">
+				<p class="mt-1 text-xs text-muted-foreground">
 					Supported formats: PDF, DOCX, PPTX, Images (max 10MB)
 				</p>
 			</div>
 		{:else}
 			<div>
-				<label for="linkUrl" class="mb-2 block text-sm font-medium text-gray-700">
+				<Label for="linkUrl">
 					URL <span class="text-red-500">*</span>
-				</label>
-				<input
+				</Label>
+				<Input
 					type="url"
 					id="linkUrl"
 					name="linkUrl"
 					bind:value={linkUrl}
 					required
 					placeholder="https://example.com"
-					class="block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-blue-500 focus:ring-blue-500 focus:outline-none"
+					class="mt-2"
 				/>
 			</div>
 			<div>
-				<label for="linkTitle" class="mb-2 block text-sm font-medium text-gray-700">
+				<Label for="linkTitle">
 					Title <span class="text-red-500">*</span>
-				</label>
-				<input
+				</Label>
+				<Input
 					type="text"
 					id="linkTitle"
 					name="linkTitle"
 					bind:value={linkTitle}
 					required
 					placeholder="Link title"
-					class="block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-blue-500 focus:ring-blue-500 focus:outline-none"
+					class="mt-2"
 				/>
 			</div>
 		{/if}

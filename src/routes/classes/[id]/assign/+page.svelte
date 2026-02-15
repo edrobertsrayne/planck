@@ -3,6 +3,9 @@
 	import { resolve } from '$app/paths';
 	import type { PageData, ActionData } from './$types';
 	import Button from '$lib/components/ui/button/button.svelte';
+	import Input from '$lib/components/ui/input/input.svelte';
+	import Label from '$lib/components/ui/label/label.svelte';
+	import * as Alert from '$lib/components/ui/alert/index.js';
 
 	let { data, form }: { data: PageData; form: ActionData } = $props();
 
@@ -24,24 +27,24 @@
 	<h1 class="mb-6 text-3xl font-bold">Assign Module to {data.class.name}</h1>
 
 	{#if form?.error}
-		<div class="mb-4 rounded-md bg-red-50 p-4 text-red-800">
-			{form.error}
-		</div>
+		<Alert.Root variant="destructive" class="mb-4">
+			<Alert.Description>{form.error}</Alert.Description>
+		</Alert.Root>
 	{/if}
 
 	<div class="rounded-lg border border-gray-200 bg-white p-6 shadow-sm">
 		<form method="POST" action="?/assign" use:enhance class="space-y-6">
 			<!-- Module Selection -->
 			<div>
-				<label for="moduleId" class="mb-2 block text-sm font-medium text-gray-700">
+				<Label for="moduleId">
 					Select Module <span class="text-red-500">*</span>
-				</label>
+				</Label>
 				<select
 					id="moduleId"
 					name="moduleId"
 					bind:value={moduleId}
 					required
-					class="block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 focus:outline-none"
+					class="mt-2 flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-base shadow-sm transition-colors file:border-0 file:bg-transparent file:text-sm file:font-medium file:text-foreground placeholder:text-muted-foreground focus-visible:ring-1 focus-visible:ring-ring focus-visible:outline-none disabled:cursor-not-allowed disabled:opacity-50 md:text-sm"
 				>
 					<option value="">Choose a module...</option>
 					{#each data.modules as module (module.id)}
@@ -56,7 +59,7 @@
 				{#if moduleId}
 					{@const selectedModule = data.modules.find((m) => m.id === moduleId)}
 					{#if selectedModule?.description}
-						<p class="mt-2 text-sm text-gray-600">
+						<p class="mt-2 text-sm text-muted-foreground">
 							{selectedModule.description}
 						</p>
 					{/if}
@@ -65,7 +68,7 @@
 
 			<!-- Start Point Selection -->
 			<fieldset class="space-y-3">
-				<legend class="block text-sm font-medium text-gray-700">Start Point</legend>
+				<Label class="text-sm">Start Point</Label>
 
 				<div class="space-y-2">
 					<!-- Next Available Option -->
@@ -83,8 +86,8 @@
 							class="h-4 w-4 text-indigo-600 focus:ring-indigo-500"
 						/>
 						<div>
-							<div class="font-medium text-gray-900">Next Available Slot</div>
-							<div class="text-sm text-gray-600">
+							<div class="font-medium">Next Available Slot</div>
+							<div class="text-sm text-muted-foreground">
 								Automatically schedule from the next free timetable slot
 							</div>
 						</div>
@@ -105,19 +108,19 @@
 							class="h-4 w-4 text-indigo-600 focus:ring-indigo-500"
 						/>
 						<div class="flex-1">
-							<div class="font-medium text-gray-900">Specific Date</div>
-							<div class="mb-2 text-sm text-gray-600">
+							<div class="font-medium">Specific Date</div>
+							<div class="mb-2 text-sm text-muted-foreground">
 								Choose a specific start date for the module
 							</div>
 							{#if !useNextAvailable}
-								<input
+								<Input
 									type="date"
 									id="startDate"
 									name="startDate"
 									bind:value={startDate}
 									min={today}
 									required={!useNextAvailable}
-									class="block w-full rounded-md border border-gray-300 px-3 py-2 text-sm shadow-sm focus:border-indigo-500 focus:ring-indigo-500 focus:outline-none"
+									class="text-sm"
 								/>
 							{/if}
 						</div>

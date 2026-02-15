@@ -4,6 +4,9 @@
 	import { resolve } from '$app/paths';
 	import type { PageData, ActionData } from './$types';
 	import Button from '$lib/components/ui/button/button.svelte';
+	import Input from '$lib/components/ui/input/input.svelte';
+	import Label from '$lib/components/ui/label/label.svelte';
+	import * as Alert from '$lib/components/ui/alert/index.js';
 
 	let { data, form }: { data: PageData; form: ActionData } = $props();
 
@@ -51,21 +54,21 @@
 	<h1 class="mb-4 text-2xl font-bold sm:mb-6 sm:text-3xl">Term Date Import</h1>
 
 	{#if form?.success}
-		<div class="mb-4 rounded-md bg-green-50 p-4 text-green-800">
-			{form.message || 'Operation completed successfully!'}
-		</div>
+		<Alert.Root class="mb-4">
+			<Alert.Description>{form.message || 'Operation completed successfully!'}</Alert.Description>
+		</Alert.Root>
 	{/if}
 
 	{#if form?.error}
-		<div class="mb-4 rounded-md bg-red-50 p-4 text-red-800">
-			{form.error}
-		</div>
+		<Alert.Root variant="destructive" class="mb-4">
+			<Alert.Description>{form.error}</Alert.Description>
+		</Alert.Root>
 	{/if}
 
 	<!-- Import Template Section -->
 	<div class="mb-8 rounded-lg border border-gray-200 bg-white p-6 shadow-sm">
 		<h2 class="mb-4 text-xl font-semibold">Import UK Term Date Template</h2>
-		<p class="mb-4 text-sm text-gray-600">
+		<p class="mb-4 text-sm text-muted-foreground">
 			Import a template of UK term dates including autumn, spring, and summer terms with half-term
 			breaks and bank holidays. You can adjust individual dates after importing.
 		</p>
@@ -78,17 +81,15 @@
 			class="flex flex-col gap-4 sm:flex-row sm:items-end"
 		>
 			<div class="flex-1">
-				<label for="academicYear" class="mb-2 block text-sm font-medium text-gray-700">
-					Academic Year
-				</label>
-				<input
+				<Label for="academicYear">Academic Year</Label>
+				<Input
 					type="text"
 					id="academicYear"
 					name="academicYear"
 					bind:value={academicYear}
 					placeholder="e.g., 2024-25"
 					required
-					class="block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 focus:outline-none"
+					class="mt-2"
 				/>
 			</div>
 			<Button type="submit">Import Template</Button>
@@ -101,7 +102,7 @@
 			<h2 class="mb-4 text-xl font-semibold">
 				Term Dates for {data.academicYear}
 			</h2>
-			<p class="mb-4 text-sm text-gray-600">
+			<p class="mb-4 text-sm text-muted-foreground">
 				Review and adjust the imported term dates to match your school's calendar. Click "Edit" to
 				modify individual dates.
 			</p>
@@ -120,42 +121,36 @@
 
 							<div class="mb-3 grid gap-3 sm:grid-cols-3">
 								<div>
-									<label for="edit-title-{event.id}" class="mb-1 block text-sm font-medium">
-										Title
-									</label>
-									<input
+									<Label for="edit-title-{event.id}">Title</Label>
+									<Input
 										type="text"
 										id="edit-title-{event.id}"
 										name="title"
 										bind:value={editTitle}
 										required
-										class="block w-full rounded-md border border-gray-300 px-2 py-1 text-sm"
+										class="mt-2 text-sm"
 									/>
 								</div>
 								<div>
-									<label for="edit-start-{event.id}" class="mb-1 block text-sm font-medium">
-										Start Date
-									</label>
-									<input
+									<Label for="edit-start-{event.id}">Start Date</Label>
+									<Input
 										type="date"
 										id="edit-start-{event.id}"
 										name="startDate"
 										bind:value={editStartDate}
 										required
-										class="block w-full rounded-md border border-gray-300 px-2 py-1 text-sm"
+										class="mt-2 text-sm"
 									/>
 								</div>
 								<div>
-									<label for="edit-end-{event.id}" class="mb-1 block text-sm font-medium">
-										End Date
-									</label>
-									<input
+									<Label for="edit-end-{event.id}">End Date</Label>
+									<Input
 										type="date"
 										id="edit-end-{event.id}"
 										name="endDate"
 										bind:value={editEndDate}
 										required
-										class="block w-full rounded-md border border-gray-300 px-2 py-1 text-sm"
+										class="mt-2 text-sm"
 									/>
 								</div>
 							</div>
@@ -173,13 +168,13 @@
 							class="flex flex-col gap-2 rounded-lg border border-gray-200 p-4 sm:flex-row sm:items-center sm:justify-between"
 						>
 							<div class="flex-1">
-								<h3 class="font-medium text-gray-900">{event.title}</h3>
-								<p class="text-sm text-gray-600">
+								<h3 class="font-medium">{event.title}</h3>
+								<p class="text-sm text-muted-foreground">
 									{formatDate(event.startDate)}
 									{#if formatDate(event.endDate) !== formatDate(event.startDate)}
 										→ {formatDate(event.endDate)}
 									{/if}
-									<span class="ml-2 text-xs text-gray-500">({event.type})</span>
+									<span class="ml-2 text-xs text-muted-foreground">({event.type})</span>
 								</p>
 							</div>
 
@@ -222,7 +217,7 @@
 		</div>
 	{:else if data.academicYear}
 		<div class="rounded-lg border border-gray-200 bg-gray-50 p-6 text-center">
-			<p class="text-gray-600">
+			<p class="text-muted-foreground">
 				No term dates found for {data.academicYear}. Import the template above to get started.
 			</p>
 		</div>

@@ -1,5 +1,9 @@
 <script lang="ts">
 	import Button from '$lib/components/ui/button/button.svelte';
+	import Input from '$lib/components/ui/input/input.svelte';
+	import Textarea from '$lib/components/ui/textarea/textarea.svelte';
+	import Label from '$lib/components/ui/label/label.svelte';
+	import Checkbox from '$lib/components/ui/checkbox/checkbox.svelte';
 
 	let {
 		title = $bindable(''),
@@ -38,51 +42,40 @@
 <div class="space-y-4 rounded-lg border border-gray-200 bg-gray-50 p-4">
 	<form onsubmit={handleSubmit} class="space-y-4">
 		<div>
-			<label for="title" class="mb-2 block text-sm font-medium text-gray-700">
+			<Label for="title">
 				Lesson Title <span class="text-red-500">*</span>
-			</label>
-			<input
-				type="text"
-				id="title"
-				name="title"
-				bind:value={title}
-				required
-				class="block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 focus:outline-none"
+			</Label>
+			<Input type="text" id="title" name="title" bind:value={title} required class="mt-2" />
+		</div>
+
+		<div>
+			<Label for="content">Content (Markdown)</Label>
+			<Textarea
+				id="content"
+				name="content"
+				bind:value={content}
+				rows={6}
+				placeholder="Use markdown for formatting..."
+				class="mt-2 font-mono text-sm"
 			/>
 		</div>
 
 		<div>
-			<label for="content" class="mb-2 block text-sm font-medium text-gray-700">
-				Content (Markdown)
-			</label>
-			<textarea
-				id="content"
-				name="content"
-				bind:value={content}
-				rows="6"
-				placeholder="Use markdown for formatting..."
-				class="block w-full rounded-md border border-gray-300 px-3 py-2 font-mono text-sm shadow-sm focus:border-indigo-500 focus:ring-indigo-500 focus:outline-none"
-			></textarea>
-		</div>
-
-		<div>
-			<label for="duration" class="mb-2 block text-sm font-medium text-gray-700">
-				Duration (periods)
-			</label>
-			<input
+			<Label for="duration">Duration (periods)</Label>
+			<Input
 				type="number"
 				id="duration"
 				name="duration"
 				bind:value={duration}
-				min="1"
-				max="10"
-				class="block w-32 rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 focus:outline-none"
+				min={1}
+				max={10}
+				class="mt-2 w-32"
 			/>
 		</div>
 
 		<div>
 			<div class="mb-2 flex items-center justify-between">
-				<span class="text-sm font-medium text-gray-700">Specification Points</span>
+				<span class="text-sm font-medium">Specification Points</span>
 				{#if availableSpecPoints.length > 0}
 					<Button
 						type="button"
@@ -100,15 +93,19 @@
 					{#each specPointIds as specPointId (specPointId)}
 						{@const specPoint = availableSpecPoints.find((sp) => sp.id === specPointId)}
 						{#if specPoint}
-							<div class="flex items-center justify-between rounded bg-white px-2 py-1 text-sm">
+							<div
+								class="flex items-center justify-between rounded bg-background px-2 py-1 text-sm"
+							>
 								<span class="font-mono text-xs">{specPoint.reference}</span>
-								<button
+								<Button
 									type="button"
+									variant="ghost"
+									size="sm"
 									onclick={() => toggleSpecPoint(specPointId)}
-									class="text-red-600 hover:text-red-800"
+									class="h-auto p-1 text-destructive hover:text-destructive"
 								>
 									Remove
-								</button>
+								</Button>
 							</div>
 						{/if}
 					{/each}
@@ -116,18 +113,19 @@
 			{/if}
 
 			{#if showSpecPointPicker && availableSpecPoints.length > 0}
-				<div class="max-h-60 space-y-1 overflow-y-auto rounded border border-gray-200 bg-white p-2">
+				<div
+					class="max-h-60 space-y-1 overflow-y-auto rounded border border-border bg-background p-2"
+				>
 					{#each availableSpecPoints as specPoint (specPoint.id)}
-						<label class="flex cursor-pointer items-start gap-2 rounded p-2 hover:bg-gray-50">
-							<input
-								type="checkbox"
+						<label class="flex cursor-pointer items-start gap-2 rounded p-2 hover:bg-muted">
+							<Checkbox
 								checked={specPointIds.includes(specPoint.id)}
-								onchange={() => toggleSpecPoint(specPoint.id)}
+								onCheckedChange={() => toggleSpecPoint(specPoint.id)}
 								class="mt-1"
 							/>
 							<div class="flex-1">
 								<p class="font-mono text-xs font-medium">{specPoint.reference}</p>
-								<p class="text-xs text-gray-600">{specPoint.content}</p>
+								<p class="text-xs text-muted-foreground">{specPoint.content}</p>
 							</div>
 						</label>
 					{/each}
