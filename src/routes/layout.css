@@ -59,6 +59,11 @@
 	--focus-ring: rgba(109, 157, 197, 0.5);
 	--selection: rgba(240, 168, 104, 0.25);
 
+	/* Key Stage Colors */
+	--ks3-color: #88bb92; /* Sage - Years 7, 8, 9 */
+	--gcse-color: #6d9dc5; /* Steel - Years 10, 11 */
+	--alevel-color: #e54f6d; /* Coral - Years 12, 13 */
+
 	/* Class Colors for calendar */
 	--class-color-1: #f0a868;
 	--class-color-2: #88bb92;
@@ -134,6 +139,11 @@
 	/* Interactive */
 	--focus-ring: rgba(125, 173, 213, 0.5);
 	--selection: rgba(240, 168, 104, 0.3);
+
+	/* Key Stage Colors (slightly brighter for dark bg) */
+	--ks3-color: #98cba2; /* Sage - Years 7, 8, 9 */
+	--gcse-color: #7dadd5; /* Steel - Years 10, 11 */
+	--alevel-color: #f06580; /* Coral - Years 12, 13 */
 
 	/* shadcn compatibility mappings */
 	--foreground: var(--text-primary);

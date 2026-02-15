@@ -10,6 +10,7 @@
 	import Textarea from '$lib/components/ui/textarea/textarea.svelte';
 	import Label from '$lib/components/ui/label/label.svelte';
 	import * as Alert from '$lib/components/ui/alert/index.js';
+	import { getKeyStageColor, getKeyStageLabel } from '$lib/utils/key-stage-colors';
 
 	let { data, form }: { data: PageData; form: ActionData } = $props();
 
@@ -227,9 +228,30 @@
 	{/if}
 
 	<!-- Class Details Section -->
-	<div class="mb-6 rounded-lg border border-gray-200 bg-white p-4 shadow-sm sm:mb-8 sm:p-6">
+	<div
+		class="dark:bg-surface mb-6 rounded-lg border border-gray-200 bg-white p-4 shadow-sm sm:mb-8 sm:p-6 dark:border-border"
+	>
 		<div class="mb-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-			<h1 class="text-2xl font-bold sm:text-3xl">{data.class.name}</h1>
+			<div class="flex items-center gap-3">
+				<div
+					class="h-10 w-1.5 rounded-full"
+					style="background-color: {getKeyStageColor(data.class.yearGroup)}"
+					aria-hidden="true"
+				></div>
+				<div class="flex items-center gap-2">
+					<h1 class="text-2xl font-bold sm:text-3xl">{data.class.name}</h1>
+					{#if getKeyStageLabel(data.class.yearGroup)}
+						<span
+							class="hidden rounded-full px-2.5 py-1 text-xs font-medium sm:inline-block"
+							style="background-color: {getKeyStageColor(
+								data.class.yearGroup
+							)}20; color: {getKeyStageColor(data.class.yearGroup)}"
+						>
+							{getKeyStageLabel(data.class.yearGroup)}
+						</span>
+					{/if}
+				</div>
+			</div>
 			<Button onclick={() => (editingClass = !editingClass)} class="min-h-[44px] w-full sm:w-auto">
 				{editingClass ? 'Cancel' : 'Edit Details'}
 			</Button>

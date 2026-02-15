@@ -6,6 +6,7 @@
 	import Textarea from '$lib/components/ui/textarea/textarea.svelte';
 	import Label from '$lib/components/ui/label/label.svelte';
 	import * as Alert from '$lib/components/ui/alert';
+	import { getKeyStageColor, getKeyStageLabel } from '$lib/utils/key-stage-colors';
 
 	let { data, form }: { data: PageData; form: ActionData } = $props();
 
@@ -216,10 +217,27 @@
 				<a
 					href="/classes/{classItem.id}"
 					data-sveltekit-preload-data
-					class="block rounded-lg border border-gray-200 bg-white p-6 shadow-sm transition-shadow hover:shadow-md"
+					class="dark:bg-surface block rounded-lg border border-gray-200 bg-white p-6 shadow-sm transition-shadow hover:shadow-md dark:border-border"
 				>
-					<h3 class="mb-2 text-xl font-semibold">{classItem.name}</h3>
-					<div class="space-y-1 text-sm text-gray-600">
+					<div class="mb-3 flex items-center gap-2">
+						<div
+							class="h-8 w-1 rounded-full"
+							style="background-color: {getKeyStageColor(classItem.yearGroup)}"
+							aria-hidden="true"
+						></div>
+						<h3 class="text-xl font-semibold">{classItem.name}</h3>
+						{#if getKeyStageLabel(classItem.yearGroup)}
+							<span
+								class="ml-auto rounded-full px-2 py-1 text-xs font-medium"
+								style="background-color: {getKeyStageColor(
+									classItem.yearGroup
+								)}20; color: {getKeyStageColor(classItem.yearGroup)}"
+							>
+								{getKeyStageLabel(classItem.yearGroup)}
+							</span>
+						{/if}
+					</div>
+					<div class="space-y-1 text-sm text-muted-foreground">
 						<p>
 							<span class="font-medium">Year Group:</span>
 							{classItem.yearGroup}
