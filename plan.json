@@ -1,6 +1,6 @@
 {
 	"version": "1",
-	"lastUpdated": "2026-02-15T21:23:00Z",
+	"lastUpdated": "2026-02-15T21:34:00Z",
 	"summary": "All core v1 functionality is implemented and complete. The application supports exam specifications, classes, timetable configuration, modules with lessons, module assignment with automatic scheduling, calendar views (day/week/term), calendar events with automatic rescheduling, push forward/back functionality, scheduled lesson editing, file and link attachments, and term date import. shadcn-svelte components (Input, Textarea, Label, Alert, Checkbox, RadioGroup, Dialog, Card) are now installed and consistently used throughout the application. Raw HTML form elements have been replaced with proper shadcn components. Drag-and-drop lesson reordering with full keyboard accessibility is now implemented in the module editor. Custom typography (Fraunces/Inter fonts) and custom color system from design guidelines are now fully implemented. Outstanding UI work includes: dark mode toggle, key stage color indicators, Settings in main navigation with landing page, and user accent color preferences.",
 	"tasks": [
 		{
@@ -641,10 +641,14 @@
 			"id": "ui-dark-mode-toggle",
 			"title": "Add dark mode toggle to navigation header",
 			"description": "Implement dark mode toggle button in the navigation header using Sun/Moon icons from Lucide. Save preference to localStorage and respect prefers-color-scheme system preference as default. Toggle adds/removes .dark class on document root.",
-			"status": "pending",
+			"status": "complete",
 			"priority": "medium",
 			"specReference": "ui-design-guidelines.md#dark-mode",
-			"affectedPaths": ["src/lib/components/nav/app-nav.svelte", "src/routes/+layout.svelte"],
+			"affectedPaths": [
+				"src/lib/components/nav/app-nav.svelte",
+				"src/app.html",
+				"src/lib/components/nav/app-nav.svelte.test.ts"
+			],
 			"dependencies": ["ui-color-system"],
 			"verificationSteps": [
 				"Sun/Moon toggle button visible in header",

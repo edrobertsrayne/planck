@@ -1,8 +1,11 @@
 <script lang="ts">
 	import { page } from '$app/stores';
+	import { browser } from '$app/environment';
 	import { Button } from '$lib/components/ui/button';
+	import { Sun, Moon } from 'lucide-svelte';
 
 	let mobileMenuOpen = $state(false);
+	let theme = $state<'light' | 'dark'>('light');
 
 	const navItems = [
 		{ href: '/calendar', label: 'Calendar' },
@@ -12,6 +15,19 @@
 		{ href: '/settings', label: 'Settings' }
 	];
 
+	// Initialize theme on mount
+	$effect(() => {
+		if (browser) {
+			const stored = localStorage.getItem('theme');
+			if (stored) {
+				theme = stored as 'light' | 'dark';
+			} else {
+				theme = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+			}
+			document.documentElement.classList.toggle('dark', theme === 'dark');
+		}
+	});
+
 	function isActive(href: string): boolean {
 		const pathname = $page?.url?.pathname ?? '/';
 		return pathname === href || pathname.startsWith(`${href}/`);
@@ -19,6 +35,12 @@
 
 	function toggleMobileMenu() {
 		mobileMenuOpen = !mobileMenuOpen;
+	}
+
+	function toggleTheme() {
+		theme = theme === 'light' ? 'dark' : 'light';
+		localStorage.setItem('theme', theme);
+		document.documentElement.classList.toggle('dark', theme === 'dark');
 	}
 </script>
 
@@ -47,33 +69,49 @@
 					{/each}
 				</div>
 			</div>
-			<!-- Mobile menu button -->
-			<div class="flex items-center sm:hidden">
+			<!-- Dark mode toggle and mobile menu button -->
+			<div class="flex items-center gap-2">
+				<!-- Dark mode toggle -->
 				<Button
 					variant="ghost"
 					size="icon"
-					onclick={toggleMobileMenu}
-					aria-label="Toggle mobile menu"
-					aria-expanded={mobileMenuOpen}
+					onclick={toggleTheme}
+					aria-label={theme === 'light' ? 'Switch to dark mode' : 'Switch to light mode'}
 				>
-					<svg
-						class="h-6 w-6"
-						fill="none"
-						viewBox="0 0 24 24"
-						stroke-width="1.5"
-						stroke="currentColor"
-					>
-						{#if mobileMenuOpen}
-							<path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
-						{:else}
-							<path
-								stroke-linecap="round"
-								stroke-linejoin="round"
-								d="M3.75 6.75h16.5M3.75 12h16.5m-16.5 5.25h16.5"
-							/>
-						{/if}
-					</svg>
+					{#if theme === 'light'}
+						<Moon class="h-5 w-5" />
+					{:else}
+						<Sun class="h-5 w-5" />
+					{/if}
 				</Button>
+				<!-- Mobile menu button -->
+				<div class="sm:hidden">
+					<Button
+						variant="ghost"
+						size="icon"
+						onclick={toggleMobileMenu}
+						aria-label="Toggle mobile menu"
+						aria-expanded={mobileMenuOpen}
+					>
+						<svg
+							class="h-6 w-6"
+							fill="none"
+							viewBox="0 0 24 24"
+							stroke-width="1.5"
+							stroke="currentColor"
+						>
+							{#if mobileMenuOpen}
+								<path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
+							{:else}
+								<path
+									stroke-linecap="round"
+									stroke-linejoin="round"
+									d="M3.75 6.75h16.5M3.75 12h16.5m-16.5 5.25h16.5"
+								/>
+							{/if}
+						</svg>
+					</Button>
+				</div>
 			</div>
 		</div>
 	</div>
