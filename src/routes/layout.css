@@ -5,7 +5,15 @@
 @custom-variant dark (&:is(.dark *));
 
 :root {
+	/* Font Families */
+	--font-display: 'Fraunces', Georgia, serif;
+	--font-body: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+	--font-mono: 'JetBrains Mono', 'Fira Code', monospace;
+
+	/* Border Radius */
 	--radius: 0.625rem;
+
+	/* shadcn Color Variables */
 	--background: oklch(1 0 0);
 	--foreground: oklch(0.129 0.042 264.695);
 	--card: oklch(1 0 0);
@@ -117,6 +125,56 @@
 	}
 	body {
 		@apply bg-background text-foreground;
+		font-family: var(--font-body);
+		font-size: 1rem;
+		line-height: 1.5;
+	}
+
+	/* Typography - Display font for headings */
+	h1,
+	h2,
+	h3 {
+		font-family: var(--font-display);
+		font-weight: 600;
+	}
+
+	h1 {
+		font-size: 1.875rem; /* 30px */
+		line-height: 1.3;
+	}
+
+	h2 {
+		font-size: 1.5rem; /* 24px */
+		line-height: 1.35;
+	}
+
+	h3 {
+		font-size: 1.25rem; /* 20px */
+		font-weight: 500;
+		line-height: 1.4;
+	}
+
+	/* Body font for smaller headings */
+	h4 {
+		font-family: var(--font-body);
+		font-size: 1.125rem; /* 18px */
+		font-weight: 600;
+		line-height: 1.4;
+	}
+
+	h5,
+	h6 {
+		font-family: var(--font-body);
+		font-size: 1rem;
+		font-weight: 600;
+		line-height: 1.4;
+	}
+
+	/* Code and monospace */
+	code,
+	pre,
+	kbd {
+		font-family: var(--font-mono);
 	}
 }
 
