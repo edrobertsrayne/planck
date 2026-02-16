@@ -1,10 +1,20 @@
 <script lang="ts">
 	import type { Snippet } from 'svelte';
+	import { browser } from '$app/environment';
 	import './layout.css';
 	import favicon from '$lib/assets/favicon.svg';
 	import AppNav from '$lib/components/nav/app-nav.svelte';
+	import { getStoredAccentColor, applyAccentColor } from '$lib/utils/accent-color';
 
 	let { children }: { children?: Snippet } = $props();
+
+	// Initialize accent color from localStorage on mount
+	$effect(() => {
+		if (browser) {
+			const accentColor = getStoredAccentColor();
+			applyAccentColor(accentColor);
+		}
+	});
 </script>
 
 <svelte:head><link rel="icon" href={favicon} /></svelte:head>

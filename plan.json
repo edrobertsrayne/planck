@@ -1,7 +1,7 @@
 {
 	"version": "1",
-	"lastUpdated": "2026-02-16T08:00:00Z",
-	"summary": "All core v1 functionality is implemented and complete. The application supports exam specifications, classes, timetable configuration, modules with lessons, module assignment with automatic scheduling, calendar views (day/week/term), calendar events with automatic rescheduling, push forward/back functionality, scheduled lesson editing, file and link attachments, and term date import. shadcn-svelte components (Input, Textarea, Label, Alert, Checkbox, RadioGroup, Dialog, Card) are now installed and consistently used throughout the application. Raw HTML form elements have been replaced with proper shadcn components. Drag-and-drop lesson reordering with full keyboard accessibility is now implemented in the module editor. Custom typography (Fraunces/Inter fonts) and custom color system from design guidelines are now fully implemented. Empty states now follow design guidelines with large icons, Fraunces headings, descriptions, and action buttons. Outstanding UI work: user accent color preferences.",
+	"lastUpdated": "2026-02-16T08:06:00Z",
+	"summary": "All core v1 functionality is complete. The application supports exam specifications, classes, timetable configuration, modules with lessons, module assignment with automatic scheduling, calendar views (day/week/term), calendar events with automatic rescheduling, push forward/back functionality, scheduled lesson editing, file and link attachments, and term date import. shadcn-svelte components (Input, Textarea, Label, Alert, Checkbox, RadioGroup, Dialog, Card) are installed and consistently used throughout the application. Drag-and-drop lesson reordering with full keyboard accessibility is implemented in the module editor. Custom typography (Fraunces/Inter fonts), custom color system, empty states, and user accent color preferences are all complete. Users can now select from six preset accent colors (Amber, Coral, Steel, Sage, Lavender, Teal) in Settings > Appearance, with preferences persisting across sessions and adapting to light/dark mode.",
 	"tasks": [
 		{
 			"id": "setup-shadcn",
@@ -749,12 +749,15 @@
 			"id": "ui-user-accent-preference",
 			"title": "Add user accent color preference to settings",
 			"description": "Create appearance settings section allowing users to select their preferred accent color from preset options: Amber (default), Coral, Steel, Sage, Lavender, Teal. Selection should update --accent-primary CSS variable throughout the app and persist to localStorage.",
-			"status": "pending",
+			"status": "complete",
 			"priority": "low",
 			"specReference": "ui-design-guidelines.md#user-accent-customisation",
 			"affectedPaths": [
 				"src/routes/settings/+page.svelte",
 				"src/routes/settings/appearance/+page.svelte",
+				"src/lib/utils/accent-color.ts",
+				"src/lib/utils/accent-color.svelte.test.ts",
+				"src/routes/settings/appearance/appearance.svelte.test.ts",
 				"src/routes/layout.css",
 				"src/routes/+layout.svelte"
 			],

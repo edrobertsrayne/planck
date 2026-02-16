@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { Settings, Calendar, Clock } from 'lucide-svelte';
+	import { Settings, Calendar, Clock, Palette } from 'lucide-svelte';
 	import * as Card from '$lib/components/ui/card/index.js';
 
 	const settingsLinks = [
@@ -14,6 +14,12 @@
 			description: 'Import and manage academic year term dates and holidays',
 			href: '/settings/term-dates',
 			icon: Calendar
+		},
+		{
+			title: 'Appearance',
+			description: 'Customize accent colors and visual preferences',
+			href: '/settings/appearance',
+			icon: Palette
 		}
 	];
 </script>
