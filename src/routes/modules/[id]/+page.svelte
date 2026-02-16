@@ -290,7 +290,7 @@
 		<a
 			href={resolve('/modules')}
 			data-sveltekit-preload-data
-			class="inline-block min-h-[44px] py-2 text-sm text-blue-600 hover:underline"
+			class="inline-block min-h-[44px] py-2 text-sm text-accent-secondary hover:underline"
 			>&larr; Back to Module Library</a
 		>
 	</div>
@@ -308,7 +308,7 @@
 	{/if}
 
 	<!-- Module Details Section -->
-	<div class="mb-6 rounded-lg border border-gray-200 bg-white p-4 shadow-sm sm:mb-8 sm:p-6">
+	<div class="mb-6 rounded-lg border border-border bg-surface p-4 shadow-sm sm:mb-8 sm:p-6">
 		<div class="mb-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
 			<h1 class="text-2xl font-bold sm:text-3xl">{data.module.name}</h1>
 			<Button
@@ -360,7 +360,7 @@
 				</div>
 			</form>
 		{:else}
-			<div class="space-y-2 text-sm text-gray-600">
+			<div class="space-y-2 text-sm text-muted-foreground">
 				{#if data.module.description}
 					<p class="text-base">{data.module.description}</p>
 				{/if}
@@ -377,7 +377,7 @@
 	</div>
 
 	<!-- Attachments Section -->
-	<div class="mb-6 rounded-lg border border-gray-200 bg-white p-4 shadow-sm sm:mb-8 sm:p-6">
+	<div class="mb-6 rounded-lg border border-border bg-surface p-4 shadow-sm sm:mb-8 sm:p-6">
 		<div class="mb-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
 			<h2 class="text-xl font-semibold sm:text-2xl">Module Attachments</h2>
 			<Button
@@ -415,7 +415,7 @@
 	</div>
 
 	<!-- Lessons Section -->
-	<div class="mb-6 rounded-lg border border-gray-200 bg-white p-4 shadow-sm sm:mb-8 sm:p-6">
+	<div class="mb-6 rounded-lg border border-border bg-surface p-4 shadow-sm sm:mb-8 sm:p-6">
 		<div class="mb-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
 			<h2 class="text-xl font-semibold sm:text-2xl">Lessons</h2>
 			<Button
@@ -434,7 +434,7 @@
 				method="POST"
 				action={editingLessonId ? '?/updateLesson' : '?/addLesson'}
 				use:enhance
-				class="mb-6 space-y-4 rounded-lg border border-gray-200 bg-gray-50 p-4"
+				class="mb-6 space-y-4 rounded-lg border border-border bg-background-subtle p-4"
 			>
 				{#if editingLessonId}
 					<input type="hidden" name="lessonId" value={editingLessonId} />
@@ -497,7 +497,7 @@
 						<div class="drop-indicator"></div>
 					{/if}
 					<div
-						class="draggable rounded-lg border border-gray-200 bg-gray-50 p-3 sm:p-4"
+						class="draggable rounded-lg border border-border bg-background-subtle p-3 sm:p-4"
 						class:keyboard-dragging={keyboardDragActive && keyboardDragLessonIndex === index}
 						draggable={!showLessonForm && !isReordering}
 						ondragstart={(e) => handleDragStart(e, lesson.id)}
@@ -516,7 +516,7 @@
 								<h3 class="text-base font-semibold sm:text-lg">
 									{lesson.order}. {lesson.title}
 								</h3>
-								<p class="text-sm text-gray-600">
+								<p class="text-sm text-muted-foreground">
 									{lesson.duration}
 									{lesson.duration === 1 ? 'period' : 'periods'}
 								</p>
@@ -550,14 +550,14 @@
 						</div>
 
 						{#if lesson.content}
-							<div class="mb-3 rounded bg-white p-3 text-sm">
+							<div class="mb-3 rounded bg-surface p-3 text-sm">
 								<pre class="font-sans whitespace-pre-wrap">{lesson.content}</pre>
 							</div>
 						{/if}
 
 						{#if lesson.specPoints && lesson.specPoints.length > 0}
 							<div class="mb-2">
-								<p class="mb-1 text-sm font-medium text-gray-700">Linked Spec Points:</p>
+								<p class="mb-1 text-sm font-medium text-foreground">Linked Spec Points:</p>
 								<div class="flex flex-wrap gap-2">
 									{#each lesson.specPoints as specPoint (specPoint.id)}
 										<form method="POST" action="?/unlinkSpecPoint" use:enhance class="inline-block">
@@ -565,10 +565,10 @@
 											<input type="hidden" name="specPointId" value={specPoint.id} />
 											<button
 												type="submit"
-												class="inline-flex items-center gap-1 rounded-full bg-blue-100 px-3 py-1 text-xs font-medium text-blue-800 hover:bg-blue-200"
+												class="inline-flex items-center gap-1 rounded-full bg-accent-secondary-muted px-3 py-1 text-xs font-medium text-accent-secondary hover:bg-accent-secondary-muted/80"
 											>
 												{specPoint.reference}
-												<span class="text-blue-600">&times;</span>
+												<span class="text-accent-secondary">&times;</span>
 											</button>
 										</form>
 									{/each}
@@ -594,7 +594,7 @@
 	{#if showSpecPointPicker && specPointPickerLessonId}
 		<div class="bg-opacity-50 fixed inset-0 z-50 flex items-center justify-center bg-black p-4">
 			<div
-				class="max-h-[85vh] w-full max-w-2xl overflow-auto rounded-lg bg-white p-4 shadow-xl sm:p-6"
+				class="max-h-[85vh] w-full max-w-2xl overflow-auto rounded-lg bg-surface p-4 shadow-xl sm:p-6"
 			>
 				<h3 class="mb-4 text-lg font-semibold sm:text-xl">Link Specification Point</h3>
 				<div class="space-y-2">
@@ -604,12 +604,12 @@
 							<input type="hidden" name="specPointId" value={specPoint.id} />
 							<button
 								type="submit"
-								class="block min-h-[44px] w-full rounded-lg border border-gray-200 p-3 text-left hover:bg-gray-50 active:bg-gray-100"
+								class="block min-h-[44px] w-full rounded-lg border border-border p-3 text-left hover:bg-background-subtle active:bg-background-muted"
 							>
-								<span class="text-sm font-medium text-blue-600 sm:text-base"
+								<span class="text-sm font-medium text-accent-secondary sm:text-base"
 									>{specPoint.reference}</span
 								>
-								<p class="text-xs text-gray-600 sm:text-sm">{specPoint.content}</p>
+								<p class="text-xs text-muted-foreground sm:text-sm">{specPoint.content}</p>
 							</button>
 						</form>
 					{/each}

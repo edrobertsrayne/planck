@@ -31,18 +31,18 @@
 
 {#if attachments.length > 0}
 	<div class="space-y-2">
-		<h4 class="text-sm font-medium text-gray-700">Attachments</h4>
+		<h4 class="text-sm font-medium text-foreground">Attachments</h4>
 		<ul class="space-y-2">
 			{#each attachments as attachment (attachment.id)}
 				<li
-					class="flex items-center justify-between rounded-md border border-gray-200 bg-white px-3 py-2"
+					class="flex items-center justify-between rounded-md border border-border bg-surface px-3 py-2"
 				>
 					<div class="flex items-center gap-2">
 						<span class="text-xl">{getIconForMimeType(attachment.mimeType)}</span>
 						{#if attachment.type === 'file'}
 							<a
 								href={resolve(`/api/attachments/${attachment.id}`)}
-								class="text-sm text-blue-600 hover:underline"
+								class="text-sm text-accent-secondary hover:underline"
 								target="_blank"
 								rel="noopener noreferrer"
 							>
@@ -52,7 +52,7 @@
 							<!-- eslint-disable svelte/no-navigation-without-resolve -->
 							<a
 								href={attachment.url || '#'}
-								class="text-sm text-blue-600 hover:underline"
+								class="text-sm text-accent-secondary hover:underline"
 								target="_blank"
 								rel="noopener noreferrer"
 							>
@@ -71,5 +71,5 @@
 		</ul>
 	</div>
 {:else}
-	<p class="text-sm text-gray-500">No attachments</p>
+	<p class="text-sm text-muted-foreground">No attachments</p>
 {/if}

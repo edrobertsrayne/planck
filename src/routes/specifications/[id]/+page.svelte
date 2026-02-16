@@ -73,7 +73,10 @@
 
 <div class="container mx-auto p-6">
 	<div class="mb-6">
-		<a href={resolve('/specifications')} class="text-sm text-indigo-600 hover:text-indigo-800">
+		<a
+			href={resolve('/specifications')}
+			class="text-sm text-accent-secondary hover:text-accent-secondary-hover"
+		>
 			← Back to Specifications
 		</a>
 		<h1 class="mt-2 text-3xl font-bold">{data.spec.name}</h1>
@@ -90,7 +93,7 @@
 	</div>
 
 	<!-- Attachments Section -->
-	<div class="mb-6 rounded-lg border border-gray-200 bg-white p-6">
+	<div class="mb-6 rounded-lg border border-border bg-surface p-6">
 		<div class="mb-4 flex items-center justify-between">
 			<h2 class="text-xl font-semibold">Specification Documents</h2>
 			<Button onclick={() => (showAttachmentForm = !showAttachmentForm)}>
@@ -125,20 +128,20 @@
 	</div>
 
 	{#if data.topics.length === 0}
-		<div class="rounded-lg border border-gray-200 bg-gray-50 p-8 text-center">
+		<div class="rounded-lg border border-border bg-background-subtle p-8 text-center">
 			<p class="text-muted-foreground">No topics found for this specification.</p>
 		</div>
 	{:else}
 		<div class="space-y-4">
 			{#each data.topics as topic (topic.id)}
-				<div class="rounded-lg border border-gray-200 bg-white">
+				<div class="rounded-lg border border-border bg-surface">
 					<button
 						onclick={() => toggleTopic(topic.id)}
-						class="flex w-full items-center gap-2 p-4 text-left transition-colors hover:bg-gray-50"
+						class="flex w-full items-center gap-2 p-4 text-left transition-colors hover:bg-background-subtle"
 					>
 						{#if expandedTopics.has(topic.id)}
 							<svg
-								class="h-5 w-5 flex-shrink-0 text-gray-500"
+								class="h-5 w-5 flex-shrink-0 text-muted-foreground"
 								fill="none"
 								viewBox="0 0 24 24"
 								stroke="currentColor"
@@ -148,7 +151,7 @@
 							</svg>
 						{:else}
 							<svg
-								class="h-5 w-5 flex-shrink-0 text-gray-500"
+								class="h-5 w-5 flex-shrink-0 text-muted-foreground"
 								fill="none"
 								viewBox="0 0 24 24"
 								stroke="currentColor"
@@ -160,30 +163,30 @@
 						<div class="flex-1">
 							<h3 class="font-semibold">
 								{#if topic.code}
-									<span class="text-gray-500">{topic.code}</span>
+									<span class="text-muted-foreground">{topic.code}</span>
 								{/if}
 								{topic.name}
 							</h3>
 							{#if topic.description}
-								<p class="mt-1 text-sm text-gray-600">{topic.description}</p>
+								<p class="mt-1 text-sm text-muted-foreground">{topic.description}</p>
 							{/if}
 						</div>
 					</button>
 
 					{#if expandedTopics.has(topic.id)}
-						<div class="border-t border-gray-200 p-4">
+						<div class="border-t border-border p-4">
 							{#if topic.specPoints.length > 0}
 								<div class="space-y-3">
 									{#each topic.specPoints as sp (sp.id)}
-										<div class="rounded-md bg-gray-50 p-3">
+										<div class="rounded-md bg-background-subtle p-3">
 											<div class="flex items-start gap-2">
-												<span class="font-mono text-sm font-medium text-indigo-600">
+												<span class="font-mono text-sm font-medium text-accent-secondary">
 													{sp.reference}
 												</span>
 												<div class="flex-1">
 													<p class="text-sm">{sp.content}</p>
 													{#if sp.notes}
-														<p class="mt-1 text-xs text-gray-500">{sp.notes}</p>
+														<p class="mt-1 text-xs text-muted-foreground">{sp.notes}</p>
 													{/if}
 													{#if sp.tier && sp.tier !== 'both'}
 														<span
@@ -193,14 +196,14 @@
 														</span>
 													{/if}
 													{#if sp.linkedLessons.length > 0}
-														<div class="mt-2 border-t border-gray-200 pt-2">
-															<p class="text-xs font-medium text-gray-700">Linked Lessons:</p>
+														<div class="mt-2 border-t border-border pt-2">
+															<p class="text-xs font-medium text-foreground">Linked Lessons:</p>
 															<ul class="mt-1 space-y-1">
 																{#each sp.linkedLessons as link (link.lessonId)}
-																	<li class="text-xs text-gray-600">
+																	<li class="text-xs text-muted-foreground">
 																		<a
 																			href={resolve(`/modules/${link.moduleId}`)}
-																			class="text-indigo-600 hover:text-indigo-800"
+																			class="text-accent-secondary hover:text-accent-secondary-hover"
 																		>
 																			{link.moduleName}
 																		</a>
@@ -219,37 +222,39 @@
 
 							{#if topic.children.length > 0}
 								<div class="mt-4 space-y-2 pl-4">
-									<p class="text-sm font-medium text-gray-700">Subtopics:</p>
+									<p class="text-sm font-medium text-foreground">Subtopics:</p>
 									{#each topic.children as child (child.id)}
-										<div class="rounded border border-gray-200 bg-white p-3">
+										<div class="rounded border border-border bg-surface p-3">
 											<h4 class="text-sm font-medium">
 												{#if child.code}
-													<span class="text-gray-500">{child.code}</span>
+													<span class="text-muted-foreground">{child.code}</span>
 												{/if}
 												{child.name}
 											</h4>
 											{#if child.description}
-												<p class="mt-1 text-xs text-gray-600">{child.description}</p>
+												<p class="mt-1 text-xs text-muted-foreground">{child.description}</p>
 											{/if}
 											{#if child.specPoints.length > 0}
 												<div class="mt-2 space-y-2">
 													{#each child.specPoints as sp (sp.id)}
-														<div class="rounded-sm bg-gray-50 p-2">
+														<div class="rounded-sm bg-background-subtle p-2">
 															<div class="flex items-start gap-2">
-																<span class="font-mono text-xs font-medium text-indigo-600">
+																<span class="font-mono text-xs font-medium text-accent-secondary">
 																	{sp.reference}
 																</span>
 																<div class="flex-1">
 																	<p class="text-xs">{sp.content}</p>
 																	{#if sp.linkedLessons.length > 0}
 																		<div class="mt-1">
-																			<p class="text-xs font-medium text-gray-600">Lessons:</p>
+																			<p class="text-xs font-medium text-muted-foreground">
+																				Lessons:
+																			</p>
 																			<ul class="mt-0.5 space-y-0.5">
 																				{#each sp.linkedLessons as link (link.lessonId)}
-																					<li class="text-xs text-gray-600">
+																					<li class="text-xs text-muted-foreground">
 																						<a
 																							href={resolve(`/modules/${link.moduleId}`)}
-																							class="text-indigo-600 hover:text-indigo-800"
+																							class="text-accent-secondary hover:text-accent-secondary-hover"
 																						>
 																							{link.moduleName}
 																						</a>

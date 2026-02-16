@@ -189,6 +189,19 @@
 	--color-border: var(--border);
 	--color-input: var(--input);
 	--color-ring: var(--ring);
+
+	/* Design system color mappings */
+	--color-surface: var(--surface);
+	--color-surface-raised: var(--surface-raised);
+	--color-background-subtle: var(--background-subtle);
+	--color-background-muted: var(--background-muted);
+	--color-border-subtle: var(--border-subtle);
+	--color-border-strong: var(--border-strong);
+	--color-accent-secondary: var(--accent-secondary);
+	--color-accent-secondary-hover: var(--accent-secondary-hover);
+	--color-accent-secondary-muted: var(--accent-secondary-muted);
+	--color-text-primary: var(--text-primary);
+	--color-text-secondary: var(--text-secondary);
 }
 
 @layer base {

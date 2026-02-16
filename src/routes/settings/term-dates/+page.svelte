@@ -66,7 +66,7 @@
 	{/if}
 
 	<!-- Import Template Section -->
-	<div class="mb-8 rounded-lg border border-gray-200 bg-white p-6 shadow-sm">
+	<div class="mb-8 rounded-lg border border-border bg-surface p-6 shadow-sm">
 		<h2 class="mb-4 text-xl font-semibold">Import UK Term Date Template</h2>
 		<p class="mb-4 text-sm text-muted-foreground">
 			Import a template of UK term dates including autumn, spring, and summer terms with half-term
@@ -98,7 +98,7 @@
 
 	<!-- Display Imported Events -->
 	{#if data.events.length > 0}
-		<div class="rounded-lg border border-gray-200 bg-white p-6 shadow-sm">
+		<div class="rounded-lg border border-border bg-surface p-6 shadow-sm">
 			<h2 class="mb-4 text-xl font-semibold">
 				Term Dates for {data.academicYear}
 			</h2>
@@ -115,7 +115,7 @@
 							method="POST"
 							action="?/update"
 							use:enhance
-							class="rounded-lg border border-indigo-200 bg-indigo-50 p-4"
+							class="rounded-lg border border-accent-secondary bg-accent-secondary-muted p-4"
 						>
 							<input type="hidden" name="eventId" value={event.id} />
 
@@ -165,7 +165,7 @@
 					{:else}
 						<!-- View Mode -->
 						<div
-							class="flex flex-col gap-2 rounded-lg border border-gray-200 p-4 sm:flex-row sm:items-center sm:justify-between"
+							class="flex flex-col gap-2 rounded-lg border border-border p-4 sm:flex-row sm:items-center sm:justify-between"
 						>
 							<div class="flex-1">
 								<h3 class="font-medium">{event.title}</h3>
@@ -216,7 +216,7 @@
 			</div>
 		</div>
 	{:else if data.academicYear}
-		<div class="rounded-lg border border-gray-200 bg-gray-50 p-6 text-center">
+		<div class="rounded-lg border border-border bg-background-subtle p-6 text-center">
 			<p class="text-muted-foreground">
 				No term dates found for {data.academicYear}. Import the template above to get started.
 			</p>

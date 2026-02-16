@@ -88,7 +88,7 @@
 	{/if}
 
 	{#if showCreateForm}
-		<div class="mb-8 rounded-lg border border-gray-200 bg-white p-6 shadow-sm">
+		<div class="mb-8 rounded-lg border border-border bg-surface p-6 shadow-sm">
 			<h2 class="mb-4 text-xl font-semibold">Create New Class</h2>
 			<form method="POST" action="?/create" use:enhance class="space-y-4">
 				<div class="grid gap-4 md:grid-cols-2">
@@ -206,7 +206,7 @@
 
 	{#if data.classes.length === 0}
 		<div
-			class="bg-background-subtle flex flex-col items-center justify-center rounded-lg border border-border p-12 text-center"
+			class="flex flex-col items-center justify-center rounded-lg border border-border bg-background-subtle p-12 text-center"
 		>
 			<GraduationCap class="mb-4 h-12 w-12 text-muted-foreground" />
 			<h3 class="font-display mb-2 text-xl font-semibold">No classes yet</h3>
@@ -218,7 +218,7 @@
 		</div>
 	{:else if filteredClasses.length === 0}
 		<div
-			class="bg-background-subtle flex flex-col items-center justify-center rounded-lg border border-border p-12 text-center"
+			class="flex flex-col items-center justify-center rounded-lg border border-border bg-background-subtle p-12 text-center"
 		>
 			<GraduationCap class="mb-4 h-12 w-12 text-muted-foreground" />
 			<h3 class="font-display mb-2 text-xl font-semibold">No classes match</h3>
@@ -233,7 +233,7 @@
 				<a
 					href="/classes/{classItem.id}"
 					data-sveltekit-preload-data
-					class="dark:bg-surface block rounded-lg border border-gray-200 bg-white p-6 shadow-sm transition-shadow hover:shadow-md dark:border-border"
+					class="block rounded-lg border border-border bg-surface p-6 shadow-sm transition-shadow hover:shadow-md"
 				>
 					<div class="mb-3 flex items-center gap-2">
 						<div

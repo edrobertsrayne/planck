@@ -79,7 +79,7 @@
 	{/if}
 
 	{#if showCreateForm}
-		<div class="mb-8 rounded-lg border border-gray-200 bg-white p-6 shadow-sm">
+		<div class="mb-8 rounded-lg border border-border bg-surface p-6 shadow-sm">
 			<h2 class="mb-4 text-xl font-semibold">Create New Module</h2>
 			<form method="POST" action="?/create" use:enhance class="space-y-4">
 				<div>
@@ -137,7 +137,7 @@
 
 	{#if data.modules.length === 0}
 		<div
-			class="bg-background-subtle flex flex-col items-center justify-center rounded-lg border border-border p-12 text-center"
+			class="flex flex-col items-center justify-center rounded-lg border border-border bg-background-subtle p-12 text-center"
 		>
 			<BookOpen class="mb-4 h-12 w-12 text-muted-foreground" />
 			<h3 class="font-display mb-2 text-xl font-semibold">No modules yet</h3>
@@ -149,7 +149,7 @@
 		</div>
 	{:else if filteredModules.length === 0}
 		<div
-			class="bg-background-subtle flex flex-col items-center justify-center rounded-lg border border-border p-12 text-center"
+			class="flex flex-col items-center justify-center rounded-lg border border-border bg-background-subtle p-12 text-center"
 		>
 			<BookOpen class="mb-4 h-12 w-12 text-muted-foreground" />
 			<h3 class="font-display mb-2 text-xl font-semibold">No modules match</h3>
@@ -165,13 +165,13 @@
 				<a
 					href="/modules/{moduleItem.id}"
 					data-sveltekit-preload-data
-					class="block rounded-lg border border-gray-200 bg-white p-6 shadow-sm transition-shadow hover:shadow-md"
+					class="block rounded-lg border border-border bg-surface p-6 shadow-sm transition-shadow hover:shadow-md"
 				>
 					<h3 class="mb-2 text-xl font-semibold">{moduleItem.name}</h3>
 					{#if moduleItem.description}
-						<p class="mb-3 text-sm text-gray-600">{moduleItem.description}</p>
+						<p class="mb-3 text-sm text-muted-foreground">{moduleItem.description}</p>
 					{/if}
-					<div class="space-y-1 text-sm text-gray-600">
+					<div class="space-y-1 text-sm text-muted-foreground">
 						<p>
 							<span class="font-medium">Target Spec:</span>
 							{moduleItem.targetSpec?.name || 'Generic'}

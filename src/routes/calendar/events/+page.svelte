@@ -89,7 +89,7 @@
 	{/if}
 
 	{#if showCreateForm}
-		<div class="mb-8 rounded-lg border border-gray-200 bg-white p-6 shadow-sm">
+		<div class="mb-8 rounded-lg border border-border bg-surface p-6 shadow-sm">
 			<h2 class="mb-4 text-xl font-semibold">Add Calendar Event</h2>
 			<form method="POST" action="?/create" use:enhance>
 				<div class="grid gap-4">
@@ -154,7 +154,7 @@
 							name="affectsAllClasses"
 							bind:checked={affectsAllClasses}
 							value="true"
-							class="h-4 w-4 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500"
+							class="h-4 w-4 rounded border-border-strong text-accent-secondary focus:ring-accent-secondary"
 						/>
 						<Label for="affectsAllClasses" class="text-sm font-normal">Affects all classes</Label>
 					</div>
@@ -168,18 +168,18 @@
 		</div>
 	{/if}
 
-	<div class="rounded-lg border border-gray-200 bg-white shadow-sm">
+	<div class="rounded-lg border border-border bg-surface shadow-sm">
 		{#if data.events.length === 0}
-			<div class="p-8 text-center text-gray-500">
+			<div class="p-8 text-center text-muted-foreground">
 				<p>No calendar events yet.</p>
 				<p class="mt-2 text-sm">
 					Add holidays, closures, and absences to automatically manage lesson scheduling.
 				</p>
 			</div>
 		{:else}
-			<div class="divide-y divide-gray-200">
+			<div class="divide-y divide-border">
 				{#each data.events as event (event.id)}
-					<div class="p-4 hover:bg-gray-50">
+					<div class="p-4 hover:bg-background-subtle">
 						<div class="flex items-start justify-between">
 							<div class="flex-1">
 								<div class="mb-2 flex items-center gap-2">
@@ -192,14 +192,14 @@
 									</span>
 									{#if event.affectsAllClasses}
 										<span
-											class="inline-block rounded-md border border-gray-300 bg-gray-100 px-2 py-1 text-xs text-gray-700"
+											class="inline-block rounded-md border border-border-strong bg-background-muted px-2 py-1 text-xs text-foreground"
 										>
 											All Classes
 										</span>
 									{/if}
 								</div>
-								<h3 class="font-medium text-gray-900">{event.title}</h3>
-								<p class="mt-1 text-sm text-gray-600">
+								<h3 class="font-medium text-foreground">{event.title}</h3>
+								<p class="mt-1 text-sm text-muted-foreground">
 									{formatDate(event.startDate)}
 									{#if event.startDate.getTime() !== event.endDate.getTime()}
 										- {formatDate(event.endDate)}

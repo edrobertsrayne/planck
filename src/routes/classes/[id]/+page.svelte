@@ -208,7 +208,7 @@
 	<div class="mb-4 sm:mb-6">
 		<a
 			href={resolve('/classes')}
-			class="inline-block min-h-[44px] py-2 text-indigo-600 transition-colors hover:text-indigo-800"
+			class="inline-block min-h-[44px] py-2 text-accent-secondary transition-colors hover:text-accent-secondary-hover"
 		>
 			← Back to Classes
 		</a>
@@ -229,9 +229,7 @@
 	{/if}
 
 	<!-- Class Details Section -->
-	<div
-		class="dark:bg-surface mb-6 rounded-lg border border-gray-200 bg-white p-4 shadow-sm sm:mb-8 sm:p-6 dark:border-border"
-	>
+	<div class="mb-6 rounded-lg border border-border bg-surface p-4 shadow-sm sm:mb-8 sm:p-6">
 		<div class="mb-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
 			<div class="flex items-center gap-3">
 				<div
@@ -380,7 +378,7 @@
 	</div>
 
 	<!-- Attachments Section -->
-	<div class="mb-6 rounded-lg border border-gray-200 bg-white p-4 shadow-sm sm:mb-8 sm:p-6">
+	<div class="mb-6 rounded-lg border border-border bg-surface p-4 shadow-sm sm:mb-8 sm:p-6">
 		<div class="mb-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
 			<h2 class="text-xl font-semibold sm:text-2xl">Attachments</h2>
 			<Button
@@ -418,7 +416,7 @@
 	</div>
 
 	<!-- Timetable Slots Section -->
-	<div class="mb-6 rounded-lg border border-gray-200 bg-white p-4 shadow-sm sm:mb-8 sm:p-6">
+	<div class="mb-6 rounded-lg border border-border bg-surface p-4 shadow-sm sm:mb-8 sm:p-6">
 		<div class="mb-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
 			<h2 class="text-xl font-semibold sm:text-2xl">Timetable Slots</h2>
 			<Button onclick={() => (addingSlot = !addingSlot)} class="min-h-[44px] w-full sm:w-auto">
@@ -502,7 +500,7 @@
 
 		{#if data.timetableSlots.length === 0}
 			<div
-				class="bg-background-subtle flex flex-col items-center justify-center rounded-lg border border-border p-12 text-center"
+				class="flex flex-col items-center justify-center rounded-lg border border-border bg-background-subtle p-12 text-center"
 			>
 				<Clock class="mb-4 h-12 w-12 text-muted-foreground" />
 				<h3 class="font-display mb-2 text-xl font-semibold">No timetable slots</h3>
@@ -520,7 +518,7 @@
 							method="POST"
 							action="?/updateSlot"
 							use:enhance
-							class="rounded-md border border-gray-300 bg-gray-50 p-4"
+							class="rounded-md border border-border-strong bg-background-subtle p-4"
 						>
 							<input type="hidden" name="slotId" value={slot.id} />
 							<div class="grid gap-4 md:grid-cols-5">
@@ -591,7 +589,7 @@
 						</form>
 					{:else}
 						<div
-							class="flex items-center justify-between rounded-md border border-gray-200 bg-white p-4"
+							class="flex items-center justify-between rounded-md border border-border bg-surface p-4"
 						>
 							<span class="text-sm">{formatSlotDisplay(slot)}</span>
 							<div class="flex gap-2">
@@ -621,7 +619,7 @@
 	</div>
 
 	<!-- Scheduled Lessons Section -->
-	<div class="mb-6 rounded-lg border border-gray-200 bg-white p-4 shadow-sm sm:mb-8 sm:p-6">
+	<div class="mb-6 rounded-lg border border-border bg-surface p-4 shadow-sm sm:mb-8 sm:p-6">
 		<div class="mb-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
 			<h2 class="text-xl font-semibold sm:text-2xl">Scheduled Lessons</h2>
 			<a href={resolve(`/classes/${data.class.id}/assign`)} class="w-full sm:w-auto">
@@ -637,7 +635,7 @@
 
 		{#if data.scheduledLessons.length === 0}
 			<div
-				class="bg-background-subtle flex flex-col items-center justify-center rounded-lg border border-border p-12 text-center"
+				class="flex flex-col items-center justify-center rounded-lg border border-border bg-background-subtle p-12 text-center"
 			>
 				<Calendar class="mb-4 h-12 w-12 text-muted-foreground" />
 				<h3 class="font-display mb-2 text-xl font-semibold">No lessons scheduled</h3>
@@ -658,7 +656,7 @@
 							action="?/updateScheduledLesson"
 							use:enhance
 							id="lesson-{lesson.id}"
-							class="rounded-md border border-gray-300 bg-gray-50 p-4"
+							class="rounded-md border border-border-strong bg-background-subtle p-4"
 						>
 							<input type="hidden" name="lessonId" value={lesson.id} />
 							<input type="hidden" name="specPointIds" value={lessonSpecPointIds.join(',')} />
@@ -726,7 +724,7 @@
 												)}
 												{#if specPoint}
 													<div
-														class="flex items-center justify-between rounded bg-white px-2 py-1 text-xs"
+														class="flex items-center justify-between rounded bg-surface px-2 py-1 text-xs"
 													>
 														<span class="font-mono">{specPoint.reference}</span>
 														<button
@@ -744,11 +742,11 @@
 
 									{#if showSpecPointPicker && data.availableSpecPoints.length > 0}
 										<div
-											class="max-h-48 space-y-1 overflow-y-auto rounded border border-gray-200 bg-white p-2"
+											class="max-h-48 space-y-1 overflow-y-auto rounded border border-border bg-surface p-2"
 										>
 											{#each data.availableSpecPoints as specPoint (specPoint.id)}
 												<label
-													class="flex cursor-pointer items-start gap-2 rounded p-2 hover:bg-gray-50"
+													class="flex cursor-pointer items-start gap-2 rounded p-2 hover:bg-background-subtle"
 												>
 													<input
 														type="checkbox"
@@ -758,7 +756,7 @@
 													/>
 													<div class="flex-1">
 														<p class="font-mono text-xs font-medium">{specPoint.reference}</p>
-														<p class="text-xs text-gray-600">{specPoint.content}</p>
+														<p class="text-xs text-muted-foreground">{specPoint.content}</p>
 													</div>
 												</label>
 											{/each}
@@ -778,14 +776,14 @@
 						<!-- Display Mode -->
 						<div
 							id="lesson-{lesson.id}"
-							class="rounded-md border border-gray-200 bg-white p-3 sm:p-4"
+							class="rounded-md border border-border bg-surface p-3 sm:p-4"
 						>
 							<div class="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
 								<div class="flex-1">
 									<h3 class="text-base font-semibold sm:text-lg">{lesson.title}</h3>
-									<p class="text-sm text-gray-600">{formatDate(lesson.calendarDate)}</p>
+									<p class="text-sm text-muted-foreground">{formatDate(lesson.calendarDate)}</p>
 									{#if lesson.duration > 1}
-										<p class="text-xs text-gray-500">{lesson.duration} periods</p>
+										<p class="text-xs text-muted-foreground">{lesson.duration} periods</p>
 									{/if}
 									{#if data.specPointLinks.filter((link) => link.scheduledLessonId === lesson.id).length > 0}
 										{@const lessonSpecPoints = data.specPointLinks
@@ -798,7 +796,7 @@
 											{#each lessonSpecPoints as sp (sp?.id)}
 												{#if sp}
 													<span
-														class="rounded bg-blue-100 px-1.5 py-0.5 font-mono text-xs text-blue-800"
+														class="rounded bg-accent-secondary-muted px-1.5 py-0.5 font-mono text-xs text-accent-secondary"
 													>
 														{sp.reference}
 													</span>

@@ -281,7 +281,7 @@
 			{#if currentView === 'day'}
 				<h2 class="text-base font-semibold sm:text-lg">{formatDate(currentDate)}</h2>
 				{#if data.timetableConfig?.weeks === 2}
-					<p class="text-sm text-gray-600">{getCurrentWeekLabel()}</p>
+					<p class="text-sm text-muted-foreground">{getCurrentWeekLabel()}</p>
 				{/if}
 			{:else if currentView === 'week'}
 				{@const days = getDaysInWeek()}
@@ -289,7 +289,7 @@
 					{formatShortDate(days[0])} - {formatShortDate(days[days.length - 1])}
 				</h2>
 				{#if data.timetableConfig?.weeks === 2}
-					<p class="text-sm text-gray-600">Week A & Week B</p>
+					<p class="text-sm text-muted-foreground">Week A & Week B</p>
 				{/if}
 			{:else}
 				<h2 class="text-base font-semibold sm:text-lg">Term Overview</h2>
@@ -309,7 +309,7 @@
 
 	{#if !data.timetableConfig}
 		<div
-			class="bg-background-subtle flex flex-col items-center justify-center rounded-lg border border-border p-12 text-center"
+			class="flex flex-col items-center justify-center rounded-lg border border-border bg-background-subtle p-12 text-center"
 		>
 			<Settings class="mb-4 h-12 w-12 text-muted-foreground" />
 			<h3 class="font-display mb-2 text-xl font-semibold">No timetable configured</h3>
@@ -323,7 +323,7 @@
 		</div>
 	{:else if data.classes.length === 0}
 		<div
-			class="bg-background-subtle flex flex-col items-center justify-center rounded-lg border border-border p-12 text-center"
+			class="flex flex-col items-center justify-center rounded-lg border border-border bg-background-subtle p-12 text-center"
 		>
 			<GraduationCap class="mb-4 h-12 w-12 text-muted-foreground" />
 			<h3 class="font-display mb-2 text-xl font-semibold">No classes for {data.academicYear}</h3>
@@ -338,22 +338,24 @@
 		{@const dayOfWeek = getDayOfWeek(currentDate)}
 		{@const holidayEvent = getEventForDay(currentDate)}
 
-		<div class="rounded-lg border border-gray-200 bg-white shadow-sm">
-			<div class="flex items-center justify-between border-b border-gray-200 px-4 py-3">
+		<div class="rounded-lg border border-border bg-surface shadow-sm">
+			<div class="flex items-center justify-between border-b border-border px-4 py-3">
 				<div class="flex items-center gap-3">
 					<span class="text-lg font-medium">{dayNames[dayOfWeek - 1]}</span>
-					<span class="text-sm text-gray-600">{formatShortDate(currentDate)}</span>
+					<span class="text-sm text-muted-foreground">{formatShortDate(currentDate)}</span>
 				</div>
 				<div class="flex items-center gap-2">
 					{#if data.timetableConfig?.weeks === 2}
-						<span class="rounded-full bg-gray-100 px-2 py-1 text-xs font-medium text-gray-700">
+						<span
+							class="rounded-full bg-background-muted px-2 py-1 text-xs font-medium text-foreground"
+						>
 							{getCurrentWeekLabel()}
 						</span>
 					{/if}
 					{#if holidayEvent}
 						<span
 							class="rounded-full px-2 py-1 text-xs font-medium {holidayEvent.type === 'holiday'
-								? 'bg-gray-200 text-gray-700'
+								? 'bg-background-muted text-foreground'
 								: holidayEvent.type === 'closure'
 									? 'bg-red-100 text-red-700'
 									: 'bg-yellow-100 text-yellow-700'}"
@@ -367,7 +369,7 @@
 			{#if holidayEvent}
 				<div
 					class="flex items-center justify-center p-8 {holidayEvent.type === 'holiday'
-						? 'bg-gray-50'
+						? 'bg-background-subtle'
 						: holidayEvent.type === 'closure'
 							? 'bg-red-50'
 							: 'bg-yellow-50'}"
@@ -375,7 +377,7 @@
 					<div class="text-center">
 						<p
 							class="text-lg font-medium {holidayEvent.type === 'holiday'
-								? 'text-gray-800'
+								? 'text-foreground'
 								: holidayEvent.type === 'closure'
 									? 'text-red-800'
 									: 'text-yellow-800'}"
@@ -386,11 +388,11 @@
 									? '🔒 School Closed'
 									: '🤒 Staff Absence'}
 						</p>
-						<p class="mt-1 text-sm text-gray-600">{holidayEvent.title}</p>
+						<p class="mt-1 text-sm text-muted-foreground">{holidayEvent.title}</p>
 					</div>
 				</div>
 			{:else}
-				<div class="divide-y divide-gray-100">
+				<div class="divide-y divide-border-subtle">
 					{#each Array(data.timetableConfig.periodsPerDay) as periodIndex (periodIndex)}
 						{@const period = periodIndex + 1}
 						{@const slot = findSlotForPeriod(currentDate, period)}
@@ -398,9 +400,9 @@
 
 						<div class="flex items-stretch">
 							<div
-								class="w-12 flex-shrink-0 border-r border-gray-100 bg-gray-50 p-2 text-center sm:w-16 sm:p-3"
+								class="w-12 flex-shrink-0 border-r border-border-subtle bg-background-subtle p-2 text-center sm:w-16 sm:p-3"
 							>
-								<p class="text-xs font-medium text-gray-700 sm:text-sm">P{period}</p>
+								<p class="text-xs font-medium text-foreground sm:text-sm">P{period}</p>
 							</div>
 							<div class="flex-1 p-2 sm:p-3">
 								{#if lesson}
@@ -408,7 +410,7 @@
 										href={resolve(`/classes/${lesson.classId}#lesson-${lesson.id}`)}
 										class="block min-h-[44px] w-full rounded-md border p-3 text-left transition-colors hover:opacity-80 active:opacity-70 {data.classColors.get(
 											lesson.classId
-										) || 'border-gray-300 bg-gray-100'}"
+										) || 'border-border-strong bg-background-muted'}"
 									>
 										<div class="flex flex-col gap-1 sm:flex-row sm:items-center sm:justify-between">
 											<div class="flex-1">
@@ -428,9 +430,9 @@
 									</a>
 								{:else}
 									<div
-										class="flex h-14 items-center justify-center rounded-md border border-dashed border-gray-200 sm:h-16"
+										class="flex h-14 items-center justify-center rounded-md border border-dashed border-border sm:h-16"
 									>
-										<p class="text-xs text-gray-400 sm:text-sm">No lesson scheduled</p>
+										<p class="text-xs text-muted-foreground sm:text-sm">No lesson scheduled</p>
 									</div>
 								{/if}
 							</div>
@@ -442,15 +444,15 @@
 	{:else if currentView === 'week'}
 		{@const daysInWeek = getDaysInWeek()}
 
-		<div class="overflow-x-auto rounded-lg border border-gray-200 bg-white shadow-sm">
+		<div class="overflow-x-auto rounded-lg border border-border bg-surface shadow-sm">
 			<table class="w-full min-w-[500px] sm:min-w-[600px]">
 				<thead>
 					{#if data.timetableConfig?.weeks === 2}
-						<tr class="border-b border-gray-200">
-							<th class="w-10 bg-gray-50 p-1 sm:w-16 sm:p-2"></th>
+						<tr class="border-b border-border">
+							<th class="w-10 bg-background-subtle p-1 sm:w-16 sm:p-2"></th>
 							<th
 								colspan="7"
-								class="border-r border-gray-200 bg-blue-50 p-1 text-center text-xs font-semibold text-blue-900 sm:p-2 sm:text-sm"
+								class="border-r border-border bg-blue-50 p-1 text-center text-xs font-semibold text-blue-900 sm:p-2 sm:text-sm"
 							>
 								Week A
 							</th>
@@ -462,9 +464,9 @@
 							</th>
 						</tr>
 					{/if}
-					<tr class="border-b border-gray-200">
+					<tr class="border-b border-border">
 						<th
-							class="w-10 bg-gray-50 p-1 text-center text-xs font-medium text-gray-700 sm:w-16 sm:p-3 sm:text-sm"
+							class="w-10 bg-background-subtle p-1 text-center text-xs font-medium text-foreground sm:w-16 sm:p-3 sm:text-sm"
 						>
 							P
 						</th>
@@ -475,12 +477,12 @@
 								class="min-w-[60px] p-1 text-center text-xs font-medium sm:min-w-[80px] sm:p-3 sm:text-sm {isToday(
 									day
 								)
-									? 'bg-blue-100 text-blue-900'
+									? 'bg-accent-secondary-muted text-accent-secondary'
 									: isWeekA && data.timetableConfig?.weeks === 2
-										? 'bg-blue-50/30 text-gray-700'
+										? 'bg-blue-50/30 text-foreground'
 										: !isWeekA && data.timetableConfig?.weeks === 2
-											? 'bg-purple-50/30 text-gray-700'
-											: 'text-gray-700'} {index === 6 ? 'border-r border-gray-300' : ''}"
+											? 'bg-purple-50/30 text-foreground'
+											: 'text-foreground'} {index === 6 ? 'border-r border-border-strong' : ''}"
 							>
 								<div class="hidden sm:block">
 									{dayNames[day.getUTCDay() === 0 ? 6 : day.getUTCDay() - 1]}
@@ -493,12 +495,12 @@
 						{/each}
 					</tr>
 				</thead>
-				<tbody class="divide-y divide-gray-100">
+				<tbody class="divide-y divide-border-subtle">
 					{#each Array(data.timetableConfig.periodsPerDay) as periodIndex (periodIndex)}
 						{@const period = periodIndex + 1}
 						<tr>
 							<td
-								class="bg-gray-50 p-1 text-center text-xs font-medium text-gray-700 sm:p-2 sm:text-sm"
+								class="bg-background-subtle p-1 text-center text-xs font-medium text-foreground sm:p-2 sm:text-sm"
 							>
 								{period}
 							</td>
@@ -507,12 +509,12 @@
 								{@const slot = findSlotForPeriod(day, period)}
 								{@const lesson = slot ? getLessonForSlot(day, slot) : null}
 
-								<td class="p-0.5 sm:p-1 {index === 6 ? 'border-r border-gray-300' : ''}">
+								<td class="p-0.5 sm:p-1 {index === 6 ? 'border-r border-border-strong' : ''}">
 									{#if holidayEvent}
 										<div
 											class="flex h-12 items-center justify-center rounded border text-[10px] sm:h-16 sm:text-xs {holidayEvent.type ===
 											'holiday'
-												? 'border-gray-200 bg-gray-100 text-gray-600'
+												? 'border-border bg-background-muted text-muted-foreground'
 												: holidayEvent.type === 'closure'
 													? 'border-red-200 bg-red-50 text-red-700'
 													: 'border-yellow-200 bg-yellow-50 text-yellow-700'}"
@@ -536,14 +538,14 @@
 										<button
 											class="h-full min-h-[48px] w-full rounded border p-1 text-left text-[10px] transition-colors hover:opacity-80 active:opacity-70 sm:min-h-[64px] sm:p-2 sm:text-xs {data.classColors.get(
 												lesson.classId
-											) || 'border-gray-300 bg-gray-100'}"
+											) || 'border-border-strong bg-background-muted'}"
 										>
 											<p class="line-clamp-2 leading-tight font-medium">{lesson.title}</p>
 											<p class="mt-0.5 line-clamp-1 opacity-75">{lesson.className}</p>
 										</button>
 									{:else}
 										<div
-											class="flex h-12 items-center justify-center rounded border border-dashed border-gray-200 sm:h-16"
+											class="flex h-12 items-center justify-center rounded border border-dashed border-border sm:h-16"
 										></div>
 									{/if}
 								</td>
@@ -556,13 +558,15 @@
 	{:else}
 		{@const termWeeks = getTermWeeks()}
 
-		<div class="overflow-x-auto rounded-lg border border-gray-200 bg-white shadow-sm">
+		<div class="overflow-x-auto rounded-lg border border-border bg-surface shadow-sm">
 			<div class="min-w-[600px]">
 				<!-- Calendar Grid -->
-				<div class="grid grid-cols-7 gap-px bg-gray-200">
+				<div class="grid grid-cols-7 gap-px bg-border">
 					<!-- Day headers -->
 					{#each dayNames as dayName (dayName)}
-						<div class="bg-gray-50 p-2 text-center text-xs font-medium text-gray-700 sm:text-sm">
+						<div
+							class="bg-background-subtle p-2 text-center text-xs font-medium text-foreground sm:text-sm"
+						>
 							<span class="hidden sm:inline">{dayName}</span>
 							<span class="sm:hidden">{dayName.slice(0, 3)}</span>
 						</div>
@@ -582,11 +586,11 @@
 							{@const lessonCount = dayLessons.length}
 
 							<div
-								class="min-h-[80px] bg-white p-2 sm:min-h-[100px] {day && isToday(day)
-									? 'ring-2 ring-blue-500 ring-inset'
+								class="min-h-[80px] bg-surface p-2 sm:min-h-[100px] {day && isToday(day)
+									? 'ring-2 ring-accent-secondary ring-inset'
 									: ''} {event
 									? event.type === 'holiday'
-										? 'bg-gray-50'
+										? 'bg-background-subtle'
 										: event.type === 'closure'
 											? 'bg-red-50'
 											: 'bg-yellow-50'
@@ -596,18 +600,18 @@
 									<!-- Date number -->
 									<div class="mb-1 flex items-center justify-between">
 										<button
-											class="rounded px-1.5 py-0.5 text-xs font-medium transition-colors hover:bg-gray-100 sm:text-sm {isToday(
+											class="rounded px-1.5 py-0.5 text-xs font-medium transition-colors hover:bg-background-muted sm:text-sm {isToday(
 												day
 											)
-												? 'bg-blue-500 text-white hover:bg-blue-600'
-												: 'text-gray-700'}"
+												? 'bg-accent-secondary text-white hover:bg-accent-secondary-hover'
+												: 'text-foreground'}"
 											onclick={() => navigateToDay(day)}
 										>
 											{day.getUTCDate()}
 										</button>
 										{#if data.weeksConfig === 2}
 											{@const weekLabel = getWeekLabelForDate(day)}
-											<span class="text-[10px] text-gray-500">
+											<span class="text-[10px] text-muted-foreground">
 												{weekLabel}
 											</span>
 										{/if}
@@ -618,7 +622,7 @@
 										<div
 											class="mb-1 truncate rounded px-1.5 py-0.5 text-[10px] font-medium {event.type ===
 											'holiday'
-												? 'bg-gray-200 text-gray-700'
+												? 'bg-background-muted text-foreground'
 												: event.type === 'closure'
 													? 'bg-red-200 text-red-700'
 													: 'bg-yellow-200 text-yellow-700'}"
@@ -634,7 +638,7 @@
 												<button
 													class="w-full truncate rounded border px-1.5 py-0.5 text-left text-[10px] transition-colors hover:opacity-80 {data.classColors.get(
 														lesson.classId
-													) || 'border-gray-300 bg-gray-100'}"
+													) || 'border-border-strong bg-background-muted'}"
 													onclick={() => navigateToDay(day)}
 													title={lesson.title}
 												>
@@ -643,7 +647,7 @@
 											{/each}
 											{#if lessonCount > 2}
 												<button
-													class="w-full rounded bg-gray-100 px-1.5 py-0.5 text-[10px] font-medium text-gray-600 hover:bg-gray-200"
+													class="w-full rounded bg-background-muted px-1.5 py-0.5 text-[10px] font-medium text-muted-foreground hover:bg-border"
 													onclick={() => navigateToDay(day)}
 												>
 													+{lessonCount - 2} more
@@ -661,25 +665,25 @@
 
 		<!-- Term Summary Stats -->
 		<div class="mt-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-			<div class="rounded-lg border border-gray-200 bg-white p-4">
-				<p class="text-sm text-gray-600">Total Lessons</p>
-				<p class="text-2xl font-bold text-gray-900">{data.scheduledLessons.length}</p>
+			<div class="rounded-lg border border-border bg-surface p-4">
+				<p class="text-sm text-muted-foreground">Total Lessons</p>
+				<p class="text-2xl font-bold text-foreground">{data.scheduledLessons.length}</p>
 			</div>
-			<div class="rounded-lg border border-gray-200 bg-white p-4">
-				<p class="text-sm text-gray-600">Holidays</p>
-				<p class="text-2xl font-bold text-gray-900">
+			<div class="rounded-lg border border-border bg-surface p-4">
+				<p class="text-sm text-muted-foreground">Holidays</p>
+				<p class="text-2xl font-bold text-foreground">
 					{data.events.filter((e) => e.type === 'holiday').length}
 				</p>
 			</div>
-			<div class="rounded-lg border border-gray-200 bg-white p-4">
-				<p class="text-sm text-gray-600">School Closures</p>
-				<p class="text-2xl font-bold text-gray-900">
+			<div class="rounded-lg border border-border bg-surface p-4">
+				<p class="text-sm text-muted-foreground">School Closures</p>
+				<p class="text-2xl font-bold text-foreground">
 					{data.events.filter((e) => e.type === 'closure').length}
 				</p>
 			</div>
-			<div class="rounded-lg border border-gray-200 bg-white p-4">
-				<p class="text-sm text-gray-600">Teaching Days</p>
-				<p class="text-2xl font-bold text-gray-900">
+			<div class="rounded-lg border border-border bg-surface p-4">
+				<p class="text-sm text-muted-foreground">Teaching Days</p>
+				<p class="text-2xl font-bold text-foreground">
 					{getTeachingDaysCount()}
 				</p>
 			</div>
@@ -689,9 +693,9 @@
 	<div class="mt-6 flex flex-wrap gap-2">
 		{#each data.classes as cls (cls.id)}
 			<div
-				class="flex items-center gap-2 rounded-full border border-gray-200 px-3 py-1 text-sm {data.classColors.get(
+				class="flex items-center gap-2 rounded-full border border-border px-3 py-1 text-sm {data.classColors.get(
 					cls.id
-				) || 'bg-gray-100'}"
+				) || 'bg-background-muted'}"
 			>
 				<span class="font-medium">{cls.name}</span>
 				<span class="opacity-75">Year {cls.yearGroup}</span>

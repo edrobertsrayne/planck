@@ -19,7 +19,10 @@
 
 <div class="container mx-auto p-6">
 	<div class="mb-6">
-		<a href={resolve(`/classes/${data.class.id}`)} class="text-indigo-600 hover:text-indigo-800">
+		<a
+			href={resolve(`/classes/${data.class.id}`)}
+			class="text-accent-secondary hover:text-accent-secondary-hover"
+		>
 			← Back to {data.class.name}
 		</a>
 	</div>
@@ -32,7 +35,7 @@
 		</Alert.Root>
 	{/if}
 
-	<div class="rounded-lg border border-gray-200 bg-white p-6 shadow-sm">
+	<div class="rounded-lg border border-border bg-surface p-6 shadow-sm">
 		<form method="POST" action="?/assign" use:enhance class="space-y-6">
 			<!-- Module Selection -->
 			<div>
@@ -73,8 +76,8 @@
 				<div class="space-y-2">
 					<!-- Next Available Option -->
 					<label
-						class="flex cursor-pointer items-center gap-3 rounded-md border border-gray-200 p-3 hover:bg-gray-50 {useNextAvailable
-							? 'border-indigo-500 bg-indigo-50'
+						class="flex cursor-pointer items-center gap-3 rounded-md border border-border p-3 hover:bg-background-subtle {useNextAvailable
+							? 'border-accent-secondary bg-accent-secondary-muted'
 							: ''}"
 					>
 						<input
@@ -83,7 +86,7 @@
 							value="next"
 							bind:group={useNextAvailable}
 							onchange={() => (useNextAvailable = true)}
-							class="h-4 w-4 text-indigo-600 focus:ring-indigo-500"
+							class="h-4 w-4 text-accent-secondary focus:ring-accent-secondary"
 						/>
 						<div>
 							<div class="font-medium">Next Available Slot</div>
@@ -95,8 +98,8 @@
 
 					<!-- Specific Date Option -->
 					<label
-						class="flex cursor-pointer items-center gap-3 rounded-md border border-gray-200 p-3 hover:bg-gray-50 {!useNextAvailable
-							? 'border-indigo-500 bg-indigo-50'
+						class="flex cursor-pointer items-center gap-3 rounded-md border border-border p-3 hover:bg-background-subtle {!useNextAvailable
+							? 'border-accent-secondary bg-accent-secondary-muted'
 							: ''}"
 					>
 						<input
@@ -105,7 +108,7 @@
 							value="date"
 							bind:group={useNextAvailable}
 							onchange={() => (useNextAvailable = false)}
-							class="h-4 w-4 text-indigo-600 focus:ring-indigo-500"
+							class="h-4 w-4 text-accent-secondary focus:ring-accent-secondary"
 						/>
 						<div class="flex-1">
 							<div class="font-medium">Specific Date</div>
