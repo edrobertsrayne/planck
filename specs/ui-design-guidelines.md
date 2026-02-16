@@ -656,7 +656,7 @@ Empty states should be **helpful** - providing guidance without being overwhelmi
 
 <button
 	onclick={toggleTheme}
-	class="hover:bg-background-subtle rounded-lg p-2"
+	class="rounded-lg p-2 hover:bg-background-subtle"
 	aria-label={theme === 'light' ? 'Switch to dark mode' : 'Switch to light mode'}
 >
 	{#if theme === 'light'}
