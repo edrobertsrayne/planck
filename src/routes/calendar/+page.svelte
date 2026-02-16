@@ -4,6 +4,7 @@
 	import { resolve } from '$app/paths';
 	import type { PageData } from './$types';
 	import Button from '$lib/components/ui/button/button.svelte';
+	import { Settings, GraduationCap } from 'lucide-svelte';
 
 	let { data }: { data: PageData } = $props();
 
@@ -307,19 +308,29 @@
 	</div>
 
 	{#if !data.timetableConfig}
-		<div class="rounded-lg border border-yellow-200 bg-yellow-50 p-8 text-center">
-			<p class="text-yellow-800">
-				No timetable configuration found for academic year {data.academicYear}. Please configure
-				your timetable settings first.
+		<div
+			class="bg-background-subtle flex flex-col items-center justify-center rounded-lg border border-border p-12 text-center"
+		>
+			<Settings class="mb-4 h-12 w-12 text-muted-foreground" />
+			<h3 class="font-display mb-2 text-xl font-semibold">No timetable configured</h3>
+			<p class="mb-4 max-w-sm text-sm text-muted-foreground">
+				Set up your timetable structure for {data.academicYear} to start scheduling lessons. You'll configure
+				periods per day and week structure.
 			</p>
-			<a href={resolve('/settings/timetable')} class="mt-4 inline-block">
+			<a href={resolve('/settings/timetable')} class="inline-block">
 				<Button>Configure Timetable</Button>
 			</a>
 		</div>
 	{:else if data.classes.length === 0}
-		<div class="rounded-lg border border-gray-200 bg-gray-50 p-8 text-center">
-			<p class="text-muted-foreground">No classes found for academic year {data.academicYear}.</p>
-			<a href={resolve('/classes')} class="mt-4 inline-block">
+		<div
+			class="bg-background-subtle flex flex-col items-center justify-center rounded-lg border border-border p-12 text-center"
+		>
+			<GraduationCap class="mb-4 h-12 w-12 text-muted-foreground" />
+			<h3 class="font-display mb-2 text-xl font-semibold">No classes for {data.academicYear}</h3>
+			<p class="mb-4 max-w-sm text-sm text-muted-foreground">
+				Create classes for this academic year to start scheduling lessons on your calendar.
+			</p>
+			<a href={resolve('/classes')} class="inline-block">
 				<Button>Create a Class</Button>
 			</a>
 		</div>

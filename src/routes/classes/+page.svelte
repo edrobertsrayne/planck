@@ -7,6 +7,7 @@
 	import Label from '$lib/components/ui/label/label.svelte';
 	import * as Alert from '$lib/components/ui/alert';
 	import { getKeyStageColor, getKeyStageLabel } from '$lib/utils/key-stage-colors';
+	import { GraduationCap } from 'lucide-svelte';
 
 	let { data, form }: { data: PageData; form: ActionData } = $props();
 
@@ -204,12 +205,27 @@
 	{/if}
 
 	{#if data.classes.length === 0}
-		<div class="rounded-lg border border-gray-200 bg-gray-50 p-8 text-center">
-			<p class="text-gray-600">No classes yet. Click "Create New Class" to add your first class.</p>
+		<div
+			class="bg-background-subtle flex flex-col items-center justify-center rounded-lg border border-border p-12 text-center"
+		>
+			<GraduationCap class="mb-4 h-12 w-12 text-muted-foreground" />
+			<h3 class="font-display mb-2 text-xl font-semibold">No classes yet</h3>
+			<p class="mb-4 max-w-sm text-sm text-muted-foreground">
+				Get started by creating your first class. You'll be able to assign modules and schedule
+				lessons.
+			</p>
+			<Button onclick={() => (showCreateForm = true)}>Create Your First Class</Button>
 		</div>
 	{:else if filteredClasses.length === 0}
-		<div class="rounded-lg border border-gray-200 bg-gray-50 p-8 text-center">
-			<p class="text-gray-600">No classes match the selected filter.</p>
+		<div
+			class="bg-background-subtle flex flex-col items-center justify-center rounded-lg border border-border p-12 text-center"
+		>
+			<GraduationCap class="mb-4 h-12 w-12 text-muted-foreground" />
+			<h3 class="font-display mb-2 text-xl font-semibold">No classes match</h3>
+			<p class="mb-4 max-w-sm text-sm text-muted-foreground">
+				No classes found for the selected year group. Try changing the filter or create a new class.
+			</p>
+			<Button variant="outline" onclick={() => (filterYearGroup = null)}>Clear Filter</Button>
 		</div>
 	{:else}
 		<div class="grid gap-4 md:grid-cols-2 lg:grid-cols-3">

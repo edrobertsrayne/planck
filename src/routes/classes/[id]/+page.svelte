@@ -11,6 +11,7 @@
 	import Label from '$lib/components/ui/label/label.svelte';
 	import * as Alert from '$lib/components/ui/alert/index.js';
 	import { getKeyStageColor, getKeyStageLabel } from '$lib/utils/key-stage-colors';
+	import { Clock, Calendar } from 'lucide-svelte';
 
 	let { data, form }: { data: PageData; form: ActionData } = $props();
 
@@ -500,10 +501,16 @@
 		{/if}
 
 		{#if data.timetableSlots.length === 0}
-			<div class="rounded-lg border border-gray-200 bg-gray-50 p-8 text-center">
-				<p class="text-muted-foreground">
-					No timetable slots configured. Click "Add Slot" to add the first slot.
+			<div
+				class="bg-background-subtle flex flex-col items-center justify-center rounded-lg border border-border p-12 text-center"
+			>
+				<Clock class="mb-4 h-12 w-12 text-muted-foreground" />
+				<h3 class="font-display mb-2 text-xl font-semibold">No timetable slots</h3>
+				<p class="mb-4 max-w-sm text-sm text-muted-foreground">
+					Add timetable slots to define when this class meets each week. You can add single or
+					double periods.
 				</p>
+				<Button onclick={() => (addingSlot = true)}>Add First Slot</Button>
 			</div>
 		{:else}
 			<div class="space-y-2">
@@ -629,10 +636,17 @@
 		{/if}
 
 		{#if data.scheduledLessons.length === 0}
-			<div class="rounded-lg border border-gray-200 bg-gray-50 p-8 text-center">
-				<p class="text-muted-foreground">
-					No lessons scheduled yet. Assign a module to this class to create scheduled lessons.
+			<div
+				class="bg-background-subtle flex flex-col items-center justify-center rounded-lg border border-border p-12 text-center"
+			>
+				<Calendar class="mb-4 h-12 w-12 text-muted-foreground" />
+				<h3 class="font-display mb-2 text-xl font-semibold">No lessons scheduled</h3>
+				<p class="mb-4 max-w-sm text-sm text-muted-foreground">
+					Assign a module to this class to automatically schedule lessons into your timetable slots.
 				</p>
+				<a href={resolve(`/classes/${data.class.id}/assign`)} class="inline-block">
+					<Button>Assign Module</Button>
+				</a>
 			</div>
 		{:else}
 			<div class="space-y-2">

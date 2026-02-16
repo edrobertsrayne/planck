@@ -6,6 +6,7 @@
 	import Textarea from '$lib/components/ui/textarea/textarea.svelte';
 	import Label from '$lib/components/ui/label/label.svelte';
 	import * as Alert from '$lib/components/ui/alert';
+	import { BookOpen } from 'lucide-svelte';
 
 	let { data, form }: { data: PageData; form: ActionData } = $props();
 
@@ -135,14 +136,28 @@
 	{/if}
 
 	{#if data.modules.length === 0}
-		<div class="rounded-lg border border-gray-200 bg-gray-50 p-8 text-center">
-			<p class="text-gray-600">
-				No modules yet. Click "Create New Module" to add your first module.
+		<div
+			class="bg-background-subtle flex flex-col items-center justify-center rounded-lg border border-border p-12 text-center"
+		>
+			<BookOpen class="mb-4 h-12 w-12 text-muted-foreground" />
+			<h3 class="font-display mb-2 text-xl font-semibold">No modules yet</h3>
+			<p class="mb-4 max-w-sm text-sm text-muted-foreground">
+				Create your first module to organize lessons into teaching units. Modules can be reused
+				across multiple classes.
 			</p>
+			<Button onclick={() => (showCreateForm = true)}>Create Your First Module</Button>
 		</div>
 	{:else if filteredModules.length === 0}
-		<div class="rounded-lg border border-gray-200 bg-gray-50 p-8 text-center">
-			<p class="text-gray-600">No modules match the selected filter.</p>
+		<div
+			class="bg-background-subtle flex flex-col items-center justify-center rounded-lg border border-border p-12 text-center"
+		>
+			<BookOpen class="mb-4 h-12 w-12 text-muted-foreground" />
+			<h3 class="font-display mb-2 text-xl font-semibold">No modules match</h3>
+			<p class="mb-4 max-w-sm text-sm text-muted-foreground">
+				No modules found for the selected specification. Try changing the filter or create a new
+				module.
+			</p>
+			<Button variant="outline" onclick={() => (filterSpecId = null)}>Clear Filter</Button>
 		</div>
 	{:else}
 		<div class="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
