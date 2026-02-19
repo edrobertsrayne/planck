@@ -1,12 +1,25 @@
 <script lang="ts">
 	/* eslint-disable svelte/prefer-svelte-reactivity */
 	import { enhance } from '$app/forms';
+	import { goto } from '$app/navigation';
 	import { resolve } from '$app/paths';
-	import type { PageData } from './$types';
+	import type { ActionData, PageData } from './$types';
 	import Button from '$lib/components/ui/button/button.svelte';
 	import { Settings, GraduationCap } from 'lucide-svelte';
 
-	let { data }: { data: PageData } = $props();
+	let { data, form }: { data: PageData; form: ActionData } = $props();
+
+	$effect(() => {
+		if (form?.success && form.newDate && form.view) {
+			const dateStr = form.newDate.split('T')[0]; // Extract YYYY-MM-DD
+			// Note: We need to add query params after resolve(), which only works with pathnames
+			// eslint-disable-next-line svelte/no-navigation-without-resolve
+			goto(`${resolve('/calendar')}?view=${form.view}&date=${dateStr}`, {
+				replaceState: true,
+				noScroll: true
+			});
+		}
+	});
 
 	let currentView = $derived(data.view as 'day' | 'week' | 'term');
 	let currentDate = $derived(new Date(data.currentDate));
