@@ -1,5 +1,6 @@
 <script lang="ts">
 	import { enhance } from '$app/forms';
+	import { invalidateAll } from '$app/navigation';
 	import type { PageData, ActionData } from './$types';
 	import Button from '$lib/components/ui/button/button.svelte';
 	import Input from '$lib/components/ui/input/input.svelte';
@@ -44,6 +45,7 @@
 
 	$effect(() => {
 		if (form?.success) {
+			invalidateAll();
 			resetForm();
 		}
 	});

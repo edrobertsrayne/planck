@@ -393,7 +393,8 @@
 				</div>
 			{:else}
 				<div class="divide-y divide-border-subtle">
-					{#each Array(data.timetableConfig.periodsPerDay) as periodIndex (periodIndex)}
+					<!-- eslint-disable-next-line @typescript-eslint/no-unused-vars -->
+					{#each Array(data.timetableConfig.periodsPerDay) as _, periodIndex (periodIndex)}
 						{@const period = periodIndex + 1}
 						{@const slot = findSlotForPeriod(currentDate, period)}
 						{@const lesson = slot ? getLessonForSlot(currentDate, slot) : null}
@@ -496,7 +497,8 @@
 					</tr>
 				</thead>
 				<tbody class="divide-y divide-border-subtle">
-					{#each Array(data.timetableConfig.periodsPerDay) as periodIndex (periodIndex)}
+					<!-- eslint-disable-next-line @typescript-eslint/no-unused-vars -->
+					{#each Array(data.timetableConfig.periodsPerDay) as _, periodIndex (periodIndex)}
 						{@const period = periodIndex + 1}
 						<tr>
 							<td
@@ -574,7 +576,7 @@
 
 					<!-- Calendar days -->
 					{#each termWeeks as week, weekIndex (weekIndex)}
-						{#each week as day (day ? day.toISOString() : `empty-${weekIndex}`)}
+						{#each week as day, dayIndex (day ? day.toISOString() : `empty-${weekIndex}-${dayIndex}`)}
 							{@const event = day ? getEventForDay(day) : null}
 							{@const dayLessons = day
 								? data.scheduledLessons.filter((lesson) => {
