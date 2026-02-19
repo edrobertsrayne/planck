@@ -59,6 +59,14 @@
       types = ["text"];
     };
 
+    type-check = {
+      enable = true;
+      name = "type-check";
+      entry = "bun run check";
+      files = "\\.(js|ts|svelte)$";
+      pass_filenames = false;
+    };
+
     unit-tests = {
       enable = true;
       name = "unit-tests";
