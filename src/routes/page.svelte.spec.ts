@@ -11,7 +11,16 @@ describe('/+page.svelte', () => {
 				totalClasses: 0,
 				upcomingLessonsThisWeek: 0,
 				totalModules: 0,
-				nextHoliday: null
+				nextHoliday: {
+					id: 'test-holiday-1',
+					type: 'holiday' as const,
+					title: 'Half Term',
+					startDate: new Date('2025-02-17'),
+					endDate: new Date('2025-02-21'),
+					affectsAllClasses: true,
+					createdAt: new Date(),
+					updatedAt: new Date()
+				}
 			},
 			todaysLessons: []
 		};

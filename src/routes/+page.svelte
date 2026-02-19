@@ -48,7 +48,8 @@
 			<Card.Content>
 				<div class="text-2xl font-bold">{data.stats.upcomingLessonsThisWeek}</div>
 				<p class="mt-1 text-xs text-muted-foreground">
-					<a href={resolve('/calendar?view=week')} class="hover:underline">View calendar</a>
+					<!-- eslint-disable-next-line svelte/no-navigation-without-resolve -->
+					<a href={`${resolve('/calendar')}?view=week`} class="hover:underline">View calendar</a>
 				</p>
 			</Card.Content>
 		</Card.Root>

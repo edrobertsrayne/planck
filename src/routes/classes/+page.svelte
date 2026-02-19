@@ -16,7 +16,10 @@
 	let name = $state('');
 	let yearGroup = $state(11);
 	let examSpecId = $state('');
-	let academicYear = $state(data.currentAcademicYear);
+	// Intentionally capture initial value for form default (non-reactive)
+	// svelte-ignore state_referenced_locally
+	const initialAcademicYear = data.currentAcademicYear;
+	let academicYear = $state(initialAcademicYear);
 	let studentCount = $state('');
 	let room = $state('');
 	let notes = $state('');
@@ -33,7 +36,7 @@
 		name = '';
 		yearGroup = 11;
 		examSpecId = '';
-		academicYear = data.currentAcademicYear;
+		academicYear = initialAcademicYear;
 		studentCount = '';
 		room = '';
 		notes = '';
