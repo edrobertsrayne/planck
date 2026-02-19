@@ -14,8 +14,9 @@
 	let periodsPerDay = $state(6);
 	let daysPerWeek = $state(5);
 
+	// Sync state with data when it changes
 	$effect(() => {
-		academicYear = data.config?.academicYear || '';
+		academicYear = data.config?.academicYear || data.currentAcademicYear;
 		weeks = data.globalConfig?.weeks || 1;
 		periodsPerDay = data.config?.periodsPerDay || 6;
 		daysPerWeek = data.config?.daysPerWeek || 5;
@@ -82,11 +83,13 @@
 						id="academicYear"
 						name="academicYear"
 						bind:value={academicYear}
-						placeholder="e.g., 2024-25"
+						placeholder={`e.g., ${data.currentAcademicYear}`}
 						required
 						class="mt-2"
 					/>
-					<p class="mt-1 text-sm text-muted-foreground">Format: YYYY-YY (e.g., 2024-25)</p>
+					<p class="mt-1 text-sm text-muted-foreground">
+						Format: YYYY-YY (e.g., {data.currentAcademicYear})
+					</p>
 				</div>
 
 				<div>

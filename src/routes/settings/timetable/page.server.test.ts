@@ -16,7 +16,9 @@ describe('Timetable Configuration Page Server', () => {
 		it('should return empty config when no config exists', async () => {
 			const result = await load({} as RequestEvent);
 
-			expect(result).toEqual({ globalConfig: null, config: null });
+			expect(result.globalConfig).toBeNull();
+			expect(result.config).toBeNull();
+			expect(result.currentAcademicYear).toBe('2025-26'); // Current year as of test date
 		});
 
 		it('should return existing config for the current academic year', async () => {
@@ -28,11 +30,11 @@ describe('Timetable Configuration Page Server', () => {
 				daysPerWeek: 5
 			});
 
-			// Insert year-specific config
+			// Insert year-specific config for CURRENT year (2025-26)
 			await db
 				.insert(timetableConfig)
 				.values({
-					academicYear: '2024-25',
+					academicYear: '2025-26',
 					weeks: 1, // Not used
 					periodsPerDay: 8,
 					daysPerWeek: 5
@@ -44,12 +46,13 @@ describe('Timetable Configuration Page Server', () => {
 			expect(result.globalConfig).toBeDefined();
 			expect(result.globalConfig?.weeks).toBe(2);
 			expect(result.config).toBeDefined();
-			expect(result.config?.academicYear).toBe('2024-25');
+			expect(result.config?.academicYear).toBe('2025-26');
 			expect(result.config?.periodsPerDay).toBe(8);
 			expect(result.config?.daysPerWeek).toBe(5);
+			expect(result.currentAcademicYear).toBe('2025-26');
 		});
 
-		it('should return the most recent config when multiple exist', async () => {
+		it('should only return current year config, not previous years', async () => {
 			// Insert GLOBAL config
 			await db.insert(timetableConfig).values({
 				academicYear: 'GLOBAL',
@@ -58,7 +61,7 @@ describe('Timetable Configuration Page Server', () => {
 				daysPerWeek: 5
 			});
 
-			// Insert multiple year-specific configs
+			// Insert multiple year-specific configs for PREVIOUS years
 			await db.insert(timetableConfig).values({
 				academicYear: '2023-24',
 				weeks: 1,
@@ -75,7 +78,9 @@ describe('Timetable Configuration Page Server', () => {
 
 			const result = await load({} as RequestEvent);
 
-			expect(result.config?.academicYear).toBe('2024-25');
+			// Should NOT return previous years' configs
+			expect(result.config).toBeNull();
+			expect(result.currentAcademicYear).toBe('2025-26');
 		});
 	});
 

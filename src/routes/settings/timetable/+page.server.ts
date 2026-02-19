@@ -1,9 +1,12 @@
 import { db } from '$lib/server/db';
 import { timetableConfig } from '$lib/server/db/schema';
-import { eq, desc, ne } from 'drizzle-orm';
+import { eq } from 'drizzle-orm';
 import type { Actions, PageServerLoad } from './$types';
+import { getCurrentAcademicYear } from '$lib/server/utils/academicYear';
 
 export const load: PageServerLoad = async () => {
+	const currentYear = getCurrentAcademicYear();
+
 	// Get GLOBAL config for school-wide settings (weeks)
 	const globalConfigs = await db
 		.select()
@@ -11,17 +14,17 @@ export const load: PageServerLoad = async () => {
 		.where(eq(timetableConfig.academicYear, 'GLOBAL'))
 		.limit(1);
 
-	// Get the most recent year-specific timetable config
-	const yearConfigs = await db
+	// Get config for the CURRENT academic year only (don't fall back to old years)
+	const currentYearConfigs = await db
 		.select()
 		.from(timetableConfig)
-		.where(ne(timetableConfig.academicYear, 'GLOBAL'))
-		.orderBy(desc(timetableConfig.academicYear))
+		.where(eq(timetableConfig.academicYear, currentYear))
 		.limit(1);
 
 	return {
 		globalConfig: globalConfigs[0] || null,
-		config: yearConfigs[0] || null
+		config: currentYearConfigs[0] || null,
+		currentAcademicYear: currentYear
 	};
 };
 
