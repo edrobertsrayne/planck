@@ -2,6 +2,7 @@ import { db } from '$lib/server/db';
 import { teachingClass, examSpec } from '$lib/server/db/schema';
 import { asc, eq } from 'drizzle-orm';
 import type { Actions, PageServerLoad } from './$types';
+import { getCurrentAcademicYear } from '$lib/server/utils/academicYear';
 
 export const load: PageServerLoad = async () => {
 	// Get all classes with their exam specifications
@@ -37,7 +38,8 @@ export const load: PageServerLoad = async () => {
 
 	return {
 		classes,
-		examSpecs
+		examSpecs,
+		currentAcademicYear: getCurrentAcademicYear()
 	};
 };
 

@@ -16,7 +16,7 @@
 	let name = $state('');
 	let yearGroup = $state(11);
 	let examSpecId = $state('');
-	let academicYear = $state('');
+	let academicYear = $state(data.currentAcademicYear);
 	let studentCount = $state('');
 	let room = $state('');
 	let notes = $state('');
@@ -33,7 +33,7 @@
 		name = '';
 		yearGroup = 11;
 		examSpecId = '';
-		academicYear = '';
+		academicYear = data.currentAcademicYear;
 		studentCount = '';
 		room = '';
 		notes = '';
@@ -151,11 +151,13 @@
 							id="academicYear"
 							name="academicYear"
 							bind:value={academicYear}
-							placeholder="e.g., 2024-25"
+							placeholder={`e.g., ${data.currentAcademicYear}`}
 							required
 							class="mt-2"
 						/>
-						<p class="mt-1 text-sm text-muted-foreground">Format: YYYY-YY</p>
+						<p class="mt-1 text-sm text-muted-foreground">
+							Format: YYYY-YY (e.g., {data.currentAcademicYear})
+						</p>
 					</div>
 
 					<div>

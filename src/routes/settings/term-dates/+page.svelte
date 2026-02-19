@@ -87,7 +87,7 @@
 					id="academicYear"
 					name="academicYear"
 					bind:value={academicYear}
-					placeholder="e.g., 2024-25"
+					placeholder={`e.g., ${data.currentAcademicYear}`}
 					required
 					class="mt-2"
 				/>

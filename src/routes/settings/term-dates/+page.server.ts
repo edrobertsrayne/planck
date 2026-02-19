@@ -3,9 +3,11 @@ import { calendarEvent } from '$lib/server/db/schema';
 import { seedTermDates } from '$lib/server/db/seed';
 import { eq } from 'drizzle-orm';
 import type { Actions, PageServerLoad } from './$types';
+import { getCurrentAcademicYear } from '$lib/server/utils/academicYear';
 
 export const load: PageServerLoad = async ({ url }) => {
-	const academicYear = url.searchParams.get('year') || '';
+	const currentYear = getCurrentAcademicYear();
+	const academicYear = url.searchParams.get('year') || currentYear;
 
 	// If academic year is provided, fetch existing events for that year
 	if (academicYear) {
@@ -27,13 +29,15 @@ export const load: PageServerLoad = async ({ url }) => {
 
 		return {
 			academicYear,
-			events: yearEvents
+			events: yearEvents,
+			currentAcademicYear: currentYear
 		};
 	}
 
 	return {
-		academicYear: '',
-		events: []
+		academicYear: currentYear,
+		events: [],
+		currentAcademicYear: currentYear
 	};
 };
 

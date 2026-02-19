@@ -13,12 +13,13 @@ describe('Term Date Import - Page Server', () => {
 	});
 
 	describe('load function', () => {
-		it('should return empty state when no academic year is provided', async () => {
+		it('should return current academic year when no year parameter is provided', async () => {
 			const result = await load({
 				url: new URL('http://localhost/settings/term-dates')
 			} as any);
 
-			expect(result.academicYear).toBe('');
+			expect(result.academicYear).toBe('2025-26'); // Current year as of test date
+			expect(result.currentAcademicYear).toBe('2025-26');
 			expect(result.events).toEqual([]);
 		});
 
