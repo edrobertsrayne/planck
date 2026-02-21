@@ -6,6 +6,10 @@ import { eq, and } from 'drizzle-orm';
  * Seeds the database with UK Physics exam specifications.
  * Includes GCSE and A-Level specifications for all major exam boards.
  * This function is idempotent - can be run multiple times safely.
+ *
+ * @deprecated This function is deprecated and should not be used for new databases.
+ * Users should import specifications through the UI instead of pre-seeding data.
+ * This function is preserved for backwards compatibility with existing tests only.
  */
 export async function seedExamSpecs() {
 	// Helper to find or create exam spec

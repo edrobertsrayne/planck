@@ -130,12 +130,18 @@ describe('Specification Detail Page Server', () => {
 	});
 
 	describe('load function', () => {
-		it('should throw 404 error when specification not found', async () => {
-			await expect(
-				load({
+		it('should redirect to specifications list when specification not found', async () => {
+			try {
+				await load({
 					params: { id: 'non-existent-id' }
-				} as RequestEvent)
-			).rejects.toThrow();
+				} as RequestEvent);
+				// Should not reach here
+				expect(true).toBe(false);
+			} catch (error) {
+				// SvelteKit redirect throws a special redirect object with status and location
+				expect(error).toHaveProperty('status', 303);
+				expect(error).toHaveProperty('location', '/specifications');
+			}
 		});
 
 		it('should return specification details', async () => {

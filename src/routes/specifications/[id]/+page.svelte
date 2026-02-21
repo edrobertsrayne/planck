@@ -1,20 +1,41 @@
 <script lang="ts">
 	/* eslint-disable svelte/prefer-svelte-reactivity */
 	import { resolve } from '$app/paths';
-	import { invalidateAll } from '$app/navigation';
-	import type { PageData } from './$types';
+	import { invalidateAll, goto } from '$app/navigation';
+	import { enhance } from '$app/forms';
+	import type { PageData, ActionData } from './$types';
 	import AttachmentList from '$lib/components/attachments/attachment-list.svelte';
 	import AttachmentForm from '$lib/components/attachments/attachment-form.svelte';
 	import Button from '$lib/components/ui/button/button.svelte';
 	import * as Alert from '$lib/components/ui/alert/index.js';
+	import * as Dialog from '$lib/components/ui/dialog/index.js';
 
-	let { data }: { data: PageData } = $props();
+	let { data, form }: { data: PageData; form: ActionData } = $props();
 
 	// Track which topics are expanded
 	let expandedTopics = $state(new Set<string>());
 	let showAttachmentForm = $state(false);
+	let showDeleteConfirm = $state(false);
 	let errorMessage = $state('');
 	let successMessage = $state('');
+
+	// Handle successful deletion - redirect to specifications list
+	$effect(() => {
+		if (form?.deleted) {
+			goto('/specifications');
+		}
+	});
+
+	// Handle deletion error
+	$effect(() => {
+		if (form?.error) {
+			errorMessage = form.error;
+			showDeleteConfirm = false;
+			setTimeout(() => {
+				errorMessage = '';
+			}, 5000);
+		}
+	});
 
 	function toggleTopic(topicId: string) {
 		if (expandedTopics.has(topicId)) {
@@ -73,24 +94,37 @@
 
 <div class="container mx-auto p-6">
 	<div class="mb-6">
-		<a
-			href={resolve('/specifications')}
-			class="text-sm text-accent-secondary hover:text-accent-secondary-hover"
-		>
-			← Back to Specifications
-		</a>
-		<h1 class="mt-2 text-3xl font-bold">{data.spec.name}</h1>
-		<div class="mt-2 flex gap-4 text-sm text-muted-foreground">
-			<p><span class="font-medium">Board:</span> {data.spec.board}</p>
-			<p><span class="font-medium">Level:</span> {data.spec.level}</p>
-			{#if data.spec.specCode}
-				<p><span class="font-medium">Code:</span> {data.spec.specCode}</p>
-			{/if}
-			{#if data.spec.specYear}
-				<p><span class="font-medium">Year:</span> {data.spec.specYear}</p>
-			{/if}
+		<div class="flex items-start justify-between">
+			<div class="flex-1">
+				<a
+					href={resolve('/specifications')}
+					class="text-sm text-accent-secondary hover:text-accent-secondary-hover"
+				>
+					← Back to Specifications
+				</a>
+				<h1 class="mt-2 text-3xl font-bold">{data.spec.name}</h1>
+				<div class="mt-2 flex gap-4 text-sm text-muted-foreground">
+					<p><span class="font-medium">Board:</span> {data.spec.board}</p>
+					<p><span class="font-medium">Level:</span> {data.spec.level}</p>
+					{#if data.spec.specCode}
+						<p><span class="font-medium">Code:</span> {data.spec.specCode}</p>
+					{/if}
+					{#if data.spec.specYear}
+						<p><span class="font-medium">Year:</span> {data.spec.specYear}</p>
+					{/if}
+				</div>
+			</div>
+			<Button variant="destructive" onclick={() => (showDeleteConfirm = true)}>
+				Delete Specification
+			</Button>
 		</div>
 	</div>
+
+	{#if errorMessage}
+		<Alert.Root variant="destructive" class="mb-4">
+			<Alert.Description>{errorMessage}</Alert.Description>
+		</Alert.Root>
+	{/if}
 
 	<!-- Attachments Section -->
 	<div class="mb-6 rounded-lg border border-border bg-surface p-6">
@@ -280,4 +314,41 @@
 			{/each}
 		</div>
 	{/if}
+
+	<!-- Delete Confirmation Dialog -->
+	<Dialog.Root bind:open={showDeleteConfirm}>
+		<Dialog.Content>
+			<Dialog.Header>
+				<Dialog.Title>Delete Specification?</Dialog.Title>
+				<Dialog.Description>This will permanently delete the following data:</Dialog.Description>
+			</Dialog.Header>
+			<div class="my-4">
+				<ul class="list-disc space-y-2 pl-5 text-sm">
+					<li>
+						<strong>Specification:</strong>
+						{data.spec.name}
+					</li>
+					<li>
+						<strong>Topics:</strong>
+						{data.topics.length}
+						{data.topics.length === 1 ? 'topic' : 'topics'}
+					</li>
+					<li>
+						<strong>All specification points</strong> within these topics
+					</li>
+				</ul>
+				<p class="mt-4 text-sm font-medium text-destructive">This action cannot be undone.</p>
+			</div>
+			<Dialog.Footer>
+				<form method="POST" action="?/delete" use:enhance>
+					<div class="flex gap-2">
+						<Button type="button" variant="outline" onclick={() => (showDeleteConfirm = false)}>
+							Cancel
+						</Button>
+						<Button type="submit" variant="destructive">Confirm Delete</Button>
+					</div>
+				</form>
+			</Dialog.Footer>
+		</Dialog.Content>
+	</Dialog.Root>
 </div>

@@ -52,6 +52,7 @@
 	"dependencies": {
 		"@libsql/client": "^0.14.0",
 		"drizzle-orm": "^0.45.1",
-		"lucide-svelte": "^0.564.0"
+		"lucide-svelte": "^0.564.0",
+		"pdf-parse": "^2.4.5"
 	}
 }

@@ -1,5 +1,7 @@
 <script lang="ts">
 	import { resolve } from '$app/paths';
+	import { Button } from '$lib/components/ui/button';
+	import { Plus } from 'lucide-svelte';
 	import type { PageData } from './$types';
 
 	let { data }: { data: PageData } = $props();
@@ -28,10 +30,18 @@
 
 <div class="container mx-auto p-4 sm:p-6">
 	<div class="mb-4 sm:mb-6">
-		<h1 class="text-2xl font-bold sm:text-3xl">Specification Browser</h1>
-		<p class="mt-2 text-sm text-muted-foreground sm:text-base">
-			Browse UK Physics exam specifications by board and level
-		</p>
+		<div class="flex items-start justify-between gap-4">
+			<div class="flex-1">
+				<h1 class="text-2xl font-bold sm:text-3xl">Specification Browser</h1>
+				<p class="mt-2 text-sm text-muted-foreground sm:text-base">
+					Browse UK Physics exam specifications by board and level
+				</p>
+			</div>
+			<Button href={resolve('/specifications/new')}>
+				<Plus class="mr-2 h-4 w-4" />
+				Add Specification
+			</Button>
+		</div>
 	</div>
 
 	{#if data.specs.length > 0}

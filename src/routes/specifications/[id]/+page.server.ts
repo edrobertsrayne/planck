@@ -7,10 +7,11 @@ import {
 	lesson,
 	module,
 	scheduledLesson,
-	moduleAssignment
+	moduleAssignment,
+	teachingClass
 } from '$lib/server/db/schema';
 import { eq, sql, asc } from 'drizzle-orm';
-import { error } from '@sveltejs/kit';
+import { error, fail, redirect } from '@sveltejs/kit';
 import type { PageServerLoad, Actions } from './$types';
 import { getAttachments, deleteAttachment } from '$lib/server/attachments';
 
@@ -21,7 +22,7 @@ export const load: PageServerLoad = async ({ params }) => {
 	const [spec] = await db.select().from(examSpec).where(eq(examSpec.id, specId)).limit(1);
 
 	if (!spec) {
-		throw error(404, 'Specification not found');
+		redirect(303, '/specifications');
 	}
 
 	// Get all topics for this specification (with parent relationship)
@@ -172,5 +173,31 @@ export const actions: Actions = {
 
 		await deleteAttachment(id);
 		return { success: true };
+	},
+
+	delete: async ({ params }) => {
+		const specId = params.id;
+
+		try {
+			// Check if any classes use this specification
+			const classesUsingSpec = await db
+				.select({ count: sql<number>`count(*)` })
+				.from(teachingClass)
+				.where(eq(teachingClass.examSpecId, specId));
+
+			if (classesUsingSpec[0].count > 0) {
+				return fail(400, {
+					error: 'Cannot delete specification - it is being used by one or more classes'
+				});
+			}
+
+			// Delete specification (topics and spec points will cascade)
+			await db.delete(examSpec).where(eq(examSpec.id, specId));
+
+			return { success: true, deleted: true };
+		} catch (err) {
+			console.error('Error deleting specification:', err);
+			return fail(500, { error: 'Failed to delete specification' });
+		}
 	}
 };
