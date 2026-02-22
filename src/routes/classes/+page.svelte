@@ -13,10 +13,11 @@
 	let { data, form }: { data: PageData; form: ActionData } = $props();
 
 	let showCreateForm = $state(false);
+	let showSuccess = $state(false);
 	let filterYearGroup = $state<number | null>(null);
 	let name = $state('');
 	let yearGroup = $state(11);
-	let examSpecId = $state('');
+	let courseId = $state('');
 	// Intentionally capture initial value for form default (non-reactive)
 	// svelte-ignore state_referenced_locally
 	const initialAcademicYear = data.currentAcademicYear;
@@ -36,7 +37,7 @@
 		showCreateForm = false;
 		name = '';
 		yearGroup = 11;
-		examSpecId = '';
+		courseId = '';
 		academicYear = initialAcademicYear;
 		studentCount = '';
 		room = '';
@@ -45,8 +46,11 @@
 
 	$effect(() => {
 		if (form?.success) {
+			showSuccess = true;
+			const timer = setTimeout(() => (showSuccess = false), 3000);
 			invalidateAll();
 			resetForm();
+			return () => clearTimeout(timer);
 		}
 	});
 </script>
@@ -62,7 +66,7 @@
 		</Button>
 	</div>
 
-	{#if form?.success}
+	{#if showSuccess}
 		<Alert.Root class="mb-4">
 			<Alert.Title>Success</Alert.Title>
 			<Alert.Description>Class created successfully!</Alert.Description>
@@ -130,19 +134,16 @@
 					</div>
 
 					<div>
-						<Label for="examSpecId">
-							Exam Specification <span class="text-red-500">*</span>
-						</Label>
+						<Label for="courseId">Course</Label>
 						<select
-							id="examSpecId"
-							name="examSpecId"
-							bind:value={examSpecId}
-							required
+							id="courseId"
+							name="courseId"
+							bind:value={courseId}
 							class="mt-2 block w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:outline-none"
 						>
-							<option value="">Select a specification...</option>
-							{#each data.examSpecs as spec (spec.id)}
-								<option value={spec.id}>{spec.name}</option>
+							<option value="">None</option>
+							{#each data.courses as c (c.id)}
+								<option value={c.id}>{c.name}</option>
 							{/each}
 						</select>
 					</div>
@@ -266,8 +267,8 @@
 							{classItem.yearGroup}
 						</p>
 						<p>
-							<span class="font-medium">Exam Spec:</span>
-							{classItem.examSpec?.name || 'N/A'}
+							<span class="font-medium">Course:</span>
+							{classItem.course?.name || 'None'}
 						</p>
 						<p>
 							<span class="font-medium">Academic Year:</span>

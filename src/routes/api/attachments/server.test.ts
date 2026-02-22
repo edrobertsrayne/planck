@@ -5,16 +5,11 @@ import { GET, POST, DELETE } from './+server.js';
 import { db } from '$lib/server/db';
 import {
 	attachment,
-	examSpec,
-	topic,
-	specPoint,
+	course,
 	teachingClass,
 	module,
-	timetableSlot,
-	scheduledLessonSpecPoint,
 	scheduledLesson,
 	moduleAssignment,
-	lessonSpecPoint,
 	lesson
 } from '$lib/server/db/schema';
 import { existsSync } from 'fs';
@@ -24,36 +19,21 @@ import { join } from 'path';
 const UPLOADS_DIR = process.env.UPLOADS_DIR || 'uploads';
 
 describe('Attachments API Endpoints', () => {
-	let testSpec: { id: string };
+	let testCourse: { id: string };
 	let createdFiles: string[] = [];
 
 	beforeEach(async () => {
 		// Clean up test data in foreign key dependency order
 		await db.delete(attachment);
-		await db.delete(scheduledLessonSpecPoint);
 		await db.delete(scheduledLesson);
 		await db.delete(moduleAssignment);
-		await db.delete(timetableSlot);
-		await db.delete(teachingClass);
-		await db.delete(lessonSpecPoint);
 		await db.delete(lesson);
 		await db.delete(module);
-		await db.delete(specPoint);
-		await db.delete(topic);
-		await db.delete(examSpec);
+		await db.delete(teachingClass);
+		await db.delete(course);
 
-		// Create test exam spec
-		const specs = await db
-			.insert(examSpec)
-			.values({
-				board: 'AQA',
-				level: 'GCSE',
-				name: 'AQA GCSE Physics (8463)',
-				specCode: '8463',
-				specYear: '2018'
-			})
-			.returning();
-		testSpec = specs[0];
+		const courses = await db.insert(course).values({ name: 'GCSE Physics' }).returning();
+		testCourse = courses[0];
 
 		createdFiles = [];
 	});
@@ -75,22 +55,22 @@ describe('Attachments API Endpoints', () => {
 			await db.insert(attachment).values([
 				{
 					type: 'link',
-					entityType: 'spec',
-					entityId: testSpec.id,
+					entityType: 'course',
+					entityId: testCourse.id,
 					url: 'https://example.com/doc1',
 					fileName: 'Document 1'
 				},
 				{
 					type: 'link',
-					entityType: 'spec',
-					entityId: testSpec.id,
+					entityType: 'course',
+					entityId: testCourse.id,
 					url: 'https://example.com/doc2',
 					fileName: 'Document 2'
 				}
 			]);
 
 			const response = await GET({
-				url: new URL(`http://localhost/api/attachments?entityType=spec&entityId=${testSpec.id}`)
+				url: new URL(`http://localhost/api/attachments?entityType=course&entityId=${testCourse.id}`)
 			});
 
 			expect(response.status).toBe(200);
@@ -103,7 +83,7 @@ describe('Attachments API Endpoints', () => {
 		it('should return 400 if entityType is missing', async () => {
 			try {
 				await GET({
-					url: new URL(`http://localhost/api/attachments?entityId=${testSpec.id}`)
+					url: new URL(`http://localhost/api/attachments?entityId=${testCourse.id}`)
 				});
 				expect.fail('Should have thrown error');
 			} catch (error) {
@@ -114,7 +94,7 @@ describe('Attachments API Endpoints', () => {
 		it('should return 400 if entityId is missing', async () => {
 			try {
 				await GET({
-					url: new URL('http://localhost/api/attachments?entityType=spec')
+					url: new URL('http://localhost/api/attachments?entityType=course')
 				});
 				expect.fail('Should have thrown error');
 			} catch (error) {
@@ -126,8 +106,8 @@ describe('Attachments API Endpoints', () => {
 	describe('POST endpoint', () => {
 		it('should create a link attachment', async () => {
 			const formData = new FormData();
-			formData.append('entityType', 'spec');
-			formData.append('entityId', testSpec.id);
+			formData.append('entityType', 'course');
+			formData.append('entityId', testCourse.id);
 			formData.append('type', 'link');
 			formData.append('url', 'https://example.com/document');
 			formData.append('title', 'Test Document');
@@ -147,8 +127,8 @@ describe('Attachments API Endpoints', () => {
 
 		it('should create a file attachment', async () => {
 			const formData = new FormData();
-			formData.append('entityType', 'spec');
-			formData.append('entityId', testSpec.id);
+			formData.append('entityType', 'course');
+			formData.append('entityId', testCourse.id);
 			formData.append('type', 'file');
 
 			const file = new File(['test content'], 'test.pdf', { type: 'application/pdf' });
@@ -177,8 +157,8 @@ describe('Attachments API Endpoints', () => {
 
 		it('should return 400 if type is missing', async () => {
 			const formData = new FormData();
-			formData.append('entityType', 'spec');
-			formData.append('entityId', testSpec.id);
+			formData.append('entityType', 'course');
+			formData.append('entityId', testCourse.id);
 
 			try {
 				await POST({
@@ -194,8 +174,8 @@ describe('Attachments API Endpoints', () => {
 
 		it('should return 400 if file is missing for file attachment', async () => {
 			const formData = new FormData();
-			formData.append('entityType', 'spec');
-			formData.append('entityId', testSpec.id);
+			formData.append('entityType', 'course');
+			formData.append('entityId', testCourse.id);
 			formData.append('type', 'file');
 
 			try {
@@ -212,8 +192,8 @@ describe('Attachments API Endpoints', () => {
 
 		it('should return 400 if url is missing for link attachment', async () => {
 			const formData = new FormData();
-			formData.append('entityType', 'spec');
-			formData.append('entityId', testSpec.id);
+			formData.append('entityType', 'course');
+			formData.append('entityId', testCourse.id);
 			formData.append('type', 'link');
 			formData.append('title', 'Test');
 
@@ -237,8 +217,8 @@ describe('Attachments API Endpoints', () => {
 				.insert(attachment)
 				.values({
 					type: 'link',
-					entityType: 'spec',
-					entityId: testSpec.id,
+					entityType: 'course',
+					entityId: testCourse.id,
 					url: 'https://example.com/doc',
 					fileName: 'Test Doc'
 				})

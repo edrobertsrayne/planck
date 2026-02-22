@@ -1,15 +1,12 @@
 import { db } from '$lib/server/db';
 import {
 	teachingClass,
-	examSpec,
+	course,
 	timetableSlot,
 	scheduledLesson,
-	moduleAssignment,
-	scheduledLessonSpecPoint,
-	specPoint,
-	topic
+	moduleAssignment
 } from '$lib/server/db/schema';
-import { eq, and, asc, inArray } from 'drizzle-orm';
+import { eq, and, asc } from 'drizzle-orm';
 import { error } from '@sveltejs/kit';
 import type { Actions, PageServerLoad } from './$types';
 import { pushLesson } from '$lib/server/scheduling/push-lesson';
@@ -18,7 +15,7 @@ import { getAttachments, deleteAttachment } from '$lib/server/attachments';
 export const load: PageServerLoad = async ({ params }) => {
 	const classId = params.id;
 
-	// Get class details with exam specification
+	// Get class details with course
 	const classes = await db
 		.select({
 			id: teachingClass.id,
@@ -30,17 +27,13 @@ export const load: PageServerLoad = async ({ params }) => {
 			notes: teachingClass.notes,
 			createdAt: teachingClass.createdAt,
 			updatedAt: teachingClass.updatedAt,
-			examSpec: {
-				id: examSpec.id,
-				board: examSpec.board,
-				level: examSpec.level,
-				name: examSpec.name,
-				specCode: examSpec.specCode,
-				specYear: examSpec.specYear
+			course: {
+				id: course.id,
+				name: course.name
 			}
 		})
 		.from(teachingClass)
-		.leftJoin(examSpec, eq(teachingClass.examSpecId, examSpec.id))
+		.leftJoin(course, eq(teachingClass.courseId, course.id))
 		.where(eq(teachingClass.id, classId));
 
 	if (classes.length === 0) {
@@ -76,34 +69,6 @@ export const load: PageServerLoad = async ({ params }) => {
 		.where(eq(moduleAssignment.classId, classId))
 		.orderBy(asc(scheduledLesson.calendarDate), asc(scheduledLesson.order));
 
-	// Get spec point links for scheduled lessons
-	const lessonIds = lessons.map((l) => l.id);
-	const specPointLinks =
-		lessonIds.length > 0
-			? await db
-					.select({
-						scheduledLessonId: scheduledLessonSpecPoint.scheduledLessonId,
-						specPointId: scheduledLessonSpecPoint.specPointId
-					})
-					.from(scheduledLessonSpecPoint)
-					.where(inArray(scheduledLessonSpecPoint.scheduledLessonId, lessonIds))
-			: [];
-
-	// Get all available spec points from the class's exam specification
-	const availableSpecPoints = classData.examSpec
-		? await db
-				.select({
-					id: specPoint.id,
-					reference: specPoint.reference,
-					content: specPoint.content,
-					topicId: specPoint.topicId
-				})
-				.from(specPoint)
-				.innerJoin(topic, eq(specPoint.topicId, topic.id))
-				.where(eq(topic.examSpecId, classData.examSpec.id))
-				.orderBy(asc(specPoint.reference))
-		: [];
-
 	// Get attachments for this class
 	const attachments = await getAttachments('class', classId);
 
@@ -111,8 +76,6 @@ export const load: PageServerLoad = async ({ params }) => {
 		class: classData,
 		timetableSlots: slots,
 		scheduledLessons: lessons,
-		specPointLinks,
-		availableSpecPoints,
 		attachments
 	};
 };
@@ -175,7 +138,6 @@ export const actions: Actions = {
 		const periodEnd = parseInt(data.get('periodEnd')?.toString() || '0');
 		const weekStr = data.get('week')?.toString();
 
-		// Validation
 		if (day < 1 || day > 7) {
 			return { error: 'Day must be between 1 (Monday) and 7 (Sunday)' };
 		}
@@ -188,7 +150,6 @@ export const actions: Actions = {
 			return { error: 'Period end cannot be before period start' };
 		}
 
-		// Validate week if provided
 		let week: 'A' | 'B' | null = null;
 		if (weekStr && weekStr.trim()) {
 			if (weekStr !== 'A' && weekStr !== 'B') {
@@ -197,7 +158,6 @@ export const actions: Actions = {
 			week = weekStr as 'A' | 'B';
 		}
 
-		// Insert new slot
 		await db.insert(timetableSlot).values({
 			classId,
 			day,
@@ -218,7 +178,6 @@ export const actions: Actions = {
 		const periodEnd = parseInt(data.get('periodEnd')?.toString() || '0');
 		const weekStr = data.get('week')?.toString();
 
-		// Verify slot belongs to this class
 		const slots = await db
 			.select()
 			.from(timetableSlot)
@@ -228,7 +187,6 @@ export const actions: Actions = {
 			return { error: 'Slot not found or does not belong to this class' };
 		}
 
-		// Validation
 		if (day < 1 || day > 7) {
 			return { error: 'Day must be between 1 (Monday) and 7 (Sunday)' };
 		}
@@ -241,7 +199,6 @@ export const actions: Actions = {
 			return { error: 'Period end cannot be before period start' };
 		}
 
-		// Validate week if provided
 		let week: 'A' | 'B' | null = null;
 		if (weekStr && weekStr.trim()) {
 			if (weekStr !== 'A' && weekStr !== 'B') {
@@ -250,7 +207,6 @@ export const actions: Actions = {
 			week = weekStr as 'A' | 'B';
 		}
 
-		// Update the slot
 		await db
 			.update(timetableSlot)
 			.set({
@@ -270,7 +226,6 @@ export const actions: Actions = {
 		const data = await request.formData();
 		const slotId = data.get('slotId')?.toString() || '';
 
-		// Verify slot belongs to this class
 		const slots = await db
 			.select()
 			.from(timetableSlot)
@@ -280,7 +235,6 @@ export const actions: Actions = {
 			return { error: 'Slot not found or does not belong to this class' };
 		}
 
-		// Delete the slot
 		await db.delete(timetableSlot).where(eq(timetableSlot.id, slotId));
 
 		return { success: true };
@@ -341,9 +295,7 @@ export const actions: Actions = {
 		const title = data.get('title')?.toString() || '';
 		const content = data.get('content')?.toString() || '';
 		const durationStr = data.get('duration')?.toString();
-		const specPointIds = data.get('specPointIds')?.toString() || '';
 
-		// Validation
 		if (!lessonId) {
 			return { error: 'Lesson ID is required' };
 		}
@@ -371,7 +323,6 @@ export const actions: Actions = {
 			return { error: 'Lesson not found or does not belong to this class' };
 		}
 
-		// Update the scheduled lesson
 		await db
 			.update(scheduledLesson)
 			.set({
@@ -381,29 +332,6 @@ export const actions: Actions = {
 				updatedAt: new Date()
 			})
 			.where(eq(scheduledLesson.id, lessonId));
-
-		// Update spec point links if provided
-		if (specPointIds) {
-			// Delete existing spec point links
-			await db
-				.delete(scheduledLessonSpecPoint)
-				.where(eq(scheduledLessonSpecPoint.scheduledLessonId, lessonId));
-
-			// Add new spec point links
-			const specPointIdArray = specPointIds
-				.split(',')
-				.map((id) => id.trim())
-				.filter((id) => id);
-
-			if (specPointIdArray.length > 0) {
-				await db.insert(scheduledLessonSpecPoint).values(
-					specPointIdArray.map((specPointId) => ({
-						scheduledLessonId: lessonId,
-						specPointId
-					}))
-				);
-			}
-		}
 
 		return { success: true };
 	},

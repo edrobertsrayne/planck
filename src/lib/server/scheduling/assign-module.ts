@@ -3,12 +3,10 @@ import {
 	teachingClass,
 	module,
 	lesson,
-	lessonSpecPoint,
 	timetableSlot,
 	timetableConfig,
 	moduleAssignment,
-	scheduledLesson,
-	scheduledLessonSpecPoint
+	scheduledLesson
 } from '$lib/server/db/schema';
 import { eq, and, asc, gte } from 'drizzle-orm';
 import { getTimetableWeeksConfig } from '$lib/server/utils/week-calculator';
@@ -141,35 +139,16 @@ export async function assignModuleToClass(options: AssignModuleOptions): Promise
 		const lessonData = lessons[i];
 		const { date, slotId } = scheduledDates[i];
 
-		// Insert scheduled lesson
-		const scheduled = await db
-			.insert(scheduledLesson)
-			.values({
-				assignmentId,
-				lessonId: lessonData.id,
-				calendarDate: date,
-				timetableSlotId: slotId,
-				title: lessonData.title,
-				content: lessonData.content,
-				duration: lessonData.duration,
-				order: lessonData.order
-			})
-			.returning();
-
-		const scheduledId = scheduled[0].id;
-
-		// Copy spec point links
-		const specPointLinks = await db
-			.select()
-			.from(lessonSpecPoint)
-			.where(eq(lessonSpecPoint.lessonId, lessonData.id));
-
-		for (const link of specPointLinks) {
-			await db.insert(scheduledLessonSpecPoint).values({
-				scheduledLessonId: scheduledId,
-				specPointId: link.specPointId
-			});
-		}
+		await db.insert(scheduledLesson).values({
+			assignmentId,
+			lessonId: lessonData.id,
+			calendarDate: date,
+			timetableSlotId: slotId,
+			title: lessonData.title,
+			content: lessonData.content,
+			duration: lessonData.duration,
+			order: lessonData.order
+		});
 	}
 
 	return assignmentId;
@@ -291,12 +270,6 @@ async function getOccupiedSlots(classId: string, fromDate: Date): Promise<Occupi
 
 /**
  * Schedules lessons into timetable slots
- * @param lessons Array of lessons to schedule
- * @param slots Array of available timetable slots
- * @param startDate The start date for scheduling
- * @param weekCycle Number of weeks in the timetable cycle (1 or 2)
- * @param occupiedSlots Array of already occupied date-slot combinations
- * @returns Array of scheduled dates and slot IDs
  */
 function scheduleLessons(
 	lessons: Array<{ id: string; title: string; duration: number; order: number }>,
@@ -307,7 +280,6 @@ function scheduleLessons(
 ): Array<{ date: Date; slotId: string }> {
 	const result: Array<{ date: Date; slotId: string }> = [];
 
-	// Create a set of occupied date-slot combinations for fast lookup
 	const occupiedSet = new Set(
 		occupiedSlots.map((o) => {
 			const d = new Date(o.date);
@@ -316,68 +288,52 @@ function scheduleLessons(
 		})
 	);
 
-	// Start from the beginning of the start date (use UTC to avoid timezone issues)
 	const currentDate = new Date(startDate);
 	currentDate.setUTCHours(0, 0, 0, 0);
 
 	let lessonIndex = 0;
-
-	// Limit search to avoid infinite loops (1 year)
 	const maxDays = 365;
 	let daysSearched = 0;
 
 	while (lessonIndex < lessons.length && daysSearched < maxDays) {
 		const currentLesson = lessons[lessonIndex];
-		const dayOfWeek = currentDate.getUTCDay(); // 0 = Sunday, 1 = Monday, etc.
-
-		// Convert JavaScript day (0-6, Sun-Sat) to our format (1-7, Mon-Sun)
+		const dayOfWeek = currentDate.getUTCDay();
 		const ourDayOfWeek = dayOfWeek === 0 ? 7 : dayOfWeek;
 
-		// Find a suitable slot for this day
 		let slotPlaced = false;
 
 		for (const slot of slots) {
-			// Check if slot is for this day of week
 			if (slot.day !== ourDayOfWeek) continue;
 
-			// For 2-week timetables, check if it's the right week
 			if (weekCycle === 2 && slot.week) {
 				const weekNumber = getWeekNumber(currentDate, startDate);
 				const isWeekA = weekNumber % 2 === 1;
 				const currentWeek = isWeekA ? 'A' : 'B';
-
 				if (slot.week !== currentWeek) continue;
 			}
 
-			// Check if slot duration matches lesson duration
 			if (slot.duration !== currentLesson.duration) continue;
 
-			// Check if this date-slot combination is not occupied
 			const key = `${currentDate.toISOString()}-${slot.id}`;
 			if (occupiedSet.has(key)) continue;
 
-			// This slot is suitable!
 			result.push({
 				date: new Date(currentDate),
 				slotId: slot.id
 			});
 
-			// Mark this slot as occupied for future lessons
 			occupiedSet.add(key);
-
 			slotPlaced = true;
 			lessonIndex++;
-			break; // Move to next lesson
+			break;
 		}
 
-		// Move to next day
 		if (!slotPlaced) {
 			currentDate.setUTCDate(currentDate.getUTCDate() + 1);
 			daysSearched++;
 		}
 	}
 
-	// If we couldn't place all lessons, throw an error
 	if (lessonIndex < lessons.length) {
 		const unplacedLesson = lessons[lessonIndex];
 		throw new Error(
@@ -391,7 +347,6 @@ function scheduleLessons(
 
 /**
  * Calculates the week number relative to a start date
- * Week 1 is the week containing the start date
  */
 function getWeekNumber(date: Date, startDate: Date): number {
 	const msPerDay = 24 * 60 * 60 * 1000;

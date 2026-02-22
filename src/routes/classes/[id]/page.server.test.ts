@@ -5,7 +5,7 @@ import { load, actions } from './+page.server.js';
 import { db } from '$lib/server/db';
 import {
 	teachingClass,
-	examSpec,
+	course,
 	timetableSlot,
 	scheduledLesson,
 	moduleAssignment,
@@ -16,7 +16,7 @@ import { eq } from 'drizzle-orm';
 import type { RequestEvent } from '@sveltejs/kit';
 
 describe('Class Detail Page Server', () => {
-	let testExamSpec: { id: string };
+	let testCourse: { id: string };
 	let testClass: { id: string };
 
 	beforeEach(async () => {
@@ -27,20 +27,11 @@ describe('Class Detail Page Server', () => {
 		await db.delete(module);
 		await db.delete(timetableSlot);
 		await db.delete(teachingClass);
-		await db.delete(examSpec);
+		await db.delete(course);
 
-		// Create a test exam spec
-		const specs = await db
-			.insert(examSpec)
-			.values({
-				board: 'AQA',
-				level: 'GCSE',
-				name: 'AQA GCSE Physics (8463)',
-				specCode: '8463',
-				specYear: '2018'
-			})
-			.returning();
-		testExamSpec = specs[0];
+		// Create a test course
+		const courses = await db.insert(course).values({ name: 'AQA GCSE Physics' }).returning();
+		testCourse = courses[0];
 
 		// Create a test class
 		const classes = await db
@@ -48,7 +39,7 @@ describe('Class Detail Page Server', () => {
 			.values({
 				name: '11X/Ph1',
 				yearGroup: 11,
-				examSpecId: testExamSpec.id,
+				courseId: testCourse.id,
 				academicYear: '2024-25',
 				studentCount: 28,
 				room: 'Lab 3',
@@ -59,7 +50,7 @@ describe('Class Detail Page Server', () => {
 	});
 
 	describe('load function', () => {
-		it('should load class details with exam spec information', async () => {
+		it('should load class details with course information', async () => {
 			const result = await load({
 				params: { id: testClass.id }
 			} as RequestEvent);
@@ -72,8 +63,8 @@ describe('Class Detail Page Server', () => {
 			expect(result.class.studentCount).toBe(28);
 			expect(result.class.room).toBe('Lab 3');
 			expect(result.class.notes).toBe('Active class');
-			expect(result.class.examSpec).toBeDefined();
-			expect(result.class.examSpec.name).toBe('AQA GCSE Physics (8463)');
+			expect(result.class.course).toBeDefined();
+			expect(result.class.course.name).toBe('AQA GCSE Physics');
 		});
 
 		it('should load empty timetable slots when none exist', async () => {
@@ -157,8 +148,7 @@ describe('Class Detail Page Server', () => {
 				.insert(module)
 				.values({
 					name: 'Forces and Motion',
-					description: 'Introduction to forces',
-					targetSpecId: testExamSpec.id
+					courseId: testCourse.id
 				})
 				.returning();
 			const testModule = modules[0];
@@ -552,7 +542,7 @@ describe('Class Detail Page Server', () => {
 				.values({
 					name: 'Other Class',
 					yearGroup: 10,
-					examSpecId: testExamSpec.id,
+					courseId: testCourse.id,
 					academicYear: '2024-25'
 				})
 				.returning();
@@ -637,7 +627,7 @@ describe('Class Detail Page Server', () => {
 				.values({
 					name: 'Other Class',
 					yearGroup: 10,
-					examSpecId: testExamSpec.id,
+					courseId: testCourse.id,
 					academicYear: '2024-25'
 				})
 				.returning();
@@ -679,8 +669,7 @@ describe('Class Detail Page Server', () => {
 				.insert(module)
 				.values({
 					name: 'Forces and Motion',
-					description: 'Test module',
-					targetSpecId: testExamSpec.id
+					courseId: testCourse.id
 				})
 				.returning();
 			const testModule = modules[0];
@@ -730,7 +719,6 @@ describe('Class Detail Page Server', () => {
 			formData.append('title', 'Updated Forces Lesson');
 			formData.append('content', 'Updated content with more details');
 			formData.append('duration', '2');
-			formData.append('specPointIds', '');
 
 			const mockRequest = {
 				formData: async () => formData
@@ -798,7 +786,7 @@ describe('Class Detail Page Server', () => {
 				.values({
 					name: 'Other Class',
 					yearGroup: 10,
-					examSpecId: testExamSpec.id,
+					courseId: testCourse.id,
 					academicYear: '2024-25'
 				})
 				.returning();
@@ -809,7 +797,7 @@ describe('Class Detail Page Server', () => {
 				.insert(module)
 				.values({
 					name: 'Test Module',
-					targetSpecId: testExamSpec.id
+					courseId: testCourse.id
 				})
 				.returning();
 			const testModule = modules[0];

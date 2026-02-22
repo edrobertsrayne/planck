@@ -10,8 +10,7 @@
 	const navItems = [
 		{ href: '/calendar', label: 'Calendar' },
 		{ href: '/classes', label: 'Classes' },
-		{ href: '/modules', label: 'Modules' },
-		{ href: '/specifications', label: 'Specifications' },
+		{ href: '/courses', label: 'Courses' },
 		{ href: '/settings', label: 'Settings' }
 	];
 

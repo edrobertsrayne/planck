@@ -1,5 +1,5 @@
 import { db } from '$lib/server/db';
-import { teachingClass, module, examSpec } from '$lib/server/db/schema';
+import { teachingClass, module, course } from '$lib/server/db/schema';
 import { eq, asc } from 'drizzle-orm';
 import { error, redirect } from '@sveltejs/kit';
 import type { Actions, PageServerLoad } from './$types';
@@ -14,7 +14,7 @@ export const load: PageServerLoad = async ({ params }) => {
 			id: teachingClass.id,
 			name: teachingClass.name,
 			yearGroup: teachingClass.yearGroup,
-			examSpecId: teachingClass.examSpecId
+			courseId: teachingClass.courseId
 		})
 		.from(teachingClass)
 		.where(eq(teachingClass.id, classId));
@@ -25,32 +25,28 @@ export const load: PageServerLoad = async ({ params }) => {
 
 	const classData = classes[0];
 
-	// Get all available modules
+	// Get all available modules with course info
 	const modules = await db
 		.select({
 			id: module.id,
 			name: module.name,
-			description: module.description,
-			targetSpecId: module.targetSpecId,
-			targetSpec: {
-				id: examSpec.id,
-				board: examSpec.board,
-				level: examSpec.level,
-				name: examSpec.name
+			courseId: module.courseId,
+			course: {
+				id: course.id,
+				name: course.name
 			}
 		})
 		.from(module)
-		.leftJoin(examSpec, eq(module.targetSpecId, examSpec.id))
-		.orderBy(asc(module.name));
+		.innerJoin(course, eq(module.courseId, course.id))
+		.orderBy(asc(course.name), asc(module.name));
 
 	return {
 		class: classData,
 		modules: modules.map((m) => ({
 			id: m.id,
 			name: m.name,
-			description: m.description,
-			targetSpecId: m.targetSpecId,
-			targetSpec: m.targetSpec
+			courseId: m.courseId,
+			courseName: m.course.name
 		}))
 	};
 };
@@ -63,12 +59,10 @@ export const actions: Actions = {
 		const startDateStr = data.get('startDate')?.toString();
 		const useNextAvailable = data.get('useNextAvailable') === 'true';
 
-		// Validation
 		if (!moduleId.trim()) {
 			return { error: 'Module selection is required' };
 		}
 
-		// Determine start date
 		let startDate: Date | undefined;
 		if (!useNextAvailable) {
 			if (!startDateStr || !startDateStr.trim()) {
@@ -80,7 +74,6 @@ export const actions: Actions = {
 				return { error: 'Invalid start date' };
 			}
 
-			// Ensure the date is in the future or today
 			const today = new Date();
 			today.setUTCHours(0, 0, 0, 0);
 			if (startDate < today) {
@@ -88,7 +81,6 @@ export const actions: Actions = {
 			}
 		}
 
-		// Assign the module
 		try {
 			await assignModuleToClass({
 				classId,
@@ -96,7 +88,6 @@ export const actions: Actions = {
 				startDate
 			});
 
-			// Redirect to class detail page
 			throw redirect(303, `/classes/${classId}`);
 		} catch (err) {
 			const errorMessage = err instanceof Error ? err.message : 'Failed to assign module';

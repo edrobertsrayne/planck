@@ -32,3 +32,5 @@ vite.config.ts.timestamp-*
 .mcp.json
 .pre-commit-config.yaml
 local.db
+playwright-report
+test-results

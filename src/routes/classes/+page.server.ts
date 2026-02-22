@@ -1,11 +1,11 @@
 import { db } from '$lib/server/db';
-import { teachingClass, examSpec } from '$lib/server/db/schema';
+import { teachingClass, course } from '$lib/server/db/schema';
 import { asc, eq } from 'drizzle-orm';
 import type { Actions, PageServerLoad } from './$types';
 import { getCurrentAcademicYear } from '$lib/server/utils/academicYear';
 
 export const load: PageServerLoad = async () => {
-	// Get all classes with their exam specifications
+	// Get all classes with their courses
 	const classes = await db
 		.select({
 			id: teachingClass.id,
@@ -17,28 +17,21 @@ export const load: PageServerLoad = async () => {
 			notes: teachingClass.notes,
 			createdAt: teachingClass.createdAt,
 			updatedAt: teachingClass.updatedAt,
-			examSpec: {
-				id: examSpec.id,
-				board: examSpec.board,
-				level: examSpec.level,
-				name: examSpec.name,
-				specCode: examSpec.specCode,
-				specYear: examSpec.specYear
+			course: {
+				id: course.id,
+				name: course.name
 			}
 		})
 		.from(teachingClass)
-		.leftJoin(examSpec, eq(teachingClass.examSpecId, examSpec.id))
+		.leftJoin(course, eq(teachingClass.courseId, course.id))
 		.orderBy(asc(teachingClass.name));
 
-	// Get all available exam specifications for the create form
-	const examSpecs = await db
-		.select()
-		.from(examSpec)
-		.orderBy(asc(examSpec.level), asc(examSpec.board));
+	// Get all available courses for the create form
+	const courses = await db.select().from(course).orderBy(asc(course.name));
 
 	return {
 		classes,
-		examSpecs,
+		courses,
 		currentAcademicYear: getCurrentAcademicYear()
 	};
 };
@@ -48,7 +41,7 @@ export const actions: Actions = {
 		const data = await request.formData();
 		const name = data.get('name')?.toString() || '';
 		const yearGroup = parseInt(data.get('yearGroup')?.toString() || '0');
-		const examSpecId = data.get('examSpecId')?.toString() || '';
+		const courseId = data.get('courseId')?.toString();
 		const academicYear = data.get('academicYear')?.toString() || '';
 		const studentCountStr = data.get('studentCount')?.toString();
 		const room = data.get('room')?.toString();
@@ -61,10 +54,6 @@ export const actions: Actions = {
 
 		if (yearGroup < 7 || yearGroup > 13) {
 			return { error: 'Year group must be between 7 and 13' };
-		}
-
-		if (!examSpecId.trim()) {
-			return { error: 'Exam specification is required' };
 		}
 
 		if (!academicYear.trim()) {
@@ -84,7 +73,7 @@ export const actions: Actions = {
 		await db.insert(teachingClass).values({
 			name: name.trim(),
 			yearGroup,
-			examSpecId,
+			courseId: courseId && courseId.trim() ? courseId.trim() : null,
 			academicYear: academicYear.trim(),
 			studentCount,
 			room: room && room.trim() ? room.trim() : null,

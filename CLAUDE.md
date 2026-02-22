@@ -138,14 +138,13 @@ $effect(() => {
 
 The database follows a hierarchical structure for UK Physics education:
 
-1. **Exam Specifications** (`examSpec`) - Exam boards (AQA, OCR, Edexcel, etc.) and levels (GCSE, A-Level)
-2. **Topics** (`topic`) - Hierarchical content structure within specifications (supports nested topics via `parentId`)
-3. **Spec Points** (`specPoint`) - Individual learning objectives within topics
-4. **Classes** (`teachingClass`) - Teaching groups linked to exam specifications
-5. **Modules** (`module`) - Reusable teaching units that can be assigned to multiple classes
-6. **Lessons** (`lesson`) - Individual lessons within modules
-7. **Timetable** - Period slots and scheduled lessons with calendar integration
-8. **Events** - Holidays, school closures, and absences
+1. **Courses** (`course`) - Top-level teaching units (e.g. "GCSE Physics", "Year 9 Physics") with Editor.js notes
+2. **Modules** (`module`) - Reusable teaching units belonging to a course, with Editor.js notes
+3. **Lessons** (`lesson`) - Individual lessons within modules, with Editor.js block content
+4. **Classes** (`teachingClass`) - Teaching groups optionally linked to a course (yearGroup 7-13)
+5. **Module Assignments** (`moduleAssignment`) - Links modules to classes with a start date
+6. **Timetable** - Period slots and scheduled lessons with calendar integration
+7. **Events** - Holidays, school closures, and absences
 
 ### Database Patterns
 
@@ -175,8 +174,10 @@ src/
 │   ├── utils/                # Client-side utilities (e.g., key-stage-colors.ts)
 │   └── index.ts              # Public library exports
 ├── routes/                   # SvelteKit file-based routing
+│   ├── courses/             # Course list and detail pages
+│   ├── courses/[id]/        # Course detail with modules list
+│   ├── courses/[courseId]/modules/[moduleId]/  # Module editor with lessons
 │   ├── classes/[id]/        # Dynamic route for individual class
-│   ├── modules/[id]/        # Dynamic route for individual module
 │   ├── calendar/            # Calendar view with events
 │   ├── settings/            # App settings (timetable, appearance)
 │   ├── +layout.svelte       # Root layout

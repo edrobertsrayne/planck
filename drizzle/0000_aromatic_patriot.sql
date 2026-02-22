@@ -22,13 +22,10 @@ CREATE TABLE `calendar_event` (
 	`updated_at` integer NOT NULL
 );
 --> statement-breakpoint
-CREATE TABLE `exam_spec` (
+CREATE TABLE `course` (
 	`id` text PRIMARY KEY NOT NULL,
-	`board` text NOT NULL,
-	`level` text NOT NULL,
 	`name` text NOT NULL,
-	`spec_code` text,
-	`spec_year` text,
+	`notes` text,
 	`created_at` integer NOT NULL,
 	`updated_at` integer NOT NULL
 );
@@ -45,23 +42,14 @@ CREATE TABLE `lesson` (
 	FOREIGN KEY (`module_id`) REFERENCES `module`(`id`) ON UPDATE no action ON DELETE cascade
 );
 --> statement-breakpoint
-CREATE TABLE `lesson_spec_point` (
-	`id` text PRIMARY KEY NOT NULL,
-	`lesson_id` text NOT NULL,
-	`spec_point_id` text NOT NULL,
-	`created_at` integer NOT NULL,
-	FOREIGN KEY (`lesson_id`) REFERENCES `lesson`(`id`) ON UPDATE no action ON DELETE cascade,
-	FOREIGN KEY (`spec_point_id`) REFERENCES `spec_point`(`id`) ON UPDATE no action ON DELETE cascade
-);
---> statement-breakpoint
 CREATE TABLE `module` (
 	`id` text PRIMARY KEY NOT NULL,
 	`name` text NOT NULL,
-	`description` text,
-	`target_spec_id` text,
+	`course_id` text NOT NULL,
+	`notes` text,
 	`created_at` integer NOT NULL,
 	`updated_at` integer NOT NULL,
-	FOREIGN KEY (`target_spec_id`) REFERENCES `exam_spec`(`id`) ON UPDATE no action ON DELETE set null
+	FOREIGN KEY (`course_id`) REFERENCES `course`(`id`) ON UPDATE no action ON DELETE cascade
 );
 --> statement-breakpoint
 CREATE TABLE `module_assignment` (
@@ -92,40 +80,18 @@ CREATE TABLE `scheduled_lesson` (
 	FOREIGN KEY (`timetable_slot_id`) REFERENCES `timetable_slot`(`id`) ON UPDATE no action ON DELETE set null
 );
 --> statement-breakpoint
-CREATE TABLE `scheduled_lesson_spec_point` (
-	`id` text PRIMARY KEY NOT NULL,
-	`scheduled_lesson_id` text NOT NULL,
-	`spec_point_id` text NOT NULL,
-	`created_at` integer NOT NULL,
-	FOREIGN KEY (`scheduled_lesson_id`) REFERENCES `scheduled_lesson`(`id`) ON UPDATE no action ON DELETE cascade,
-	FOREIGN KEY (`spec_point_id`) REFERENCES `spec_point`(`id`) ON UPDATE no action ON DELETE cascade
-);
---> statement-breakpoint
-CREATE TABLE `spec_point` (
-	`id` text PRIMARY KEY NOT NULL,
-	`topic_id` text NOT NULL,
-	`reference` text NOT NULL,
-	`content` text NOT NULL,
-	`notes` text,
-	`tier` text DEFAULT 'both',
-	`sort_order` integer DEFAULT 0 NOT NULL,
-	`created_at` integer NOT NULL,
-	`updated_at` integer NOT NULL,
-	FOREIGN KEY (`topic_id`) REFERENCES `topic`(`id`) ON UPDATE no action ON DELETE cascade
-);
---> statement-breakpoint
 CREATE TABLE `class` (
 	`id` text PRIMARY KEY NOT NULL,
 	`name` text NOT NULL,
 	`year_group` integer NOT NULL,
-	`exam_spec_id` text NOT NULL,
+	`course_id` text,
 	`academic_year` text NOT NULL,
 	`student_count` integer,
 	`room` text,
 	`notes` text,
 	`created_at` integer NOT NULL,
 	`updated_at` integer NOT NULL,
-	FOREIGN KEY (`exam_spec_id`) REFERENCES `exam_spec`(`id`) ON UPDATE no action ON DELETE restrict
+	FOREIGN KEY (`course_id`) REFERENCES `course`(`id`) ON UPDATE no action ON DELETE set null
 );
 --> statement-breakpoint
 CREATE TABLE `timetable_config` (
@@ -149,18 +115,4 @@ CREATE TABLE `timetable_slot` (
 	`created_at` integer NOT NULL,
 	`updated_at` integer NOT NULL,
 	FOREIGN KEY (`class_id`) REFERENCES `class`(`id`) ON UPDATE no action ON DELETE cascade
-);
---> statement-breakpoint
-CREATE TABLE `topic` (
-	`id` text PRIMARY KEY NOT NULL,
-	`exam_spec_id` text NOT NULL,
-	`parent_id` text,
-	`name` text NOT NULL,
-	`code` text,
-	`description` text,
-	`sort_order` integer DEFAULT 0 NOT NULL,
-	`created_at` integer NOT NULL,
-	`updated_at` integer NOT NULL,
-	FOREIGN KEY (`exam_spec_id`) REFERENCES `exam_spec`(`id`) ON UPDATE no action ON DELETE cascade,
-	FOREIGN KEY (`parent_id`) REFERENCES `topic`(`id`) ON UPDATE no action ON DELETE cascade
 );

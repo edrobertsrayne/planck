@@ -3,29 +3,20 @@
 import { describe, it, expect, beforeEach } from 'vitest';
 import { load, actions } from './+page.server.js';
 import { db } from '$lib/server/db';
-import { teachingClass, examSpec } from '$lib/server/db/schema';
+import { teachingClass, course } from '$lib/server/db/schema';
 import type { RequestEvent } from '@sveltejs/kit';
 
 describe('Classes List Page Server', () => {
-	let testExamSpec: { id: string };
+	let testCourse: { id: string };
 
 	beforeEach(async () => {
 		// Clean up test data before each test
 		await db.delete(teachingClass);
-		await db.delete(examSpec);
+		await db.delete(course);
 
-		// Create a test exam spec for foreign key references
-		const specs = await db
-			.insert(examSpec)
-			.values({
-				board: 'AQA',
-				level: 'GCSE',
-				name: 'AQA GCSE Physics (8463)',
-				specCode: '8463',
-				specYear: '2018'
-			})
-			.returning();
-		testExamSpec = specs[0];
+		// Create a test course for optional foreign key references
+		const courses = await db.insert(course).values({ name: 'AQA GCSE Physics' }).returning();
+		testCourse = courses[0];
 	});
 
 	describe('load function', () => {
@@ -35,19 +26,19 @@ describe('Classes List Page Server', () => {
 			expect(result.classes).toEqual([]);
 		});
 
-		it('should return all classes with exam spec information', async () => {
+		it('should return all classes with course information', async () => {
 			// Insert test classes
 			await db.insert(teachingClass).values({
 				name: '11X/Ph1',
 				yearGroup: 11,
-				examSpecId: testExamSpec.id,
+				courseId: testCourse.id,
 				academicYear: '2024-25'
 			});
 
 			await db.insert(teachingClass).values({
 				name: 'Year 12 Physics',
 				yearGroup: 12,
-				examSpecId: testExamSpec.id,
+				courseId: testCourse.id,
 				academicYear: '2024-25',
 				studentCount: 24,
 				room: 'Lab 3'
@@ -59,8 +50,8 @@ describe('Classes List Page Server', () => {
 			expect(result.classes[0].name).toBe('11X/Ph1');
 			expect(result.classes[0].yearGroup).toBe(11);
 			expect(result.classes[0].academicYear).toBe('2024-25');
-			expect(result.classes[0].examSpec).toBeDefined();
-			expect(result.classes[0].examSpec.name).toBe('AQA GCSE Physics (8463)');
+			expect(result.classes[0].course).toBeDefined();
+			expect(result.classes[0].course.name).toBe('AQA GCSE Physics');
 
 			expect(result.classes[1].name).toBe('Year 12 Physics');
 			expect(result.classes[1].studentCount).toBe(24);
@@ -71,21 +62,21 @@ describe('Classes List Page Server', () => {
 			await db.insert(teachingClass).values({
 				name: 'Year 13 Physics',
 				yearGroup: 13,
-				examSpecId: testExamSpec.id,
+				courseId: testCourse.id,
 				academicYear: '2024-25'
 			});
 
 			await db.insert(teachingClass).values({
 				name: '11X/Ph1',
 				yearGroup: 11,
-				examSpecId: testExamSpec.id,
+				courseId: testCourse.id,
 				academicYear: '2024-25'
 			});
 
 			await db.insert(teachingClass).values({
 				name: 'Year 12 Physics',
 				yearGroup: 12,
-				examSpecId: testExamSpec.id,
+				courseId: testCourse.id,
 				academicYear: '2024-25'
 			});
 
@@ -103,7 +94,7 @@ describe('Classes List Page Server', () => {
 			const formData = new FormData();
 			formData.append('name', '11X/Ph1');
 			formData.append('yearGroup', '11');
-			formData.append('examSpecId', testExamSpec.id);
+			formData.append('courseId', testCourse.id);
 			formData.append('academicYear', '2024-25');
 
 			const mockRequest = {
@@ -118,7 +109,7 @@ describe('Classes List Page Server', () => {
 			expect(classes).toHaveLength(1);
 			expect(classes[0].name).toBe('11X/Ph1');
 			expect(classes[0].yearGroup).toBe(11);
-			expect(classes[0].examSpecId).toBe(testExamSpec.id);
+			expect(classes[0].courseId).toBe(testCourse.id);
 			expect(classes[0].academicYear).toBe('2024-25');
 		});
 
@@ -126,7 +117,7 @@ describe('Classes List Page Server', () => {
 			const formData = new FormData();
 			formData.append('name', 'Year 12 Physics');
 			formData.append('yearGroup', '12');
-			formData.append('examSpecId', testExamSpec.id);
+			formData.append('courseId', testCourse.id);
 			formData.append('academicYear', '2024-25');
 			formData.append('studentCount', '24');
 			formData.append('room', 'Lab 3');
@@ -148,11 +139,31 @@ describe('Classes List Page Server', () => {
 			expect(classes[0].notes).toBe('Advanced group');
 		});
 
+		it('should create class without a course (courseId is optional)', async () => {
+			const formData = new FormData();
+			formData.append('name', 'Test Class');
+			formData.append('yearGroup', '11');
+			formData.append('courseId', '');
+			formData.append('academicYear', '2024-25');
+
+			const mockRequest = {
+				formData: async () => formData
+			} as Request;
+
+			const result = await actions.create({ request: mockRequest } as RequestEvent);
+
+			expect(result?.success).toBe(true);
+
+			const classes = await db.select().from(teachingClass);
+			expect(classes).toHaveLength(1);
+			expect(classes[0].courseId).toBeNull();
+		});
+
 		it('should validate name is required', async () => {
 			const formData = new FormData();
 			formData.append('name', '');
 			formData.append('yearGroup', '11');
-			formData.append('examSpecId', testExamSpec.id);
+			formData.append('courseId', testCourse.id);
 			formData.append('academicYear', '2024-25');
 
 			const mockRequest = {
@@ -170,7 +181,7 @@ describe('Classes List Page Server', () => {
 			const formData = new FormData();
 			formData.append('name', 'Test Class');
 			formData.append('yearGroup', '6');
-			formData.append('examSpecId', testExamSpec.id);
+			formData.append('courseId', testCourse.id);
 			formData.append('academicYear', '2024-25');
 
 			const mockRequest = {
@@ -188,7 +199,7 @@ describe('Classes List Page Server', () => {
 			const formData = new FormData();
 			formData.append('name', 'Test Class');
 			formData.append('yearGroup', '14');
-			formData.append('examSpecId', testExamSpec.id);
+			formData.append('courseId', testCourse.id);
 			formData.append('academicYear', '2024-25');
 
 			const mockRequest = {
@@ -202,29 +213,11 @@ describe('Classes List Page Server', () => {
 			expect(classes).toHaveLength(0);
 		});
 
-		it('should validate exam spec ID is required', async () => {
-			const formData = new FormData();
-			formData.append('name', 'Test Class');
-			formData.append('yearGroup', '11');
-			formData.append('examSpecId', '');
-			formData.append('academicYear', '2024-25');
-
-			const mockRequest = {
-				formData: async () => formData
-			} as Request;
-
-			const result = await actions.create({ request: mockRequest } as RequestEvent);
-
-			expect(result?.error).toBe('Exam specification is required');
-			const classes = await db.select().from(teachingClass);
-			expect(classes).toHaveLength(0);
-		});
-
 		it('should validate academic year is required', async () => {
 			const formData = new FormData();
 			formData.append('name', 'Test Class');
 			formData.append('yearGroup', '11');
-			formData.append('examSpecId', testExamSpec.id);
+			formData.append('courseId', testCourse.id);
 			formData.append('academicYear', '');
 
 			const mockRequest = {
@@ -242,7 +235,7 @@ describe('Classes List Page Server', () => {
 			const formData = new FormData();
 			formData.append('name', 'Test Class');
 			formData.append('yearGroup', '11');
-			formData.append('examSpecId', testExamSpec.id);
+			formData.append('courseId', testCourse.id);
 			formData.append('academicYear', '2024-25');
 			formData.append('studentCount', '');
 
@@ -263,7 +256,7 @@ describe('Classes List Page Server', () => {
 			const formData = new FormData();
 			formData.append('name', 'Test Class');
 			formData.append('yearGroup', '11');
-			formData.append('examSpecId', testExamSpec.id);
+			formData.append('courseId', testCourse.id);
 			formData.append('academicYear', '2024-25');
 			formData.append('studentCount', '-5');
 

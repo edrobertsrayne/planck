@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeEach } from 'vitest';
-import { seedTermDates } from './seed';
+import { seedTermDates } from './seed-term-dates';
 import { db } from './index';
 import { calendarEvent } from './schema';
 import { eq } from 'drizzle-orm';
@@ -156,37 +156,25 @@ describe('seedTermDates', () => {
 		expect(has2025).toBe(true);
 	});
 
-	it('should create autumn term spanning September to December', async () => {
+	it('should create autumn half term in October', async () => {
 		const academicYear = '2024-25';
 		await seedTermDates(academicYear);
 
 		const events = await db.select().from(calendarEvent);
 
-		// Find autumn term start event
-		const autumnStart = events.find(
-			(e) => e.title.toLowerCase().includes('autumn') && e.title.toLowerCase().includes('start')
-		);
-
-		if (autumnStart) {
-			const month = autumnStart.startDate.getMonth();
-			expect(month).toBe(8); // September (0-indexed)
-		}
+		const autumnHalfTerm = events.find((e) => e.title === 'Autumn Half Term');
+		expect(autumnHalfTerm).toBeDefined();
+		expect(autumnHalfTerm?.startDate.getMonth()).toBe(9); // October (0-indexed)
 	});
 
-	it('should create spring term in January', async () => {
+	it('should create spring half term in February', async () => {
 		const academicYear = '2024-25';
 		await seedTermDates(academicYear);
 
 		const events = await db.select().from(calendarEvent);
 
-		// Find spring term start event
-		const springStart = events.find(
-			(e) => e.title.toLowerCase().includes('spring') && e.title.toLowerCase().includes('start')
-		);
-
-		if (springStart) {
-			const month = springStart.startDate.getMonth();
-			expect(month).toBe(0); // January (0-indexed)
-		}
+		const springHalfTerm = events.find((e) => e.title === 'Spring Half Term');
+		expect(springHalfTerm).toBeDefined();
+		expect(springHalfTerm?.startDate.getMonth()).toBe(1); // February (0-indexed)
 	});
 });

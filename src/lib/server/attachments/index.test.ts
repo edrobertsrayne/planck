@@ -12,16 +12,11 @@ import {
 import { db } from '$lib/server/db';
 import {
 	attachment,
-	examSpec,
-	topic,
-	specPoint,
+	course,
 	teachingClass,
 	module,
-	timetableSlot,
-	scheduledLessonSpecPoint,
 	scheduledLesson,
 	moduleAssignment,
-	lessonSpecPoint,
 	lesson
 } from '$lib/server/db/schema';
 import { existsSync } from 'fs';
@@ -31,36 +26,21 @@ import { join } from 'path';
 const UPLOADS_DIR = process.env.UPLOADS_DIR || 'uploads';
 
 describe('Attachment Utilities', () => {
-	let testSpec: { id: string };
+	let testCourse: { id: string };
 	let createdFiles: string[] = [];
 
 	beforeEach(async () => {
 		// Clean up test data in foreign key dependency order
 		await db.delete(attachment);
-		await db.delete(scheduledLessonSpecPoint);
 		await db.delete(scheduledLesson);
 		await db.delete(moduleAssignment);
-		await db.delete(timetableSlot);
-		await db.delete(teachingClass);
-		await db.delete(lessonSpecPoint);
 		await db.delete(lesson);
 		await db.delete(module);
-		await db.delete(specPoint);
-		await db.delete(topic);
-		await db.delete(examSpec);
+		await db.delete(teachingClass);
+		await db.delete(course);
 
-		// Create test exam spec
-		const specs = await db
-			.insert(examSpec)
-			.values({
-				board: 'AQA',
-				level: 'GCSE',
-				name: 'AQA GCSE Physics (8463)',
-				specCode: '8463',
-				specYear: '2018'
-			})
-			.returning();
-		testSpec = specs[0];
+		const courses = await db.insert(course).values({ name: 'GCSE Physics' }).returning();
+		testCourse = courses[0];
 
 		createdFiles = [];
 	});
@@ -151,7 +131,7 @@ describe('Attachment Utilities', () => {
 			const file = new File(['test content'], 'test-document.pdf', {
 				type: 'application/pdf'
 			});
-			const newAttachment = await createFileAttachment('spec', testSpec.id, file);
+			const newAttachment = await createFileAttachment('course', testCourse.id, file);
 
 			if (newAttachment.filePath) {
 				createdFiles.push(newAttachment.filePath);
@@ -159,8 +139,8 @@ describe('Attachment Utilities', () => {
 
 			expect(newAttachment).toBeTruthy();
 			expect(newAttachment.type).toBe('file');
-			expect(newAttachment.entityType).toBe('spec');
-			expect(newAttachment.entityId).toBe(testSpec.id);
+			expect(newAttachment.entityType).toBe('course');
+			expect(newAttachment.entityId).toBe(testCourse.id);
 			expect(newAttachment.fileName).toBe('test-document.pdf');
 			expect(newAttachment.mimeType).toBe('application/pdf');
 			expect(newAttachment.filePath).toBeTruthy();
@@ -171,12 +151,12 @@ describe('Attachment Utilities', () => {
 		it('should create a link attachment record', async () => {
 			const url = 'https://example.com/document.pdf';
 			const title = 'Example Document';
-			const newAttachment = await createLinkAttachment('spec', testSpec.id, url, title);
+			const newAttachment = await createLinkAttachment('course', testCourse.id, url, title);
 
 			expect(newAttachment).toBeTruthy();
 			expect(newAttachment.type).toBe('link');
-			expect(newAttachment.entityType).toBe('spec');
-			expect(newAttachment.entityId).toBe(testSpec.id);
+			expect(newAttachment.entityType).toBe('course');
+			expect(newAttachment.entityId).toBe(testCourse.id);
 			expect(newAttachment.url).toBe(url);
 			expect(newAttachment.fileName).toBe(title);
 		});
@@ -185,18 +165,18 @@ describe('Attachment Utilities', () => {
 	describe('getAttachments', () => {
 		it('should return all attachments for an entity', async () => {
 			// Create multiple attachments
-			await createLinkAttachment('spec', testSpec.id, 'https://example.com/1', 'Link 1');
-			await createLinkAttachment('spec', testSpec.id, 'https://example.com/2', 'Link 2');
+			await createLinkAttachment('course', testCourse.id, 'https://example.com/1', 'Link 1');
+			await createLinkAttachment('course', testCourse.id, 'https://example.com/2', 'Link 2');
 
-			const attachments = await getAttachments('spec', testSpec.id);
+			const attachments = await getAttachments('course', testCourse.id);
 
 			expect(attachments).toHaveLength(2);
-			expect(attachments[0].entityType).toBe('spec');
-			expect(attachments[0].entityId).toBe(testSpec.id);
+			expect(attachments[0].entityType).toBe('course');
+			expect(attachments[0].entityId).toBe(testCourse.id);
 		});
 
 		it('should return empty array for entity with no attachments', async () => {
-			const attachments = await getAttachments('spec', testSpec.id);
+			const attachments = await getAttachments('course', testCourse.id);
 
 			expect(attachments).toHaveLength(0);
 		});
@@ -205,8 +185,8 @@ describe('Attachment Utilities', () => {
 	describe('getAttachment', () => {
 		it('should return a specific attachment by ID', async () => {
 			const created = await createLinkAttachment(
-				'spec',
-				testSpec.id,
+				'course',
+				testCourse.id,
 				'https://example.com/doc',
 				'Test Doc'
 			);
@@ -228,8 +208,8 @@ describe('Attachment Utilities', () => {
 	describe('deleteAttachment', () => {
 		it('should delete a link attachment', async () => {
 			const created = await createLinkAttachment(
-				'spec',
-				testSpec.id,
+				'course',
+				testCourse.id,
 				'https://example.com/doc',
 				'Test Doc'
 			);
@@ -244,7 +224,7 @@ describe('Attachment Utilities', () => {
 			const file = new File(['test content'], 'to-delete.pdf', {
 				type: 'application/pdf'
 			});
-			const created = await createFileAttachment('spec', testSpec.id, file);
+			const created = await createFileAttachment('course', testCourse.id, file);
 
 			expect(existsSync(join(UPLOADS_DIR, created.filePath!))).toBe(true);
 

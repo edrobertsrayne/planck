@@ -1,91 +1,21 @@
 import { integer, sqliteTable, text } from 'drizzle-orm/sqlite-core';
 
 // ============================================================================
-// Exam Specifications
+// Courses
 // ============================================================================
 
 /**
- * Exam specification boards and levels.
- * Predefined read-only reference data for UK Physics exam boards.
- * GCSE: AQA, OCR Gateway, OCR 21st Century, Edexcel, WJEC/Eduqas
- * A-Level: AQA, OCR A, OCR B, Edexcel, WJEC/Eduqas
+ * Course is a top-level container for modules.
+ * Examples: "GCSE Physics", "Year 9 Physics", "A-Level Physics"
  */
-export const examSpec = sqliteTable('exam_spec', {
+export const course = sqliteTable('course', {
 	id: text('id')
 		.primaryKey()
 		.$defaultFn(() => crypto.randomUUID()),
-	/** Exam board name (e.g., "AQA", "OCR Gateway", "Edexcel") */
-	board: text('board').notNull(),
-	/** Qualification level: "GCSE" or "A-Level" */
-	level: text('level', { enum: ['GCSE', 'A-Level'] }).notNull(),
-	/** Full specification name (e.g., "AQA GCSE Physics (8463)") */
+	/** Course name (e.g., "GCSE Physics", "Year 9 Physics") */
 	name: text('name').notNull(),
-	/** Official specification code if applicable */
-	specCode: text('spec_code'),
-	/** Year the specification was introduced or last updated */
-	specYear: text('spec_year'),
-	createdAt: integer('created_at', { mode: 'timestamp' })
-		.notNull()
-		.$defaultFn(() => new Date()),
-	updatedAt: integer('updated_at', { mode: 'timestamp' })
-		.notNull()
-		.$defaultFn(() => new Date())
-});
-
-/**
- * Hierarchical topics within an exam specification.
- * Topics can contain sub-topics via parentId self-reference.
- */
-export const topic = sqliteTable('topic', {
-	id: text('id')
-		.primaryKey()
-		.$defaultFn(() => crypto.randomUUID()),
-	/** Reference to the exam specification */
-	examSpecId: text('exam_spec_id')
-		.notNull()
-		.references(() => examSpec.id, { onDelete: 'cascade' }),
-	/** Parent topic for hierarchical structure (null for root topics) */
-	parentId: text('parent_id').references((): ReturnType<typeof text> => topic.id, {
-		onDelete: 'cascade'
-	}),
-	/** Topic name (e.g., "Energy", "Forces", "Waves") */
-	name: text('name').notNull(),
-	/** Topic number/code in the specification (e.g., "4.1", "4.1.1") */
-	code: text('code'),
-	/** Description or overview of the topic */
-	description: text('description'),
-	/** Order within parent for display sequencing */
-	sortOrder: integer('sort_order').notNull().default(0),
-	createdAt: integer('created_at', { mode: 'timestamp' })
-		.notNull()
-		.$defaultFn(() => new Date()),
-	updatedAt: integer('updated_at', { mode: 'timestamp' })
-		.notNull()
-		.$defaultFn(() => new Date())
-});
-
-/**
- * Individual specification points within a topic.
- * These are the specific content statements that must be taught.
- */
-export const specPoint = sqliteTable('spec_point', {
-	id: text('id')
-		.primaryKey()
-		.$defaultFn(() => crypto.randomUUID()),
-	/** Reference to the containing topic */
-	topicId: text('topic_id')
-		.notNull()
-		.references(() => topic.id, { onDelete: 'cascade' }),
-	/** Specification point reference code (e.g., "4.1.1.2") */
-	reference: text('reference').notNull(),
-	/** The actual content statement from the specification */
-	content: text('content').notNull(),
-	/** Additional notes or clarifications */
+	/** Rich notes stored as Editor.js JSON */
 	notes: text('notes'),
-	/** Whether this is a required or higher-tier only point */
-	tier: text('tier', { enum: ['foundation', 'higher', 'both'] }).default('both'),
-	/** Order within topic for display sequencing */
-	sortOrder: integer('sort_order').notNull().default(0),
 	createdAt: integer('created_at', { mode: 'timestamp' })
 		.notNull()
 		.$defaultFn(() => new Date()),
@@ -99,8 +29,8 @@ export const specPoint = sqliteTable('spec_point', {
 // ============================================================================
 
 /**
- * Teaching class/group with exam specification and timetable information.
- * Classes represent a teaching group that is assigned to an exam specification.
+ * Teaching class/group optionally linked to a course.
+ * Classes represent a teaching group for a specific academic year.
  */
 export const teachingClass = sqliteTable('class', {
 	id: text('id')
@@ -110,10 +40,8 @@ export const teachingClass = sqliteTable('class', {
 	name: text('name').notNull(),
 	/** Academic year group (7-13) */
 	yearGroup: integer('year_group').notNull(),
-	/** Reference to the exam specification this class is studying */
-	examSpecId: text('exam_spec_id')
-		.notNull()
-		.references(() => examSpec.id, { onDelete: 'restrict' }),
+	/** Optional reference to the course this class is studying */
+	courseId: text('course_id').references(() => course.id, { onDelete: 'set null' }),
 	/** Academic year in format "YYYY-YY" (e.g., "2024-25") */
 	academicYear: text('academic_year').notNull(),
 	/** Optional number of students in the class */
@@ -197,7 +125,7 @@ export const timetableSlot = sqliteTable('timetable_slot', {
 
 /**
  * Module is a reusable template for a planned sequence of lessons.
- * Modules are copied when assigned to a class.
+ * Modules belong to a course and are copied when assigned to a class.
  */
 export const module = sqliteTable('module', {
 	id: text('id')
@@ -205,10 +133,12 @@ export const module = sqliteTable('module', {
 		.$defaultFn(() => crypto.randomUUID()),
 	/** Module title (e.g., "Forces and Motion") */
 	name: text('name').notNull(),
-	/** Optional overview of the module */
-	description: text('description'),
-	/** Optional reference to target exam specification */
-	targetSpecId: text('target_spec_id').references(() => examSpec.id, { onDelete: 'set null' }),
+	/** Reference to the course this module belongs to */
+	courseId: text('course_id')
+		.notNull()
+		.references(() => course.id, { onDelete: 'cascade' }),
+	/** Rich notes stored as Editor.js JSON */
+	notes: text('notes'),
 	createdAt: integer('created_at', { mode: 'timestamp' })
 		.notNull()
 		.$defaultFn(() => new Date()),
@@ -231,7 +161,7 @@ export const lesson = sqliteTable('lesson', {
 		.references(() => module.id, { onDelete: 'cascade' }),
 	/** Lesson title */
 	title: text('title').notNull(),
-	/** Optional markdown-formatted lesson notes/content */
+	/** Rich content stored as Editor.js JSON */
 	content: text('content'),
 	/** Number of periods this lesson takes (default: 1) */
 	duration: integer('duration').notNull().default(1),
@@ -241,27 +171,6 @@ export const lesson = sqliteTable('lesson', {
 		.notNull()
 		.$defaultFn(() => new Date()),
 	updatedAt: integer('updated_at', { mode: 'timestamp' })
-		.notNull()
-		.$defaultFn(() => new Date())
-});
-
-/**
- * Junction table linking lessons to specification points.
- * A lesson can cover multiple spec points.
- */
-export const lessonSpecPoint = sqliteTable('lesson_spec_point', {
-	id: text('id')
-		.primaryKey()
-		.$defaultFn(() => crypto.randomUUID()),
-	/** Reference to the lesson */
-	lessonId: text('lesson_id')
-		.notNull()
-		.references(() => lesson.id, { onDelete: 'cascade' }),
-	/** Reference to the specification point */
-	specPointId: text('spec_point_id')
-		.notNull()
-		.references(() => specPoint.id, { onDelete: 'cascade' }),
-	createdAt: integer('created_at', { mode: 'timestamp' })
 		.notNull()
 		.$defaultFn(() => new Date())
 });
@@ -321,7 +230,7 @@ export const scheduledLesson = sqliteTable('scheduled_lesson', {
 	}),
 	/** Lesson title (copied from source, can be edited) */
 	title: text('title').notNull(),
-	/** Lesson content in markdown (copied from source, can be edited) */
+	/** Rich content stored as Editor.js JSON (copied from source, can be edited) */
 	content: text('content'),
 	/** Number of periods (copied from source, can be edited) */
 	duration: integer('duration').notNull().default(1),
@@ -331,27 +240,6 @@ export const scheduledLesson = sqliteTable('scheduled_lesson', {
 		.notNull()
 		.$defaultFn(() => new Date()),
 	updatedAt: integer('updated_at', { mode: 'timestamp' })
-		.notNull()
-		.$defaultFn(() => new Date())
-});
-
-/**
- * Junction table linking scheduled lessons to specification points.
- * Copied from the source lesson when created, but can be edited independently.
- */
-export const scheduledLessonSpecPoint = sqliteTable('scheduled_lesson_spec_point', {
-	id: text('id')
-		.primaryKey()
-		.$defaultFn(() => crypto.randomUUID()),
-	/** Reference to the scheduled lesson */
-	scheduledLessonId: text('scheduled_lesson_id')
-		.notNull()
-		.references(() => scheduledLesson.id, { onDelete: 'cascade' }),
-	/** Reference to the specification point */
-	specPointId: text('spec_point_id')
-		.notNull()
-		.references(() => specPoint.id, { onDelete: 'cascade' }),
-	createdAt: integer('created_at', { mode: 'timestamp' })
 		.notNull()
 		.$defaultFn(() => new Date())
 });
@@ -393,7 +281,7 @@ export const calendarEvent = sqliteTable('calendar_event', {
 /**
  * Attachments for various entities in the system.
  * Supports both file uploads and link attachments with polymorphic associations.
- * Entities that can have attachments: specifications, classes, modules, lessons, and scheduled lessons.
+ * Entities that can have attachments: courses, classes, modules, lessons, and scheduled lessons.
  */
 export const attachment = sqliteTable('attachment', {
 	id: text('id')
@@ -403,7 +291,7 @@ export const attachment = sqliteTable('attachment', {
 	type: text('type', { enum: ['file', 'link'] }).notNull(),
 	/** Entity type this attachment belongs to */
 	entityType: text('entity_type', {
-		enum: ['class', 'module', 'lesson', 'scheduledLesson', 'spec']
+		enum: ['class', 'module', 'lesson', 'scheduledLesson', 'course']
 	}).notNull(),
 	/** ID of the entity this attachment belongs to (polymorphic) */
 	entityId: text('entity_id').notNull(),

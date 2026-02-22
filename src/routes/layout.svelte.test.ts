@@ -40,14 +40,13 @@ describe('App Layout', () => {
 		const nav = container.querySelector('nav');
 		expect(nav).toBeTruthy();
 
-		// Navigation should link to Calendar, Classes, Modules, Specifications
+		// Navigation should link to Calendar, Classes, Courses
 		const links = container.querySelectorAll('a[href]');
 		const hrefs = Array.from(links).map((link) => link.getAttribute('href'));
 
 		expect(hrefs).toContain('/calendar');
 		expect(hrefs).toContain('/classes');
-		expect(hrefs).toContain('/modules');
-		expect(hrefs).toContain('/specifications');
+		expect(hrefs).toContain('/courses');
 	});
 
 	it('should have responsive navigation structure', () => {

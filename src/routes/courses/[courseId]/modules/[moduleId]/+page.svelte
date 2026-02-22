@@ -1,23 +1,21 @@
 <script lang="ts">
 	import { enhance } from '$app/forms';
-	import { resolve } from '$app/paths';
 	import { invalidateAll } from '$app/navigation';
 	import type { PageData, ActionData } from './$types';
 	import Button from '$lib/components/ui/button/button.svelte';
 	import AttachmentList from '$lib/components/attachments/attachment-list.svelte';
 	import AttachmentForm from '$lib/components/attachments/attachment-form.svelte';
 	import Input from '$lib/components/ui/input/input.svelte';
-	import Textarea from '$lib/components/ui/textarea/textarea.svelte';
 	import Label from '$lib/components/ui/label/label.svelte';
 	import * as Alert from '$lib/components/ui/alert/index.js';
+	import BlockEditor from '$lib/components/block-editor.svelte';
 
 	let { data, form }: { data: PageData; form: ActionData } = $props();
 
 	let showModuleEditForm = $state(false);
 	let showLessonForm = $state(false);
+	let showSuccess = $state(false);
 	let editingLessonId = $state<string | null>(null);
-	let showSpecPointPicker = $state(false);
-	let specPointPickerLessonId = $state<string | null>(null);
 	let showAttachmentForm = $state(false);
 	let attachmentError = $state('');
 	let attachmentSuccess = $state('');
@@ -33,33 +31,29 @@
 
 	// Module form state
 	let moduleName = $state('');
-	let moduleDescription = $state('');
-	let moduleTargetSpecId = $state('');
+	let moduleNotes = $state<string | null>(null);
 
-	// Sync module form state with data when it changes
 	$effect(() => {
 		moduleName = data.module.name;
-		moduleDescription = data.module.description || '';
-		moduleTargetSpecId = data.module.targetSpecId || '';
+		moduleNotes = data.module.notes;
 	});
 
 	// Lesson form state
 	let lessonTitle = $state('');
-	let lessonContent = $state('');
+	let lessonContent = $state<string | null>(null);
 	let lessonDuration = $state(1);
 
 	function resetModuleForm() {
 		showModuleEditForm = false;
 		moduleName = data.module.name;
-		moduleDescription = data.module.description || '';
-		moduleTargetSpecId = data.module.targetSpecId || '';
+		moduleNotes = data.module.notes;
 	}
 
 	function resetLessonForm() {
 		showLessonForm = false;
 		editingLessonId = null;
 		lessonTitle = '';
-		lessonContent = '';
+		lessonContent = null;
 		lessonDuration = 1;
 	}
 
@@ -71,26 +65,18 @@
 	}) {
 		editingLessonId = lesson.id;
 		lessonTitle = lesson.title;
-		lessonContent = lesson.content || '';
+		lessonContent = lesson.content;
 		lessonDuration = lesson.duration;
 		showLessonForm = true;
 	}
 
-	function openSpecPointPicker(lessonId: string) {
-		specPointPickerLessonId = lessonId;
-		showSpecPointPicker = true;
-	}
-
-	function closeSpecPointPicker() {
-		specPointPickerLessonId = null;
-		showSpecPointPicker = false;
-	}
-
 	$effect(() => {
 		if (form?.success) {
+			showSuccess = true;
+			const timer = setTimeout(() => (showSuccess = false), 3000);
 			resetModuleForm();
 			resetLessonForm();
-			closeSpecPointPicker();
+			return () => clearTimeout(timer);
 		}
 	});
 
@@ -138,6 +124,16 @@
 		}, 3000);
 	}
 
+	function handleModuleNotesSave(json: string) {
+		const formData = new FormData();
+		formData.append('name', data.module.name);
+		formData.append('notes', json);
+		fetch('?/updateModule', {
+			method: 'POST',
+			body: formData
+		});
+	}
+
 	// Drag and drop handlers
 	function handleDragStart(e: DragEvent, lessonId: string) {
 		if (!e.dataTransfer) return;
@@ -145,7 +141,6 @@
 		e.dataTransfer.effectAllowed = 'move';
 		e.dataTransfer.setData('text/plain', lessonId);
 
-		// Add dragging class to the element
 		const target = e.currentTarget as HTMLElement;
 		setTimeout(() => {
 			target.classList.add('dragging');
@@ -179,12 +174,10 @@
 		const draggedIndex = data.lessons.findIndex((l) => l.id === draggedLessonId);
 		if (draggedIndex === -1 || draggedIndex === dropIndex) return;
 
-		// Create new order
 		const reorderedLessons = [...data.lessons];
 		const [draggedLesson] = reorderedLessons.splice(draggedIndex, 1);
 		reorderedLessons.splice(dropIndex, 0, draggedLesson);
 
-		// Submit reorder
 		submitReorder(reorderedLessons.map((l) => l.id));
 	}
 
@@ -208,24 +201,19 @@
 		}
 	}
 
-	// Keyboard handlers for accessibility
 	function handleKeyDown(e: KeyboardEvent, index: number) {
-		// Ignore if form is open or already reordering
 		if (showLessonForm || isReordering) return;
 
-		// Space or Enter to pick up/drop
 		if (e.key === ' ' || e.key === 'Enter') {
 			e.preventDefault();
 
 			if (!keyboardDragActive) {
-				// Pick up
 				keyboardDragActive = true;
 				keyboardDragLessonIndex = index;
 				announceToScreenReader(
 					`Picked up lesson ${index + 1}. Use arrow keys to move, Space or Enter to drop, Escape to cancel.`
 				);
 			} else if (keyboardDragLessonIndex !== null) {
-				// Drop
 				moveLessonKeyboard(keyboardDragLessonIndex, index);
 				keyboardDragActive = false;
 				keyboardDragLessonIndex = null;
@@ -233,7 +221,6 @@
 			return;
 		}
 
-		// Only handle arrow keys if actively dragging
 		if (!keyboardDragActive || keyboardDragLessonIndex === null) return;
 
 		if (e.key === 'ArrowDown') {
@@ -271,7 +258,6 @@
 	}
 
 	function announceToScreenReader(message: string) {
-		// Create or update aria-live region for screen reader announcements
 		let liveRegion = document.getElementById('drag-drop-announcer');
 		if (!liveRegion) {
 			liveRegion = document.createElement('div');
@@ -286,16 +272,18 @@
 </script>
 
 <div class="container mx-auto p-4 sm:p-6">
+	<!-- Breadcrumb -->
 	<div class="mb-4 sm:mb-6">
-		<a
-			href={resolve('/modules')}
-			data-sveltekit-preload-data
-			class="inline-block min-h-[44px] py-2 text-sm text-accent-secondary hover:underline"
-			>&larr; Back to Module Library</a
-		>
+		<nav class="text-sm text-muted-foreground">
+			<a href="/courses" class="hover:underline">Courses</a>
+			<span class="mx-1">/</span>
+			<a href="/courses/{data.course.id}" class="hover:underline">{data.course.name}</a>
+			<span class="mx-1">/</span>
+			<span class="text-foreground">{data.module.name}</span>
+		</nav>
 	</div>
 
-	{#if form?.success}
+	{#if showSuccess}
 		<Alert.Root class="mb-4">
 			<Alert.Description>Changes saved successfully!</Alert.Description>
 		</Alert.Root>
@@ -311,12 +299,28 @@
 	<div class="mb-6 rounded-lg border border-border bg-surface p-4 shadow-sm sm:mb-8 sm:p-6">
 		<div class="mb-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
 			<h1 class="text-2xl font-bold sm:text-3xl">{data.module.name}</h1>
-			<Button
-				onclick={() => (showModuleEditForm = !showModuleEditForm)}
-				class="min-h-[44px] w-full sm:w-auto"
-			>
-				{showModuleEditForm ? 'Cancel Edit' : 'Edit Module'}
-			</Button>
+			<div class="flex gap-2">
+				<Button
+					onclick={() => (showModuleEditForm = !showModuleEditForm)}
+					class="min-h-[44px] w-full sm:w-auto"
+				>
+					{showModuleEditForm ? 'Cancel Edit' : 'Edit Module'}
+				</Button>
+				<form method="POST" action="?/deleteModule" use:enhance class="contents">
+					<Button
+						type="submit"
+						variant="destructive"
+						class="min-h-[44px] w-full sm:w-auto"
+						onclick={(e) => {
+							if (!confirm('Delete this module and all its lessons? This cannot be undone.')) {
+								e.preventDefault();
+							}
+						}}
+					>
+						Delete
+					</Button>
+				</form>
+			</div>
 		</div>
 
 		{#if showModuleEditForm}
@@ -329,29 +333,10 @@
 				</div>
 
 				<div>
-					<Label for="description">Description</Label>
-					<Textarea
-						id="description"
-						name="description"
-						bind:value={moduleDescription}
-						rows={3}
-						class="mt-2"
-					/>
-				</div>
-
-				<div>
-					<Label for="targetSpecId">Target Specification</Label>
-					<select
-						id="targetSpecId"
-						name="targetSpecId"
-						bind:value={moduleTargetSpecId}
-						class="mt-2 flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-base shadow-sm transition-colors file:border-0 file:bg-transparent file:text-sm file:font-medium file:text-foreground placeholder:text-muted-foreground focus-visible:ring-1 focus-visible:ring-ring focus-visible:outline-none disabled:cursor-not-allowed disabled:opacity-50 md:text-sm"
-					>
-						<option value="">None (generic module)</option>
-						{#each data.examSpecs as spec (spec.id)}
-							<option value={spec.id}>{spec.name}</option>
-						{/each}
-					</select>
+					<Label>Notes</Label>
+					<div class="mt-2">
+						<BlockEditor data={moduleNotes} name="notes" placeholder="Module notes..." />
+					</div>
 				</div>
 
 				<div class="flex justify-end gap-2">
@@ -361,17 +346,18 @@
 			</form>
 		{:else}
 			<div class="space-y-2 text-sm text-muted-foreground">
-				{#if data.module.description}
-					<p class="text-base">{data.module.description}</p>
-				{/if}
-				<p>
-					<span class="font-medium">Target Spec:</span>
-					{data.module.targetSpec?.name || 'Generic'}
-				</p>
 				<p>
 					<span class="font-medium">Lessons:</span>
 					{data.lessons.length}
 				</p>
+			</div>
+			<div class="mt-4">
+				<BlockEditor
+					data={data.module.notes}
+					name="notes"
+					placeholder="Add module notes..."
+					onSave={handleModuleNotesSave}
+				/>
 			</div>
 		{/if}
 	</div>
@@ -455,15 +441,10 @@
 				</div>
 
 				<div>
-					<Label for="content">Content (Markdown)</Label>
-					<Textarea
-						id="content"
-						name="content"
-						bind:value={lessonContent}
-						rows={6}
-						placeholder="Use markdown for formatting..."
-						class="mt-2 font-mono text-sm"
-					/>
+					<Label>Content</Label>
+					<div class="mt-2">
+						<BlockEditor data={lessonContent} name="content" placeholder="Lesson content..." />
+					</div>
 				</div>
 
 				<div>
@@ -550,36 +531,9 @@
 						</div>
 
 						{#if lesson.content}
-							<div class="mb-3 rounded bg-surface p-3 text-sm">
-								<pre class="font-sans whitespace-pre-wrap">{lesson.content}</pre>
+							<div class="rounded bg-surface p-3 text-sm">
+								<BlockEditor data={lesson.content} placeholder="" />
 							</div>
-						{/if}
-
-						{#if lesson.specPoints && lesson.specPoints.length > 0}
-							<div class="mb-2">
-								<p class="mb-1 text-sm font-medium text-foreground">Linked Spec Points:</p>
-								<div class="flex flex-wrap gap-2">
-									{#each lesson.specPoints as specPoint (specPoint.id)}
-										<form method="POST" action="?/unlinkSpecPoint" use:enhance class="inline-block">
-											<input type="hidden" name="lessonId" value={lesson.id} />
-											<input type="hidden" name="specPointId" value={specPoint.id} />
-											<button
-												type="submit"
-												class="inline-flex items-center gap-1 rounded-full bg-accent-secondary-muted px-3 py-1 text-xs font-medium text-accent-secondary hover:bg-accent-secondary-muted/80"
-											>
-												{specPoint.reference}
-												<span class="text-accent-secondary">&times;</span>
-											</button>
-										</form>
-									{/each}
-								</div>
-							</div>
-						{/if}
-
-						{#if data.specPoints.length > 0}
-							<Button size="sm" variant="outline" onclick={() => openSpecPointPicker(lesson.id)}>
-								Link Spec Point
-							</Button>
 						{/if}
 					</div>
 					{#if dragOverIndex === data.lessons.length && index === data.lessons.length - 1}
@@ -589,37 +543,4 @@
 			</div>
 		{/if}
 	</div>
-
-	<!-- Spec Point Picker Modal -->
-	{#if showSpecPointPicker && specPointPickerLessonId}
-		<div class="bg-opacity-50 fixed inset-0 z-50 flex items-center justify-center bg-black p-4">
-			<div
-				class="max-h-[85vh] w-full max-w-2xl overflow-auto rounded-lg bg-surface p-4 shadow-xl sm:p-6"
-			>
-				<h3 class="mb-4 text-lg font-semibold sm:text-xl">Link Specification Point</h3>
-				<div class="space-y-2">
-					{#each data.specPoints as specPoint (specPoint.id)}
-						<form method="POST" action="?/linkSpecPoint" use:enhance>
-							<input type="hidden" name="lessonId" value={specPointPickerLessonId} />
-							<input type="hidden" name="specPointId" value={specPoint.id} />
-							<button
-								type="submit"
-								class="block min-h-[44px] w-full rounded-lg border border-border p-3 text-left hover:bg-background-subtle active:bg-background-muted"
-							>
-								<span class="text-sm font-medium text-accent-secondary sm:text-base"
-									>{specPoint.reference}</span
-								>
-								<p class="text-xs text-muted-foreground sm:text-sm">{specPoint.content}</p>
-							</button>
-						</form>
-					{/each}
-				</div>
-				<div class="mt-4 flex justify-end">
-					<Button variant="outline" onclick={closeSpecPointPicker} class="min-h-[44px]"
-						>Close</Button
-					>
-				</div>
-			</div>
-		</div>
-	{/if}
 </div>

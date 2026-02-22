@@ -8,7 +8,7 @@ import { existsSync } from 'fs';
 /**
  * Entity types that can have attachments
  */
-export type AttachmentEntityType = 'class' | 'module' | 'lesson' | 'scheduledLesson' | 'spec';
+export type AttachmentEntityType = 'class' | 'module' | 'lesson' | 'scheduledLesson' | 'course';
 
 /**
  * Attachment type: file or link

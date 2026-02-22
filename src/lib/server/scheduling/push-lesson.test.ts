@@ -4,75 +4,37 @@ import { assignModuleToClass } from './assign-module';
 import { db } from '$lib/server/db';
 import {
 	teachingClass,
-	examSpec,
+	course,
 	module,
 	lesson,
-	lessonSpecPoint,
-	specPoint,
-	topic,
 	timetableSlot,
 	timetableConfig,
 	moduleAssignment,
 	scheduledLesson,
-	scheduledLessonSpecPoint,
 	calendarEvent
 } from '$lib/server/db/schema';
 import { eq } from 'drizzle-orm';
 
 describe('pushLesson', () => {
-	let testExamSpec: { id: string };
+	let testCourse: { id: string };
 	let testClass: { id: string };
 	let testModule: { id: string };
-	let testTopic: { id: string };
 
 	beforeEach(async () => {
 		// Clean up test data
 		await db.delete(calendarEvent);
-		await db.delete(scheduledLessonSpecPoint);
 		await db.delete(scheduledLesson);
 		await db.delete(moduleAssignment);
 		await db.delete(timetableSlot);
 		await db.delete(timetableConfig);
-		await db.delete(lessonSpecPoint);
 		await db.delete(lesson);
 		await db.delete(module);
-		await db.delete(specPoint);
-		await db.delete(topic);
 		await db.delete(teachingClass);
-		await db.delete(examSpec);
+		await db.delete(course);
 
-		// Create test exam spec
-		const specs = await db
-			.insert(examSpec)
-			.values({
-				board: 'AQA',
-				level: 'GCSE',
-				name: 'AQA GCSE Physics (8463)',
-				specCode: '8463',
-				specYear: '2018'
-			})
-			.returning();
-		testExamSpec = specs[0];
-
-		// Create test topic
-		const topics = await db
-			.insert(topic)
-			.values({
-				examSpecId: testExamSpec.id,
-				name: 'Forces',
-				code: '4.1',
-				sortOrder: 1
-			})
-			.returning();
-		testTopic = topics[0];
-
-		// Create a spec point for potential future use
-		await db.insert(specPoint).values({
-			topicId: testTopic.id,
-			reference: '4.1.1',
-			content: 'Forces and their interactions',
-			sortOrder: 1
-		});
+		// Create test course
+		const courses = await db.insert(course).values({ name: 'GCSE Physics' }).returning();
+		testCourse = courses[0];
 
 		// Create test class
 		const classes = await db
@@ -80,7 +42,7 @@ describe('pushLesson', () => {
 			.values({
 				name: '11X/Ph1',
 				yearGroup: 11,
-				examSpecId: testExamSpec.id,
+				courseId: testCourse.id,
 				academicYear: '2024-25'
 			})
 			.returning();
@@ -110,8 +72,7 @@ describe('pushLesson', () => {
 			.insert(module)
 			.values({
 				name: 'Forces Module',
-				description: 'Test module',
-				targetSpecId: testExamSpec.id
+				courseId: testCourse.id
 			})
 			.returning();
 		testModule = modules[0];

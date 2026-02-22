@@ -29,35 +29,10 @@ await client.execute('PRAGMA foreign_keys = ON');
 // For in-memory test databases, create the schema
 if (env.DATABASE_URL === ':memory:') {
 	const statements = [
-		`CREATE TABLE IF NOT EXISTS "exam_spec" (
+		`CREATE TABLE IF NOT EXISTS "course" (
 			"id" TEXT PRIMARY KEY NOT NULL,
-			"board" TEXT NOT NULL,
-			"level" TEXT NOT NULL,
 			"name" TEXT NOT NULL,
-			"spec_code" TEXT,
-			"spec_year" TEXT,
-			"created_at" INTEGER NOT NULL,
-			"updated_at" INTEGER NOT NULL
-		)`,
-		`CREATE TABLE IF NOT EXISTS "topic" (
-			"id" TEXT PRIMARY KEY NOT NULL,
-			"exam_spec_id" TEXT NOT NULL REFERENCES "exam_spec"("id") ON DELETE CASCADE,
-			"parent_id" TEXT REFERENCES "topic"("id") ON DELETE CASCADE,
-			"name" TEXT NOT NULL,
-			"code" TEXT,
-			"description" TEXT,
-			"sort_order" INTEGER DEFAULT 0 NOT NULL,
-			"created_at" INTEGER NOT NULL,
-			"updated_at" INTEGER NOT NULL
-		)`,
-		`CREATE TABLE IF NOT EXISTS "spec_point" (
-			"id" TEXT PRIMARY KEY NOT NULL,
-			"topic_id" TEXT NOT NULL REFERENCES "topic"("id") ON DELETE CASCADE,
-			"reference" TEXT NOT NULL,
-			"content" TEXT NOT NULL,
 			"notes" TEXT,
-			"tier" TEXT DEFAULT 'both',
-			"sort_order" INTEGER DEFAULT 0 NOT NULL,
 			"created_at" INTEGER NOT NULL,
 			"updated_at" INTEGER NOT NULL
 		)`,
@@ -65,7 +40,7 @@ if (env.DATABASE_URL === ':memory:') {
 			"id" TEXT PRIMARY KEY NOT NULL,
 			"name" TEXT NOT NULL,
 			"year_group" INTEGER NOT NULL,
-			"exam_spec_id" TEXT NOT NULL REFERENCES "exam_spec"("id") ON DELETE RESTRICT,
+			"course_id" TEXT REFERENCES "course"("id") ON DELETE SET NULL,
 			"academic_year" TEXT NOT NULL,
 			"student_count" INTEGER,
 			"room" TEXT,
@@ -76,8 +51,8 @@ if (env.DATABASE_URL === ':memory:') {
 		`CREATE TABLE IF NOT EXISTS "module" (
 			"id" TEXT PRIMARY KEY NOT NULL,
 			"name" TEXT NOT NULL,
-			"description" TEXT,
-			"target_spec_id" TEXT REFERENCES "exam_spec"("id") ON DELETE SET NULL,
+			"course_id" TEXT NOT NULL REFERENCES "course"("id") ON DELETE CASCADE,
+			"notes" TEXT,
 			"created_at" INTEGER NOT NULL,
 			"updated_at" INTEGER NOT NULL
 		)`,
@@ -90,12 +65,6 @@ if (env.DATABASE_URL === ':memory:') {
 			"order" INTEGER NOT NULL,
 			"created_at" INTEGER NOT NULL,
 			"updated_at" INTEGER NOT NULL
-		)`,
-		`CREATE TABLE IF NOT EXISTS "lesson_spec_point" (
-			"id" TEXT PRIMARY KEY NOT NULL,
-			"lesson_id" TEXT NOT NULL REFERENCES "lesson"("id") ON DELETE CASCADE,
-			"spec_point_id" TEXT NOT NULL REFERENCES "spec_point"("id") ON DELETE CASCADE,
-			"created_at" INTEGER NOT NULL
 		)`,
 		`CREATE TABLE IF NOT EXISTS "timetable_config" (
 			"id" TEXT PRIMARY KEY NOT NULL,
@@ -137,12 +106,6 @@ if (env.DATABASE_URL === ':memory:') {
 			"order" INTEGER NOT NULL,
 			"created_at" INTEGER NOT NULL,
 			"updated_at" INTEGER NOT NULL
-		)`,
-		`CREATE TABLE IF NOT EXISTS "scheduled_lesson_spec_point" (
-			"id" TEXT PRIMARY KEY NOT NULL,
-			"scheduled_lesson_id" TEXT NOT NULL REFERENCES "scheduled_lesson"("id") ON DELETE CASCADE,
-			"spec_point_id" TEXT NOT NULL REFERENCES "spec_point"("id") ON DELETE CASCADE,
-			"created_at" INTEGER NOT NULL
 		)`,
 		`CREATE TABLE IF NOT EXISTS "calendar_event" (
 			"id" TEXT PRIMARY KEY NOT NULL,

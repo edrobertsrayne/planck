@@ -54,16 +54,16 @@
 			</Card.Content>
 		</Card.Root>
 
-		<!-- Total Modules -->
+		<!-- Total Courses -->
 		<Card.Root>
 			<Card.Header class="flex flex-row items-center justify-between space-y-0 pb-2">
-				<Card.Title class="text-sm font-medium">Total Modules</Card.Title>
+				<Card.Title class="text-sm font-medium">Total Courses</Card.Title>
 				<BookOpen class="h-4 w-4 text-muted-foreground" />
 			</Card.Header>
 			<Card.Content>
-				<div class="text-2xl font-bold">{data.stats.totalModules}</div>
+				<div class="text-2xl font-bold">{data.stats.totalCourses}</div>
 				<p class="mt-1 text-xs text-muted-foreground">
-					<a href={resolve('/modules')} class="hover:underline">Browse modules</a>
+					<a href={resolve('/courses')} class="hover:underline">Browse courses</a>
 				</p>
 			</Card.Content>
 		</Card.Root>
@@ -146,11 +146,11 @@
 				</Card.Root>
 			</a>
 
-			<a href={resolve('/modules')} data-sveltekit-preload-data>
+			<a href={resolve('/courses')} data-sveltekit-preload-data>
 				<Card.Root class="cursor-pointer transition-shadow hover:shadow-md dark:hover:bg-accent/50">
 					<Card.Content class="flex flex-col items-center justify-center p-6 text-center">
 						<BookOpen class="mb-2 h-8 w-8" />
-						<h3 class="font-semibold">Browse Modules</h3>
+						<h3 class="font-semibold">Browse Courses</h3>
 						<p class="mt-1 text-xs text-muted-foreground">Explore lesson plans</p>
 					</Card.Content>
 				</Card.Root>

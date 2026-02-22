@@ -17,6 +17,7 @@
 
 	// Edit mode states
 	let editingClass = $state(false);
+	let showSuccess = $state(false);
 	let addingSlot = $state(false);
 	let editingSlot = $state<string | null>(null);
 	let editingLesson = $state<string | null>(null);
@@ -32,7 +33,6 @@
 	let room = $state('');
 	let notes = $state('');
 
-	// Sync form state with data when it changes (e.g., after navigation or form submission)
 	$effect(() => {
 		name = data.class.name;
 		yearGroup = data.class.yearGroup;
@@ -52,8 +52,6 @@
 	let lessonTitle = $state('');
 	let lessonContent = $state('');
 	let lessonDuration = $state(1);
-	let lessonSpecPointIds = $state<string[]>([]);
-	let showSpecPointPicker = $state(false);
 
 	// Day names for display
 	const dayNames = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
@@ -82,8 +80,6 @@
 		lessonTitle = '';
 		lessonContent = '';
 		lessonDuration = 1;
-		lessonSpecPointIds = [];
-		showSpecPointPicker = false;
 	}
 
 	type ScheduledLesson = {
@@ -99,19 +95,6 @@
 		lessonTitle = lesson.title;
 		lessonContent = lesson.content || '';
 		lessonDuration = lesson.duration;
-
-		// Load spec point IDs for this lesson
-		const links = data.specPointLinks.filter((link) => link.scheduledLessonId === lesson.id);
-		lessonSpecPointIds = links.map((link) => link.specPointId);
-		showSpecPointPicker = false;
-	}
-
-	function toggleSpecPoint(specPointId: string) {
-		if (lessonSpecPointIds.includes(specPointId)) {
-			lessonSpecPointIds = lessonSpecPointIds.filter((id) => id !== specPointId);
-		} else {
-			lessonSpecPointIds = [...lessonSpecPointIds, specPointId];
-		}
 	}
 
 	type TimetableSlot = {
@@ -152,9 +135,12 @@
 
 	$effect(() => {
 		if (form?.success) {
+			showSuccess = true;
+			const timer = setTimeout(() => (showSuccess = false), 3000);
 			resetClassForm();
 			resetSlotForm();
 			resetLessonForm();
+			return () => clearTimeout(timer);
 		}
 	});
 
@@ -204,24 +190,21 @@
 </script>
 
 <div class="container mx-auto p-4 sm:p-6">
-	<!-- Back to classes list -->
 	<div class="mb-4 sm:mb-6">
 		<a
 			href={resolve('/classes')}
 			class="inline-block min-h-[44px] py-2 text-accent-secondary transition-colors hover:text-accent-secondary-hover"
 		>
-			← Back to Classes
+			&larr; Back to Classes
 		</a>
 	</div>
 
-	<!-- Success message -->
-	{#if form?.success}
+	{#if showSuccess}
 		<Alert.Root class="mb-4">
 			<Alert.Description>Changes saved successfully!</Alert.Description>
 		</Alert.Root>
 	{/if}
 
-	<!-- Error message -->
 	{#if form?.error}
 		<Alert.Root variant="destructive" class="mb-4">
 			<Alert.Description>{form.error}</Alert.Description>
@@ -275,7 +258,7 @@
 							name="yearGroup"
 							bind:value={yearGroup}
 							required
-							class="mt-2 flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-base shadow-sm transition-colors file:border-0 file:bg-transparent file:text-sm file:font-medium file:text-foreground placeholder:text-muted-foreground focus-visible:ring-1 focus-visible:ring-ring focus-visible:outline-none disabled:cursor-not-allowed disabled:opacity-50 md:text-sm"
+							class="mt-2 flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-base shadow-sm transition-colors placeholder:text-muted-foreground focus-visible:ring-1 focus-visible:ring-ring focus-visible:outline-none md:text-sm"
 						>
 							{#each [7, 8, 9, 10, 11, 12, 13] as year (year)}
 								<option value={year}>Year {year}</option>
@@ -348,8 +331,14 @@
 					{data.class.yearGroup}
 				</p>
 				<p>
-					<span class="font-medium">Exam Specification:</span>
-					{data.class.examSpec?.name || 'N/A'}
+					<span class="font-medium">Course:</span>
+					{#if data.class.course?.id}
+						<a href="/courses/{data.class.course.id}" class="text-accent-secondary hover:underline">
+							{data.class.course.name}
+						</a>
+					{:else}
+						None
+					{/if}
 				</p>
 				<p>
 					<span class="font-medium">Academic Year:</span>
@@ -436,7 +425,7 @@
 							name="day"
 							bind:value={slotDay}
 							required
-							class="mt-2 flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-base shadow-sm transition-colors file:border-0 file:bg-transparent file:text-sm file:font-medium file:text-foreground placeholder:text-muted-foreground focus-visible:ring-1 focus-visible:ring-ring focus-visible:outline-none disabled:cursor-not-allowed disabled:opacity-50 md:text-sm"
+							class="mt-2 flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-base shadow-sm transition-colors placeholder:text-muted-foreground focus-visible:ring-1 focus-visible:ring-ring focus-visible:outline-none md:text-sm"
 						>
 							{#each dayNames as dayName, i (i)}
 								<option value={i + 1}>{dayName}</option>
@@ -482,7 +471,7 @@
 							id="week"
 							name="week"
 							bind:value={slotWeek}
-							class="mt-2 flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-base shadow-sm transition-colors file:border-0 file:bg-transparent file:text-sm file:font-medium file:text-foreground placeholder:text-muted-foreground focus-visible:ring-1 focus-visible:ring-ring focus-visible:outline-none disabled:cursor-not-allowed disabled:opacity-50 md:text-sm"
+							class="mt-2 flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-base shadow-sm transition-colors placeholder:text-muted-foreground focus-visible:ring-1 focus-visible:ring-ring focus-visible:outline-none md:text-sm"
 						>
 							<option value="">None (1-week timetable)</option>
 							<option value="A">Week A</option>
@@ -505,8 +494,7 @@
 				<Clock class="mb-4 h-12 w-12 text-muted-foreground" />
 				<h3 class="font-display mb-2 text-xl font-semibold">No timetable slots</h3>
 				<p class="mb-4 max-w-sm text-sm text-muted-foreground">
-					Add timetable slots to define when this class meets each week. You can add single or
-					double periods.
+					Add timetable slots to define when this class meets each week.
 				</p>
 				<Button onclick={() => (addingSlot = true)}>Add First Slot</Button>
 			</div>
@@ -529,7 +517,7 @@
 										name="day"
 										bind:value={slotDay}
 										required
-										class="mt-1 flex h-8 w-full rounded-md border border-input bg-transparent px-2 py-1 text-sm shadow-sm transition-colors file:border-0 file:bg-transparent file:text-sm file:font-medium file:text-foreground placeholder:text-muted-foreground focus-visible:ring-1 focus-visible:ring-ring focus-visible:outline-none disabled:cursor-not-allowed disabled:opacity-50"
+										class="mt-1 flex h-8 w-full rounded-md border border-input bg-transparent px-2 py-1 text-sm shadow-sm transition-colors placeholder:text-muted-foreground focus-visible:ring-1 focus-visible:ring-ring focus-visible:outline-none"
 									>
 										{#each dayNames as dayName, i (i)}
 											<option value={i + 1}>{dayName}</option>
@@ -571,7 +559,7 @@
 										id="editWeek-{slot.id}"
 										name="week"
 										bind:value={slotWeek}
-										class="mt-1 flex h-8 w-full rounded-md border border-input bg-transparent px-2 py-1 text-sm shadow-sm transition-colors file:border-0 file:bg-transparent file:text-sm file:font-medium file:text-foreground placeholder:text-muted-foreground focus-visible:ring-1 focus-visible:ring-ring focus-visible:outline-none disabled:cursor-not-allowed disabled:opacity-50"
+										class="mt-1 flex h-8 w-full rounded-md border border-input bg-transparent px-2 py-1 text-sm shadow-sm transition-colors placeholder:text-muted-foreground focus-visible:ring-1 focus-visible:ring-ring focus-visible:outline-none"
 									>
 										<option value="">None</option>
 										<option value="A">Week A</option>
@@ -650,7 +638,6 @@
 			<div class="space-y-2">
 				{#each data.scheduledLessons as lesson (lesson.id)}
 					{#if editingLesson === lesson.id}
-						<!-- Edit Form -->
 						<form
 							method="POST"
 							action="?/updateScheduledLesson"
@@ -659,7 +646,6 @@
 							class="rounded-md border border-border-strong bg-background-subtle p-4"
 						>
 							<input type="hidden" name="lessonId" value={lesson.id} />
-							<input type="hidden" name="specPointIds" value={lessonSpecPointIds.join(',')} />
 
 							<div class="space-y-3">
 								<div>
@@ -677,14 +663,14 @@
 								</div>
 
 								<div>
-									<Label for="content-{lesson.id}">Content (Markdown)</Label>
+									<Label for="content-{lesson.id}">Content</Label>
 									<Textarea
 										id="content-{lesson.id}"
 										name="content"
 										bind:value={lessonContent}
 										rows={4}
-										placeholder="Use markdown for formatting..."
-										class="mt-2 font-mono text-sm"
+										placeholder="Lesson notes..."
+										class="mt-2 text-sm"
 									/>
 								</div>
 
@@ -701,69 +687,6 @@
 									/>
 								</div>
 
-								<div>
-									<div class="mb-2 flex items-center justify-between">
-										<Label class="text-sm">Specification Points</Label>
-										{#if data.availableSpecPoints.length > 0}
-											<Button
-												type="button"
-												size="sm"
-												variant="outline"
-												onclick={() => (showSpecPointPicker = !showSpecPointPicker)}
-											>
-												{showSpecPointPicker ? 'Hide' : 'Manage'} Spec Points
-											</Button>
-										{/if}
-									</div>
-
-									{#if lessonSpecPointIds.length > 0}
-										<div class="mb-2 space-y-1">
-											{#each lessonSpecPointIds as specPointId (specPointId)}
-												{@const specPoint = data.availableSpecPoints.find(
-													(sp) => sp.id === specPointId
-												)}
-												{#if specPoint}
-													<div
-														class="flex items-center justify-between rounded bg-surface px-2 py-1 text-xs"
-													>
-														<span class="font-mono">{specPoint.reference}</span>
-														<button
-															type="button"
-															onclick={() => toggleSpecPoint(specPointId)}
-															class="text-red-600 hover:text-red-800"
-														>
-															Remove
-														</button>
-													</div>
-												{/if}
-											{/each}
-										</div>
-									{/if}
-
-									{#if showSpecPointPicker && data.availableSpecPoints.length > 0}
-										<div
-											class="max-h-48 space-y-1 overflow-y-auto rounded border border-border bg-surface p-2"
-										>
-											{#each data.availableSpecPoints as specPoint (specPoint.id)}
-												<label
-													class="flex cursor-pointer items-start gap-2 rounded p-2 hover:bg-background-subtle"
-												>
-													<input
-														type="checkbox"
-														checked={lessonSpecPointIds.includes(specPoint.id)}
-														onchange={() => toggleSpecPoint(specPoint.id)}
-														class="mt-0.5"
-													/>
-													<div class="flex-1">
-														<p class="font-mono text-xs font-medium">{specPoint.reference}</p>
-														<p class="text-xs text-muted-foreground">{specPoint.content}</p>
-													</div>
-												</label>
-											{/each}
-										</div>
-									{/if}
-								</div>
-
 								<div class="flex justify-end gap-2">
 									<Button type="button" variant="outline" size="sm" onclick={resetLessonForm}>
 										Cancel
@@ -773,7 +696,6 @@
 							</div>
 						</form>
 					{:else}
-						<!-- Display Mode -->
 						<div
 							id="lesson-{lesson.id}"
 							class="rounded-md border border-border bg-surface p-3 sm:p-4"
@@ -784,25 +706,6 @@
 									<p class="text-sm text-muted-foreground">{formatDate(lesson.calendarDate)}</p>
 									{#if lesson.duration > 1}
 										<p class="text-xs text-muted-foreground">{lesson.duration} periods</p>
-									{/if}
-									{#if data.specPointLinks.filter((link) => link.scheduledLessonId === lesson.id).length > 0}
-										{@const lessonSpecPoints = data.specPointLinks
-											.filter((link) => link.scheduledLessonId === lesson.id)
-											.map((link) =>
-												data.availableSpecPoints.find((sp) => sp.id === link.specPointId)
-											)
-											.filter((sp) => sp)}
-										<div class="mt-1 flex flex-wrap gap-1">
-											{#each lessonSpecPoints as sp (sp?.id)}
-												{#if sp}
-													<span
-														class="rounded bg-accent-secondary-muted px-1.5 py-0.5 font-mono text-xs text-accent-secondary"
-													>
-														{sp.reference}
-													</span>
-												{/if}
-											{/each}
-										</div>
 									{/if}
 								</div>
 								<div class="flex w-full flex-col gap-2 sm:w-auto sm:flex-row">
@@ -824,7 +727,7 @@
 											title="Push lesson back to previous slot"
 											class="min-h-[44px]"
 										>
-											← Back
+											&larr; Back
 										</Button>
 									</form>
 									<form method="POST" action="?/pushLessonForward" use:enhance class="contents">
@@ -836,7 +739,7 @@
 											title="Push lesson forward to next slot"
 											class="min-h-[44px]"
 										>
-											Forward →
+											Forward &rarr;
 										</Button>
 									</form>
 								</div>

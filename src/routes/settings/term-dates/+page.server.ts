@@ -1,6 +1,6 @@
 import { db } from '$lib/server/db';
 import { calendarEvent } from '$lib/server/db/schema';
-import { seedTermDates } from '$lib/server/db/seed';
+import { seedTermDates } from '$lib/server/db/seed-term-dates';
 import { eq } from 'drizzle-orm';
 import type { Actions, PageServerLoad } from './$types';
 import { getCurrentAcademicYear } from '$lib/server/utils/academicYear';

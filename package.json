@@ -21,6 +21,7 @@
 		"@internationalized/date": "^3.10.0",
 		"@lucide/svelte": "^0.561.0",
 		"@sveltejs/adapter-auto": "^7.0.0",
+		"@sveltejs/adapter-node": "^5.5.3",
 		"@sveltejs/kit": "^2.50.2",
 		"@sveltejs/vite-plugin-svelte": "^6.2.4",
 		"@tailwindcss/vite": "^4.1.18",
@@ -50,9 +51,18 @@
 		"vitest-browser-svelte": "^2.0.2"
 	},
 	"dependencies": {
+		"@editorjs/checklist": "^1.6.0",
+		"@editorjs/code": "^2.9.4",
+		"@editorjs/delimiter": "^1.4.2",
+		"@editorjs/editorjs": "^2.31.3",
+		"@editorjs/header": "^2.8.8",
+		"@editorjs/inline-code": "^1.5.2",
+		"@editorjs/list": "^2.0.9",
+		"@editorjs/marker": "^1.4.0",
+		"@editorjs/quote": "^2.7.6",
+		"@editorjs/table": "^2.4.5",
 		"@libsql/client": "^0.14.0",
 		"drizzle-orm": "^0.45.1",
-		"lucide-svelte": "^0.564.0",
-		"pdf-parse": "^2.4.5"
+		"lucide-svelte": "^0.564.0"
 	}
 }

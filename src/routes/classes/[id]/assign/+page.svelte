@@ -23,7 +23,7 @@
 			href={resolve(`/classes/${data.class.id}`)}
 			class="text-accent-secondary hover:text-accent-secondary-hover"
 		>
-			← Back to {data.class.name}
+			&larr; Back to {data.class.name}
 		</a>
 	</div>
 
@@ -47,26 +47,15 @@
 					name="moduleId"
 					bind:value={moduleId}
 					required
-					class="mt-2 flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-base shadow-sm transition-colors file:border-0 file:bg-transparent file:text-sm file:font-medium file:text-foreground placeholder:text-muted-foreground focus-visible:ring-1 focus-visible:ring-ring focus-visible:outline-none disabled:cursor-not-allowed disabled:opacity-50 md:text-sm"
+					class="mt-2 flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-base shadow-sm transition-colors placeholder:text-muted-foreground focus-visible:ring-1 focus-visible:ring-ring focus-visible:outline-none md:text-sm"
 				>
 					<option value="">Choose a module...</option>
 					{#each data.modules as module (module.id)}
 						<option value={module.id}>
-							{module.name}
-							{#if module.targetSpec}
-								• {module.targetSpec.board} {module.targetSpec.level}
-							{/if}
+							{module.courseName} &mdash; {module.name}
 						</option>
 					{/each}
 				</select>
-				{#if moduleId}
-					{@const selectedModule = data.modules.find((m) => m.id === moduleId)}
-					{#if selectedModule?.description}
-						<p class="mt-2 text-sm text-muted-foreground">
-							{selectedModule.description}
-						</p>
-					{/if}
-				{/if}
 			</div>
 
 			<!-- Start Point Selection -->
@@ -74,7 +63,6 @@
 				<Label class="text-sm">Start Point</Label>
 
 				<div class="space-y-2">
-					<!-- Next Available Option -->
 					<label
 						class="flex cursor-pointer items-center gap-3 rounded-md border border-border p-3 hover:bg-background-subtle {useNextAvailable
 							? 'border-accent-secondary bg-accent-secondary-muted'
@@ -84,7 +72,7 @@
 							type="radio"
 							name="startOption"
 							value="next"
-							bind:group={useNextAvailable}
+							checked={useNextAvailable}
 							onchange={() => (useNextAvailable = true)}
 							class="h-4 w-4 text-accent-secondary focus:ring-accent-secondary"
 						/>
@@ -96,7 +84,6 @@
 						</div>
 					</label>
 
-					<!-- Specific Date Option -->
 					<label
 						class="flex cursor-pointer items-center gap-3 rounded-md border border-border p-3 hover:bg-background-subtle {!useNextAvailable
 							? 'border-accent-secondary bg-accent-secondary-muted'
@@ -106,7 +93,7 @@
 							type="radio"
 							name="startOption"
 							value="date"
-							bind:group={useNextAvailable}
+							checked={!useNextAvailable}
 							onchange={() => (useNextAvailable = false)}
 							class="h-4 w-4 text-accent-secondary focus:ring-accent-secondary"
 						/>
@@ -147,9 +134,10 @@
 		<div class="mt-6 rounded-md bg-yellow-50 p-4 text-yellow-800">
 			<p class="font-medium">No modules available</p>
 			<p class="mt-1 text-sm">
-				You need to create modules in the <a href={resolve('/modules')} class="underline"
-					>Module Library</a
-				> before you can assign them to classes.
+				You need to create courses and modules in the <a
+					href={resolve('/courses')}
+					class="underline">Courses</a
+				> section before you can assign them to classes.
 			</p>
 		</div>
 	{/if}

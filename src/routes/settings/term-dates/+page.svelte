@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { enhance } from '$app/forms';
-	import { goto } from '$app/navigation';
+	import { goto, invalidateAll } from '$app/navigation';
 	import { resolve } from '$app/paths';
 	import type { PageData, ActionData } from './$types';
 	import Button from '$lib/components/ui/button/button.svelte';
@@ -11,6 +11,8 @@
 	let { data, form }: { data: PageData; form: ActionData } = $props();
 
 	let academicYear = $derived(data.academicYear || '');
+	let showSuccess = $state(false);
+	let successMessage = $state('');
 	let editingEventId = $state<string | null>(null);
 	let editTitle = $state('');
 	let editStartDate = $state('');
@@ -34,28 +36,23 @@
 		editEndDate = '';
 	}
 
-	async function handleImport(event: Event) {
-		const form = event.target as HTMLFormElement;
-		const formData = new FormData(form);
-		const year = formData.get('academicYear')?.toString();
-
-		// Wait for the form to submit and then redirect to show the events
-		setTimeout(() => {
-			if (year) {
-				// Note: We need to add query params after resolve(), which only works with pathnames
-				// eslint-disable-next-line svelte/no-navigation-without-resolve
-				goto(`${resolve('/settings/term-dates')}?year=${year}`);
-			}
-		}, 500);
-	}
+	// Auto-dismiss success for update/delete actions
+	$effect(() => {
+		if (form?.success) {
+			showSuccess = true;
+			successMessage = form.message || 'Operation completed successfully!';
+			const timer = setTimeout(() => (showSuccess = false), 3000);
+			return () => clearTimeout(timer);
+		}
+	});
 </script>
 
 <div class="container mx-auto max-w-4xl p-4 sm:p-6">
 	<h1 class="mb-4 text-2xl font-bold sm:mb-6 sm:text-3xl">Term Date Import</h1>
 
-	{#if form?.success}
+	{#if showSuccess}
 		<Alert.Root class="mb-4">
-			<Alert.Description>{form.message || 'Operation completed successfully!'}</Alert.Description>
+			<Alert.Description>{successMessage}</Alert.Description>
 		</Alert.Root>
 	{/if}
 
@@ -76,8 +73,24 @@
 		<form
 			method="POST"
 			action="?/import"
-			use:enhance
-			onsubmit={handleImport}
+			use:enhance={() => {
+				return async ({ result, update }) => {
+					if (result.type === 'success') {
+						successMessage =
+							(result.data as { message?: string })?.message || 'Term dates imported successfully!';
+						showSuccess = true;
+						setTimeout(() => (showSuccess = false), 3000);
+						// Navigate to show events for the imported year
+						// eslint-disable-next-line svelte/no-navigation-without-resolve
+						await goto(`${resolve('/settings/term-dates')}?year=${academicYear}`, {
+							replaceState: true,
+							noScroll: true
+						});
+					} else {
+						await update();
+					}
+				};
+			}}
 			class="flex flex-col gap-4 sm:flex-row sm:items-end"
 		>
 			<div class="flex-1">

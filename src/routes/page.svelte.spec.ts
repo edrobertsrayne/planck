@@ -10,7 +10,7 @@ describe('/+page.svelte', () => {
 			stats: {
 				totalClasses: 0,
 				upcomingLessonsThisWeek: 0,
-				totalModules: 0,
+				totalCourses: 0,
 				nextHoliday: {
 					id: 'test-holiday-1',
 					type: 'holiday' as const,

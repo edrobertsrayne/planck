@@ -6,7 +6,7 @@ import {
 	scheduledLesson,
 	moduleAssignment,
 	calendarEvent,
-	examSpec
+	course
 } from '$lib/server/db/schema';
 import { eq, and, asc, gte, lte } from 'drizzle-orm';
 import type { Actions, PageServerLoad } from './$types';
@@ -57,15 +57,13 @@ export const load: PageServerLoad = async ({ url }) => {
 			name: teachingClass.name,
 			yearGroup: teachingClass.yearGroup,
 			academicYear: teachingClass.academicYear,
-			examSpec: {
-				id: examSpec.id,
-				board: examSpec.board,
-				level: examSpec.level,
-				name: examSpec.name
+			course: {
+				id: course.id,
+				name: course.name
 			}
 		})
 		.from(teachingClass)
-		.leftJoin(examSpec, eq(teachingClass.examSpecId, examSpec.id))
+		.leftJoin(course, eq(teachingClass.courseId, course.id))
 		.where(eq(teachingClass.academicYear, currentAcademicYear))
 		.orderBy(asc(teachingClass.name));
 

@@ -13,6 +13,7 @@
 	let weeks = $state(1);
 	let periodsPerDay = $state(6);
 	let daysPerWeek = $state(5);
+	let showSuccess = $state(false);
 
 	// Sync state with data when it changes
 	$effect(() => {
@@ -21,12 +22,20 @@
 		periodsPerDay = data.config?.periodsPerDay || 6;
 		daysPerWeek = data.config?.daysPerWeek || 5;
 	});
+
+	$effect(() => {
+		if (form?.success) {
+			showSuccess = true;
+			const timer = setTimeout(() => (showSuccess = false), 3000);
+			return () => clearTimeout(timer);
+		}
+	});
 </script>
 
 <div class="container mx-auto max-w-3xl p-4 sm:p-6">
 	<h1 class="mb-4 text-2xl font-bold sm:mb-6 sm:text-3xl">Timetable Configuration</h1>
 
-	{#if form?.success}
+	{#if showSuccess}
 		<Alert.Root class="mb-4">
 			<Alert.Description>Configuration saved successfully!</Alert.Description>
 		</Alert.Root>

@@ -3,88 +3,37 @@ import { assignModuleToClass, findNextAvailableSlot } from './assign-module';
 import { db } from '$lib/server/db';
 import {
 	teachingClass,
-	examSpec,
+	course,
 	module,
 	lesson,
-	lessonSpecPoint,
-	specPoint,
-	topic,
 	timetableSlot,
 	timetableConfig,
 	moduleAssignment,
 	scheduledLesson,
-	scheduledLessonSpecPoint,
 	calendarEvent
 } from '$lib/server/db/schema';
 import { eq } from 'drizzle-orm';
 
 describe('assignModuleToClass', () => {
-	let testExamSpec: { id: string };
+	let testCourse: { id: string };
 	let testClass: { id: string };
 	let testModule: { id: string };
-	let testTopic: { id: string };
-	let testSpecPoint1: { id: string };
-	// let testSpecPoint2: { id: string }; // Reserved for future use
 
 	beforeEach(async () => {
 		// Clean up test data
 		await db.delete(calendarEvent);
-		await db.delete(scheduledLessonSpecPoint);
 		await db.delete(scheduledLesson);
 		await db.delete(moduleAssignment);
 		await db.delete(timetableSlot);
 		await db.delete(timetableConfig);
-		await db.delete(lessonSpecPoint);
 		await db.delete(lesson);
 		await db.delete(module);
-		await db.delete(specPoint);
-		await db.delete(topic);
 		await db.delete(teachingClass);
-		await db.delete(examSpec);
+		await db.delete(course);
 
-		// Create test exam spec
-		const specs = await db
-			.insert(examSpec)
-			.values({
-				board: 'AQA',
-				level: 'GCSE',
-				name: 'AQA GCSE Physics (8463)',
-				specCode: '8463',
-				specYear: '2018'
-			})
-			.returning();
-		testExamSpec = specs[0];
-
-		// Create test topic and spec points
-		const topics = await db
-			.insert(topic)
-			.values({
-				examSpecId: testExamSpec.id,
-				name: 'Forces',
-				code: '4.1',
-				sortOrder: 1
-			})
-			.returning();
-		testTopic = topics[0];
-
-		const specPoints1 = await db
-			.insert(specPoint)
-			.values({
-				topicId: testTopic.id,
-				reference: '4.1.1',
-				content: 'Forces and their interactions',
-				sortOrder: 1
-			})
-			.returning();
-		testSpecPoint1 = specPoints1[0];
-
-		// Reserved for future multi-spec-point tests
-		await db.insert(specPoint).values({
-			topicId: testTopic.id,
-			reference: '4.1.2',
-			content: 'Work done and energy transfer',
-			sortOrder: 2
-		});
+		// Create test course
+		const courses = await db.insert(course).values({ name: 'GCSE Physics' }).returning();
+		testCourse = courses[0];
 
 		// Create test class
 		const classes = await db
@@ -92,7 +41,7 @@ describe('assignModuleToClass', () => {
 			.values({
 				name: '11X/Ph1',
 				yearGroup: 11,
-				examSpecId: testExamSpec.id,
+				courseId: testCourse.id,
 				academicYear: '2024-25'
 			})
 			.returning();
@@ -111,8 +60,7 @@ describe('assignModuleToClass', () => {
 			.insert(module)
 			.values({
 				name: 'Forces and Motion',
-				description: 'Introduction to forces',
-				targetSpecId: testExamSpec.id
+				courseId: testCourse.id
 			})
 			.returning();
 		testModule = modules[0];
@@ -187,59 +135,6 @@ describe('assignModuleToClass', () => {
 				new Date('2024-09-04T00:00:00.000Z').toISOString()
 			);
 			expect(scheduled[1].order).toBe(2);
-		});
-
-		it('should copy spec point links from lesson to scheduled lesson', async () => {
-			// Create timetable slot
-			await db.insert(timetableSlot).values({
-				classId: testClass.id,
-				day: 1,
-				periodStart: 1,
-				periodEnd: 1
-			});
-
-			// Create lesson with spec point link
-			const lessons = await db
-				.insert(lesson)
-				.values({
-					moduleId: testModule.id,
-					title: 'Forces Lesson',
-					duration: 1,
-					order: 1
-				})
-				.returning();
-
-			await db.insert(lessonSpecPoint).values({
-				lessonId: lessons[0].id,
-				specPointId: testSpecPoint1.id
-			});
-
-			const startDate = new Date('2024-09-02T00:00:00.000Z');
-
-			await assignModuleToClass({
-				classId: testClass.id,
-				moduleId: testModule.id,
-				startDate
-			});
-
-			const assignments = await db
-				.select()
-				.from(moduleAssignment)
-				.where(eq(moduleAssignment.classId, testClass.id));
-
-			const scheduled = await db
-				.select()
-				.from(scheduledLesson)
-				.where(eq(scheduledLesson.assignmentId, assignments[0].id));
-
-			// Verify spec point link was copied
-			const scheduledSpecPoints = await db
-				.select()
-				.from(scheduledLessonSpecPoint)
-				.where(eq(scheduledLessonSpecPoint.scheduledLessonId, scheduled[0].id));
-
-			expect(scheduledSpecPoints).toHaveLength(1);
-			expect(scheduledSpecPoints[0].specPointId).toBe(testSpecPoint1.id);
 		});
 
 		it('should handle lessons with null content', async () => {
@@ -574,7 +469,7 @@ describe('assignModuleToClass', () => {
 				.insert(module)
 				.values({
 					name: 'New Module',
-					targetSpecId: testExamSpec.id
+					courseId: testCourse.id
 				})
 				.returning();
 
@@ -674,7 +569,7 @@ describe('assignModuleToClass', () => {
 
 describe('findNextAvailableSlot', () => {
 	let testClass: { id: string };
-	let testExamSpec: { id: string };
+	let testCourse: { id: string };
 
 	beforeEach(async () => {
 		// Clean up
@@ -685,25 +580,18 @@ describe('findNextAvailableSlot', () => {
 		await db.delete(lesson);
 		await db.delete(module);
 		await db.delete(teachingClass);
-		await db.delete(examSpec);
+		await db.delete(course);
 
 		// Create test data
-		const specs = await db
-			.insert(examSpec)
-			.values({
-				board: 'AQA',
-				level: 'GCSE',
-				name: 'AQA GCSE Physics (8463)'
-			})
-			.returning();
-		testExamSpec = specs[0];
+		const courses = await db.insert(course).values({ name: 'GCSE Physics' }).returning();
+		testCourse = courses[0];
 
 		const classes = await db
 			.insert(teachingClass)
 			.values({
 				name: '11X/Ph1',
 				yearGroup: 11,
-				examSpecId: testExamSpec.id,
+				courseId: testCourse.id,
 				academicYear: '2024-25'
 			})
 			.returning();

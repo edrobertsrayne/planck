@@ -3,7 +3,7 @@ import {
 	teachingClass,
 	scheduledLesson,
 	moduleAssignment,
-	module,
+	course,
 	calendarEvent
 } from '$lib/server/db/schema';
 import { eq, and, gte, lte, asc, count } from 'drizzle-orm';
@@ -42,9 +42,9 @@ export const load: PageServerLoad = async () => {
 		);
 	const upcomingLessonsThisWeek = upcomingLessonsResult[0]?.count || 0;
 
-	// Get total modules
-	const moduleCountResult = await db.select({ count: count() }).from(module);
-	const totalModules = moduleCountResult[0]?.count || 0;
+	// Get total courses
+	const courseCountResult = await db.select({ count: count() }).from(course);
+	const totalCourses = courseCountResult[0]?.count || 0;
 
 	// Get next upcoming holiday
 	const upcomingHolidays = await db
@@ -81,7 +81,7 @@ export const load: PageServerLoad = async () => {
 		stats: {
 			totalClasses,
 			upcomingLessonsThisWeek,
-			totalModules,
+			totalCourses,
 			nextHoliday
 		},
 		todaysLessons

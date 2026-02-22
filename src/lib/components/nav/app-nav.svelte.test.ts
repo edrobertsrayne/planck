@@ -23,8 +23,7 @@ describe('App Navigation', () => {
 
 		expect(screen.getByRole('link', { name: /calendar/i })).toBeTruthy();
 		expect(screen.getByRole('link', { name: /classes/i })).toBeTruthy();
-		expect(screen.getByRole('link', { name: /modules/i })).toBeTruthy();
-		expect(screen.getByRole('link', { name: /specifications/i })).toBeTruthy();
+		expect(screen.getByRole('link', { name: /courses/i })).toBeTruthy();
 		expect(screen.getByRole('link', { name: /settings/i })).toBeTruthy();
 	});
 
@@ -37,11 +36,8 @@ describe('App Navigation', () => {
 		const classesLinks = screen.getAllByRole('link', { name: /classes/i });
 		expect(classesLinks[0].getAttribute('href')).toBe('/classes');
 
-		const modulesLinks = screen.getAllByRole('link', { name: /modules/i });
-		expect(modulesLinks[0].getAttribute('href')).toBe('/modules');
-
-		const specsLinks = screen.getAllByRole('link', { name: /specifications/i });
-		expect(specsLinks[0].getAttribute('href')).toBe('/specifications');
+		const coursesLinks = screen.getAllByRole('link', { name: /courses/i });
+		expect(coursesLinks[0].getAttribute('href')).toBe('/courses');
 
 		const settingsLinks = screen.getAllByRole('link', { name: /settings/i });
 		expect(settingsLinks[0].getAttribute('href')).toBe('/settings');
