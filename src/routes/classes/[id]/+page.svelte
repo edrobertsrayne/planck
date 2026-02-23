@@ -333,7 +333,10 @@
 				<p>
 					<span class="font-medium">Course:</span>
 					{#if data.class.course?.id}
-						<a href="/courses/{data.class.course.id}" class="text-accent-secondary hover:underline">
+						<a
+							href={resolve('/courses/[id]', { id: data.class.course.id })}
+							class="text-accent-secondary hover:underline"
+						>
 							{data.class.course.name}
 						</a>
 					{:else}

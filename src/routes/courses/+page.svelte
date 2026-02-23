@@ -1,6 +1,7 @@
 <script lang="ts">
 	import { enhance } from '$app/forms';
 	import { invalidateAll } from '$app/navigation';
+	import { resolve } from '$app/paths';
 	import type { PageData, ActionData } from './$types';
 	import Button from '$lib/components/ui/button/button.svelte';
 	import Input from '$lib/components/ui/input/input.svelte';
@@ -98,7 +99,7 @@
 		<div class="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
 			{#each data.courses as courseItem (courseItem.id)}
 				<a
-					href="/courses/{courseItem.id}"
+					href={resolve('/courses/[id]', { id: courseItem.id })}
 					data-sveltekit-preload-data
 					class="block rounded-lg border border-border bg-surface p-6 shadow-sm transition-shadow hover:shadow-md"
 				>

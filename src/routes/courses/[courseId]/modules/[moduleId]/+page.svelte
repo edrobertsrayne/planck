@@ -1,6 +1,7 @@
 <script lang="ts">
 	import { enhance } from '$app/forms';
 	import { invalidateAll } from '$app/navigation';
+	import { resolve } from '$app/paths';
 	import type { PageData, ActionData } from './$types';
 	import Button from '$lib/components/ui/button/button.svelte';
 	import AttachmentList from '$lib/components/attachments/attachment-list.svelte';
@@ -275,9 +276,11 @@
 	<!-- Breadcrumb -->
 	<div class="mb-4 sm:mb-6">
 		<nav class="text-sm text-muted-foreground">
-			<a href="/courses" class="hover:underline">Courses</a>
+			<a href={resolve('/courses')} class="hover:underline">Courses</a>
 			<span class="mx-1">/</span>
-			<a href="/courses/{data.course.id}" class="hover:underline">{data.course.name}</a>
+			<a href={resolve('/courses/[id]', { id: data.course.id })} class="hover:underline"
+				>{data.course.name}</a
+			>
 			<span class="mx-1">/</span>
 			<span class="text-foreground">{data.module.name}</span>
 		</nav>

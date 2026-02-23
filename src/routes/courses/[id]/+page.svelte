@@ -210,7 +210,10 @@
 			<div class="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
 				{#each data.modules as moduleItem (moduleItem.id)}
 					<a
-						href="/courses/{data.course.id}/modules/{moduleItem.id}"
+						href={resolve('/courses/[courseId]/modules/[moduleId]', {
+							courseId: data.course.id,
+							moduleId: moduleItem.id
+						})}
 						data-sveltekit-preload-data
 						class="block rounded-lg border border-border bg-background-subtle p-4 transition-shadow hover:shadow-md"
 					>

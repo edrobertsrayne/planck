@@ -84,6 +84,7 @@
 {#if blocks.length > 0}
 	<div class="block-renderer prose prose-sm dark:prose-invert max-w-none {className}">
 		{#each blocks as block (block)}
+			<!-- eslint-disable-next-line svelte/no-at-html-tags -- Editor.js block content is structured data rendered by renderBlock, not arbitrary user HTML -->
 			{@html renderBlock(block)}
 		{/each}
 	</div>
