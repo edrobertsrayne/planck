@@ -10,13 +10,13 @@ Planck is a lesson planning and scheduling tool for UK secondary Physics teacher
 
 This section is the single source of truth for the project's technology choices.
 
-| Layer         | Technology              | Documentation                 |
-| ------------- | ----------------------- | ----------------------------- |
-| Framework     | SvelteKit with Svelte 5 | https://svelte.dev/docs       |
-| UI Components | shadcn-svelte           | https://www.shadcn-svelte.com |
-| Styling       | Tailwind CSS v4         | https://tailwindcss.com/docs  |
-| Database      | SQLite with Drizzle ORM | https://orm.drizzle.team/docs |
-| Runtime       | Bun                     | https://bun.sh/docs           |
+| Layer         | Technology                         | Documentation                 |
+| ------------- | ---------------------------------- | ----------------------------- |
+| Framework     | SvelteKit with Svelte 5            | https://svelte.dev/docs       |
+| UI Components | shadcn-svelte                      | https://www.shadcn-svelte.com |
+| Styling       | Tailwind CSS v4                    | https://tailwindcss.com/docs  |
+| Database      | PostgreSQL (Neon) with Drizzle ORM | https://orm.drizzle.team/docs |
+| Runtime       | Bun                                | https://bun.sh/docs           |
 
 ## Development Commands
 
@@ -148,18 +148,19 @@ The database follows a hierarchical structure for UK Physics education:
 
 ### Database Patterns
 
-- Uses Drizzle ORM with `@libsql/client` (async API with `client.execute()`)
-- Local files use `file:` URL prefix (e.g., `file:local.db`)
+- Uses Drizzle ORM with `@neondatabase/serverless` (Neon HTTP driver for production)
+- Tests use `@electric-sql/pglite` (in-process PostgreSQL, no external connection needed)
 - All IDs are UUIDs generated with `crypto.randomUUID()`
-- Timestamps use `integer` with `{ mode: 'timestamp' }`
+- Timestamps use `timestamp` with `{ mode: 'date' }` (returns JavaScript `Date` objects)
 - Foreign keys use cascade deletes where appropriate
 - Queries use `.leftJoin()` for optional relations
+- Enum columns use `pgEnum` for database-level type enforcement
 
 ### Environment Configuration
 
 Required environment variables (see `.env.example`):
 
-- `DATABASE_URL`: SQLite database file path (defaults to `local.db` for local development)
+- `DATABASE_URL`: Neon PostgreSQL connection string (e.g., `postgresql://user:password@host/dbname?sslmode=require`)
 
 ## Project Structure
 

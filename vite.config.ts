@@ -37,7 +37,7 @@ export default defineConfig({
 					include: ['src/**/*.{test,spec}.{js,ts}'],
 					exclude: ['src/**/*.svelte.{test,spec}.{js,ts}'],
 					env: {
-						DATABASE_URL: ':memory:'
+						VITEST: 'true'
 					},
 					fileParallelism: false,
 					sequence: {

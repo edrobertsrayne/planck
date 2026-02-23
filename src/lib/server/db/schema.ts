@@ -1,4 +1,23 @@
-import { integer, sqliteTable, text } from 'drizzle-orm/sqlite-core';
+import { boolean, integer, pgEnum, pgTable, text, timestamp } from 'drizzle-orm/pg-core';
+
+// ============================================================================
+// Enums
+// ============================================================================
+
+export const timetableWeekEnum = pgEnum('timetable_week', ['A', 'B']);
+export const calendarEventTypeEnum = pgEnum('calendar_event_type', [
+	'holiday',
+	'closure',
+	'absence'
+]);
+export const attachmentTypeEnum = pgEnum('attachment_type', ['file', 'link']);
+export const attachmentEntityTypeEnum = pgEnum('attachment_entity_type', [
+	'class',
+	'module',
+	'lesson',
+	'scheduledLesson',
+	'course'
+]);
 
 // ============================================================================
 // Courses
@@ -8,7 +27,7 @@ import { integer, sqliteTable, text } from 'drizzle-orm/sqlite-core';
  * Course is a top-level container for modules.
  * Examples: "GCSE Physics", "Year 9 Physics", "A-Level Physics"
  */
-export const course = sqliteTable('course', {
+export const course = pgTable('course', {
 	id: text('id')
 		.primaryKey()
 		.$defaultFn(() => crypto.randomUUID()),
@@ -16,10 +35,10 @@ export const course = sqliteTable('course', {
 	name: text('name').notNull(),
 	/** Rich notes stored as Editor.js JSON */
 	notes: text('notes'),
-	createdAt: integer('created_at', { mode: 'timestamp' })
+	createdAt: timestamp('created_at', { mode: 'date' })
 		.notNull()
 		.$defaultFn(() => new Date()),
-	updatedAt: integer('updated_at', { mode: 'timestamp' })
+	updatedAt: timestamp('updated_at', { mode: 'date' })
 		.notNull()
 		.$defaultFn(() => new Date())
 });
@@ -32,7 +51,7 @@ export const course = sqliteTable('course', {
  * Teaching class/group optionally linked to a course.
  * Classes represent a teaching group for a specific academic year.
  */
-export const teachingClass = sqliteTable('class', {
+export const teachingClass = pgTable('class', {
 	id: text('id')
 		.primaryKey()
 		.$defaultFn(() => crypto.randomUUID()),
@@ -50,10 +69,10 @@ export const teachingClass = sqliteTable('class', {
 	room: text('room'),
 	/** Optional free-text notes about the class */
 	notes: text('notes'),
-	createdAt: integer('created_at', { mode: 'timestamp' })
+	createdAt: timestamp('created_at', { mode: 'date' })
 		.notNull()
 		.$defaultFn(() => new Date()),
-	updatedAt: integer('updated_at', { mode: 'timestamp' })
+	updatedAt: timestamp('updated_at', { mode: 'date' })
 		.notNull()
 		.$defaultFn(() => new Date())
 });
@@ -71,7 +90,7 @@ export const teachingClass = sqliteTable('class', {
  * Year-specific records (academicYear = "YYYY-YY") store:
  * - periodsPerDay and daysPerWeek: Vary by academic year
  */
-export const timetableConfig = sqliteTable('timetable_config', {
+export const timetableConfig = pgTable('timetable_config', {
 	id: text('id')
 		.primaryKey()
 		.$defaultFn(() => crypto.randomUUID()),
@@ -83,10 +102,10 @@ export const timetableConfig = sqliteTable('timetable_config', {
 	periodsPerDay: integer('periods_per_day').notNull().default(6),
 	/** Number of days per week (1-7, typically 5 for Mon-Fri). Stored in year-specific records */
 	daysPerWeek: integer('days_per_week').notNull().default(5),
-	createdAt: integer('created_at', { mode: 'timestamp' })
+	createdAt: timestamp('created_at', { mode: 'date' })
 		.notNull()
 		.$defaultFn(() => new Date()),
-	updatedAt: integer('updated_at', { mode: 'timestamp' })
+	updatedAt: timestamp('updated_at', { mode: 'date' })
 		.notNull()
 		.$defaultFn(() => new Date())
 });
@@ -95,7 +114,7 @@ export const timetableConfig = sqliteTable('timetable_config', {
  * Timetable slots for a class.
  * Defines when a class is scheduled during the timetable cycle.
  */
-export const timetableSlot = sqliteTable('timetable_slot', {
+export const timetableSlot = pgTable('timetable_slot', {
 	id: text('id')
 		.primaryKey()
 		.$defaultFn(() => crypto.randomUUID()),
@@ -110,11 +129,11 @@ export const timetableSlot = sqliteTable('timetable_slot', {
 	/** Ending period for this slot (same as start for single, higher for doubles) */
 	periodEnd: integer('period_end').notNull(),
 	/** Week identifier for 2-week timetables: 'A', 'B', or null for 1-week timetables */
-	week: text('week', { enum: ['A', 'B'] }),
-	createdAt: integer('created_at', { mode: 'timestamp' })
+	week: timetableWeekEnum('week'),
+	createdAt: timestamp('created_at', { mode: 'date' })
 		.notNull()
 		.$defaultFn(() => new Date()),
-	updatedAt: integer('updated_at', { mode: 'timestamp' })
+	updatedAt: timestamp('updated_at', { mode: 'date' })
 		.notNull()
 		.$defaultFn(() => new Date())
 });
@@ -127,7 +146,7 @@ export const timetableSlot = sqliteTable('timetable_slot', {
  * Module is a reusable template for a planned sequence of lessons.
  * Modules belong to a course and are copied when assigned to a class.
  */
-export const module = sqliteTable('module', {
+export const module = pgTable('module', {
 	id: text('id')
 		.primaryKey()
 		.$defaultFn(() => crypto.randomUUID()),
@@ -139,10 +158,10 @@ export const module = sqliteTable('module', {
 		.references(() => course.id, { onDelete: 'cascade' }),
 	/** Rich notes stored as Editor.js JSON */
 	notes: text('notes'),
-	createdAt: integer('created_at', { mode: 'timestamp' })
+	createdAt: timestamp('created_at', { mode: 'date' })
 		.notNull()
 		.$defaultFn(() => new Date()),
-	updatedAt: integer('updated_at', { mode: 'timestamp' })
+	updatedAt: timestamp('updated_at', { mode: 'date' })
 		.notNull()
 		.$defaultFn(() => new Date())
 });
@@ -151,7 +170,7 @@ export const module = sqliteTable('module', {
  * Lesson within a module.
  * Lessons are templates that get copied when a module is assigned to a class.
  */
-export const lesson = sqliteTable('lesson', {
+export const lesson = pgTable('lesson', {
 	id: text('id')
 		.primaryKey()
 		.$defaultFn(() => crypto.randomUUID()),
@@ -167,10 +186,10 @@ export const lesson = sqliteTable('lesson', {
 	duration: integer('duration').notNull().default(1),
 	/** Order of this lesson within the module for sequencing */
 	order: integer('order').notNull(),
-	createdAt: integer('created_at', { mode: 'timestamp' })
+	createdAt: timestamp('created_at', { mode: 'date' })
 		.notNull()
 		.$defaultFn(() => new Date()),
-	updatedAt: integer('updated_at', { mode: 'timestamp' })
+	updatedAt: timestamp('updated_at', { mode: 'date' })
 		.notNull()
 		.$defaultFn(() => new Date())
 });
@@ -183,7 +202,7 @@ export const lesson = sqliteTable('lesson', {
  * Module assignment to a class.
  * When a module is assigned to a class, its lessons are copied to scheduled lessons.
  */
-export const moduleAssignment = sqliteTable('module_assignment', {
+export const moduleAssignment = pgTable('module_assignment', {
 	id: text('id')
 		.primaryKey()
 		.$defaultFn(() => crypto.randomUUID()),
@@ -196,11 +215,11 @@ export const moduleAssignment = sqliteTable('module_assignment', {
 		.notNull()
 		.references(() => module.id, { onDelete: 'restrict' }),
 	/** Date when the module assignment starts */
-	startDate: integer('start_date', { mode: 'timestamp' }).notNull(),
-	createdAt: integer('created_at', { mode: 'timestamp' })
+	startDate: timestamp('start_date', { mode: 'date' }).notNull(),
+	createdAt: timestamp('created_at', { mode: 'date' })
 		.notNull()
 		.$defaultFn(() => new Date()),
-	updatedAt: integer('updated_at', { mode: 'timestamp' })
+	updatedAt: timestamp('updated_at', { mode: 'date' })
 		.notNull()
 		.$defaultFn(() => new Date())
 });
@@ -210,7 +229,7 @@ export const moduleAssignment = sqliteTable('module_assignment', {
  * Created by copying a lesson from a module when it's assigned to a class.
  * Scheduled lessons are independent and can be edited without affecting the source module.
  */
-export const scheduledLesson = sqliteTable('scheduled_lesson', {
+export const scheduledLesson = pgTable('scheduled_lesson', {
 	id: text('id')
 		.primaryKey()
 		.$defaultFn(() => crypto.randomUUID()),
@@ -223,7 +242,7 @@ export const scheduledLesson = sqliteTable('scheduled_lesson', {
 		.notNull()
 		.references(() => lesson.id, { onDelete: 'restrict' }),
 	/** Calendar date when this lesson is scheduled */
-	calendarDate: integer('calendar_date', { mode: 'timestamp' }).notNull(),
+	calendarDate: timestamp('calendar_date', { mode: 'date' }).notNull(),
 	/** Reference to the timetable slot (null if manually scheduled) */
 	timetableSlotId: text('timetable_slot_id').references(() => timetableSlot.id, {
 		onDelete: 'set null'
@@ -236,10 +255,10 @@ export const scheduledLesson = sqliteTable('scheduled_lesson', {
 	duration: integer('duration').notNull().default(1),
 	/** Order within the module assignment for sequencing */
 	order: integer('order').notNull(),
-	createdAt: integer('created_at', { mode: 'timestamp' })
+	createdAt: timestamp('created_at', { mode: 'date' })
 		.notNull()
 		.$defaultFn(() => new Date()),
-	updatedAt: integer('updated_at', { mode: 'timestamp' })
+	updatedAt: timestamp('updated_at', { mode: 'date' })
 		.notNull()
 		.$defaultFn(() => new Date())
 });
@@ -252,24 +271,24 @@ export const scheduledLesson = sqliteTable('scheduled_lesson', {
  * Calendar events including holidays, closures, and absences.
  * These events trigger automatic lesson rescheduling when they overlap scheduled lessons.
  */
-export const calendarEvent = sqliteTable('calendar_event', {
+export const calendarEvent = pgTable('calendar_event', {
 	id: text('id')
 		.primaryKey()
 		.$defaultFn(() => crypto.randomUUID()),
 	/** Type of event: holiday (term breaks, bank holidays), closure (INSET, snow days), or absence (teacher absence) */
-	type: text('type', { enum: ['holiday', 'closure', 'absence'] }).notNull(),
+	type: calendarEventTypeEnum('type').notNull(),
 	/** Title/name of the event (e.g., "Half Term", "INSET Day", "Teacher Absence") */
 	title: text('title').notNull(),
 	/** Start date of the event */
-	startDate: integer('start_date', { mode: 'timestamp' }).notNull(),
+	startDate: timestamp('start_date', { mode: 'date' }).notNull(),
 	/** End date of the event (inclusive) */
-	endDate: integer('end_date', { mode: 'timestamp' }).notNull(),
+	endDate: timestamp('end_date', { mode: 'date' }).notNull(),
 	/** Whether this event affects all classes (true) or specific classes (false) */
-	affectsAllClasses: integer('affects_all_classes', { mode: 'boolean' }).notNull().default(true),
-	createdAt: integer('created_at', { mode: 'timestamp' })
+	affectsAllClasses: boolean('affects_all_classes').notNull().default(true),
+	createdAt: timestamp('created_at', { mode: 'date' })
 		.notNull()
 		.$defaultFn(() => new Date()),
-	updatedAt: integer('updated_at', { mode: 'timestamp' })
+	updatedAt: timestamp('updated_at', { mode: 'date' })
 		.notNull()
 		.$defaultFn(() => new Date())
 });
@@ -283,16 +302,14 @@ export const calendarEvent = sqliteTable('calendar_event', {
  * Supports both file uploads and link attachments with polymorphic associations.
  * Entities that can have attachments: courses, classes, modules, lessons, and scheduled lessons.
  */
-export const attachment = sqliteTable('attachment', {
+export const attachment = pgTable('attachment', {
 	id: text('id')
 		.primaryKey()
 		.$defaultFn(() => crypto.randomUUID()),
 	/** Type of attachment: file (uploaded) or link (URL) */
-	type: text('type', { enum: ['file', 'link'] }).notNull(),
+	type: attachmentTypeEnum('type').notNull(),
 	/** Entity type this attachment belongs to */
-	entityType: text('entity_type', {
-		enum: ['class', 'module', 'lesson', 'scheduledLesson', 'course']
-	}).notNull(),
+	entityType: attachmentEntityTypeEnum('entity_type').notNull(),
 	/** ID of the entity this attachment belongs to (polymorphic) */
 	entityId: text('entity_id').notNull(),
 	/** File path for uploaded files (relative to configured uploads directory) */
@@ -303,10 +320,10 @@ export const attachment = sqliteTable('attachment', {
 	fileName: text('file_name'),
 	/** MIME type for files (e.g., application/pdf, image/png) */
 	mimeType: text('mime_type'),
-	createdAt: integer('created_at', { mode: 'timestamp' })
+	createdAt: timestamp('created_at', { mode: 'date' })
 		.notNull()
 		.$defaultFn(() => new Date()),
-	updatedAt: integer('updated_at', { mode: 'timestamp' })
+	updatedAt: timestamp('updated_at', { mode: 'date' })
 		.notNull()
 		.$defaultFn(() => new Date())
 });
