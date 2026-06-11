@@ -31,13 +31,17 @@ export const teachingBlock = pgTable('teaching_block', {
 	endDate: date('end_date', { mode: 'string' }).notNull()
 });
 
-export const closureDay = pgTable('closure_day', {
-	id: serial('id').primaryKey(),
-	userId: text('user_id')
-		.notNull()
-		.references(() => user.id, { onDelete: 'cascade' }),
-	date: date('date', { mode: 'string' }).notNull()
-});
+export const closureDay = pgTable(
+	'closure_day',
+	{
+		id: serial('id').primaryKey(),
+		userId: text('user_id')
+			.notNull()
+			.references(() => user.id, { onDelete: 'cascade' }),
+		date: date('date', { mode: 'string' }).notNull()
+	},
+	(t) => [unique().on(t.userId, t.date)]
+);
 
 export const course = pgTable('course', {
 	id: serial('id').primaryKey(),
@@ -114,6 +118,7 @@ export const scheduledLesson = pgTable(
 		lessonId: integer('lesson_id')
 			.notNull()
 			.references(() => lesson.id, { onDelete: 'cascade' }),
+		// Stored for efficient unscheduleModule (delete all lessons for a module+class).
 		moduleId: integer('module_id')
 			.notNull()
 			.references(() => module.id, { onDelete: 'cascade' }),
