@@ -27,3 +27,6 @@ test-results
 
 # Brainstorming visual companion
 /.superpowers
+
+# brainstorming visual companion
+.superpowers/
