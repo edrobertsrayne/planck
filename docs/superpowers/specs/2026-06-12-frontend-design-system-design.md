@@ -69,7 +69,7 @@ The current data model already carries a per-lesson `colour` value; the design k
 
 Restructure from the current thin sidebar to **top-bar + rail**:
 
-- **Top bar:** Fraunces "planck" wordmark; global search field (visual element — wiring search is out of scope, rendered as a non-functional or simple input placeholder); primary **＋ New lesson** button; account control (avatar) that holds **Sign out** (keeps existing `authClient.signOut()` → `/login` behaviour).
+- **Top bar:** Fraunces "Planck" wordmark; global search field (visual element — wiring search is out of scope, rendered as a non-functional or simple input placeholder); primary **＋ New lesson** button; account control (avatar) that holds **Sign out** (keeps existing `authClient.signOut()` → `/login` behaviour).
 - **Nav rail:** icon + label items (Agenda, Calendar, Courses, Classes, Timetable), Settings pinned to the bottom. Active item uses the pink-100 pill with pink-dk text; hover uses `--color-field`. Active detection keeps the current `page.url.pathname.startsWith(...)` logic.
 - Content area: white, generous padding (~28–32px).
 
