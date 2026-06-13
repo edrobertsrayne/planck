@@ -57,22 +57,22 @@ async function reallocateClassWith(
 	const allocations = allocateSequence(items, stream, today);
 	if (allocations.length === 0) return;
 
-	await db.transaction(async (tx) => {
-		// Two passes to avoid transient (date, period) unique-constraint collisions
-		// when rows swap slots: clear all flow rows first, then assign final slots.
-		for (const a of allocations) {
-			await tx
-				.update(scheduledLesson)
-				.set({ date: null, period: null, room: '' })
-				.where(and(eq(scheduledLesson.userId, userId), eq(scheduledLesson.id, a.id)));
-		}
-		for (const a of allocations) {
-			await tx
-				.update(scheduledLesson)
-				.set({ date: a.date, period: a.period, room: a.room })
-				.where(and(eq(scheduledLesson.userId, userId), eq(scheduledLesson.id, a.id)));
-		}
-	});
+	// neon-http has no interactive transactions; db.batch runs these atomically in one request.
+	// Two passes (clear all, then set) avoid transient (date, period) unique-constraint collisions.
+	const clears = allocations.map((a) =>
+		db
+			.update(scheduledLesson)
+			.set({ date: null, period: null, room: '' })
+			.where(and(eq(scheduledLesson.userId, userId), eq(scheduledLesson.id, a.id)))
+	);
+	const sets = allocations.map((a) =>
+		db
+			.update(scheduledLesson)
+			.set({ date: a.date, period: a.period, room: a.room })
+			.where(and(eq(scheduledLesson.userId, userId), eq(scheduledLesson.id, a.id)))
+	);
+	const statements = [...clears, ...sets];
+	await db.batch(statements as [(typeof statements)[number], ...(typeof statements)[number][]]);
 }
 
 /**
@@ -253,14 +253,15 @@ export async function reorderSequence(
 				lt(scheduledLesson.date, today) // frozen past only (null dates excluded)
 			)
 		);
-	await db.transaction(async (tx) => {
-		for (let i = 0; i < orderedIds.length; i++) {
-			await tx
-				.update(scheduledLesson)
-				.set({ orderIndex: base + 1 + i })
-				.where(and(eq(scheduledLesson.userId, userId), eq(scheduledLesson.id, orderedIds[i])));
-		}
-	});
+	const updates = orderedIds.map((id, i) =>
+		db
+			.update(scheduledLesson)
+			.set({ orderIndex: base + 1 + i })
+			.where(and(eq(scheduledLesson.userId, userId), eq(scheduledLesson.id, id)))
+	);
+	if (updates.length > 0) {
+		await db.batch(updates as [(typeof updates)[number], ...(typeof updates)[number][]]);
+	}
 	await reallocateClass(userId, classId, today);
 }
 
@@ -272,8 +273,8 @@ export async function insertBlank(
 	title: string,
 	today: string = todayIso()
 ): Promise<void> {
-	await db.transaction(async (tx) => {
-		await tx
+	await db.batch([
+		db
 			.update(scheduledLesson)
 			.set({ orderIndex: sql`${scheduledLesson.orderIndex} + 1` })
 			.where(
@@ -282,8 +283,8 @@ export async function insertBlank(
 					eq(scheduledLesson.classId, classId),
 					gte(scheduledLesson.orderIndex, atOrderIndex)
 				)
-			);
-		await tx.insert(scheduledLesson).values({
+			),
+		db.insert(scheduledLesson).values({
 			userId,
 			classId,
 			lessonId: null,
@@ -293,8 +294,8 @@ export async function insertBlank(
 			date: null,
 			period: null,
 			room: ''
-		});
-	});
+		})
+	]);
 	await reallocateClass(userId, classId, today);
 }
 

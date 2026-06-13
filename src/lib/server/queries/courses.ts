@@ -57,14 +57,15 @@ export function deleteModule(userId: string, id: number) {
 }
 
 export async function reorderModules(userId: string, orderedIds: number[]) {
-	await db.transaction(async (tx) => {
-		for (let i = 0; i < orderedIds.length; i++) {
-			await tx
-				.update(module)
-				.set({ orderIndex: i })
-				.where(and(eq(module.userId, userId), eq(module.id, orderedIds[i])));
-		}
-	});
+	const updates = orderedIds.map((id, i) =>
+		db
+			.update(module)
+			.set({ orderIndex: i })
+			.where(and(eq(module.userId, userId), eq(module.id, id)))
+	);
+	if (updates.length > 0) {
+		await db.batch(updates as [(typeof updates)[number], ...(typeof updates)[number][]]);
+	}
 }
 
 export async function getModule(userId: string, id: number) {
@@ -103,12 +104,13 @@ export function deleteLesson(userId: string, id: number) {
 }
 
 export async function reorderLessons(userId: string, orderedIds: number[]) {
-	await db.transaction(async (tx) => {
-		for (let i = 0; i < orderedIds.length; i++) {
-			await tx
-				.update(lesson)
-				.set({ orderIndex: i })
-				.where(and(eq(lesson.userId, userId), eq(lesson.id, orderedIds[i])));
-		}
-	});
+	const updates = orderedIds.map((id, i) =>
+		db
+			.update(lesson)
+			.set({ orderIndex: i })
+			.where(and(eq(lesson.userId, userId), eq(lesson.id, id)))
+	);
+	if (updates.length > 0) {
+		await db.batch(updates as [(typeof updates)[number], ...(typeof updates)[number][]]);
+	}
 }
