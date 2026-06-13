@@ -41,5 +41,6 @@ test('edit a lesson plan and attach a link from the lesson page', async ({ page 
 	// Reload and assert persistence.
 	await page.reload();
 	await expect(page.getByRole('link', { name: 'https://youtube.com/watch?v=abc' })).toBeVisible();
-	await expect(page.locator('.milkdown')).toContainText('understand forces');
+	await expect(page.locator('.milkdown [contenteditable="true"]')).toBeVisible({ timeout: 10000 });
+	await expect(page.locator('.milkdown')).toContainText('understand forces', { timeout: 10000 });
 });
