@@ -1,16 +1,104 @@
-import { eq, and, desc } from 'drizzle-orm';
+import { eq, and, sql, lt, gte, or, isNull } from 'drizzle-orm';
 import { db } from '$lib/server/db';
 import { scheduledLesson, klass, course } from '$lib/server/db/schema';
 import { getConfig, getBlocks, getClosures, getSlots } from './timetable';
 import { getModule, listLessons } from './courses';
 import { getClass } from './classes';
 import { classPeriodStream } from '$lib/scheduling/periods';
-import { planModuleAssignment } from '$lib/scheduling/scheduler';
-import { addDays } from '$lib/scheduling/dates';
+import { allocateSequence } from '$lib/scheduling/allocate';
 import type { SlotData } from '$lib/scheduling/types';
 
 export function todayIso(): string {
 	return new Date().toISOString().slice(0, 10);
+}
+
+interface TimetableInputs {
+	config: Awaited<ReturnType<typeof getConfig>>;
+	blocks: Awaited<ReturnType<typeof getBlocks>>;
+	closures: Awaited<ReturnType<typeof getClosures>>;
+	slots: Awaited<ReturnType<typeof getSlots>>;
+}
+
+async function loadTimetableInputs(userId: string): Promise<TimetableInputs> {
+	const [config, blocks, closures, slots] = await Promise.all([
+		getConfig(userId),
+		getBlocks(userId),
+		getClosures(userId),
+		getSlots(userId)
+	]);
+	return { config, blocks, closures, slots };
+}
+
+/**
+ * Re-derive date/period/room for a class's sequence from its future slot stream,
+ * using already-fetched timetable inputs. Frozen (already-taught) rows are left
+ * untouched.
+ */
+async function reallocateClassWith(
+	userId: string,
+	classId: number,
+	inputs: TimetableInputs,
+	today: string
+): Promise<void> {
+	const items = await db
+		.select({ id: scheduledLesson.id, date: scheduledLesson.date })
+		.from(scheduledLesson)
+		.where(and(eq(scheduledLesson.userId, userId), eq(scheduledLesson.classId, classId)))
+		.orderBy(scheduledLesson.orderIndex);
+
+	const stream = classPeriodStream(
+		inputs.config,
+		inputs.blocks.map((b) => ({ startDate: b.startDate, endDate: b.endDate })),
+		inputs.closures.map((c) => c.date),
+		inputs.slots as SlotData[],
+		classId
+	).filter((o) => o.date >= today);
+
+	const allocations = allocateSequence(items, stream, today);
+	if (allocations.length === 0) return;
+
+	await db.transaction(async (tx) => {
+		// Two passes to avoid transient (date, period) unique-constraint collisions
+		// when rows swap slots: clear all flow rows first, then assign final slots.
+		for (const a of allocations) {
+			await tx
+				.update(scheduledLesson)
+				.set({ date: null, period: null, room: '' })
+				.where(and(eq(scheduledLesson.userId, userId), eq(scheduledLesson.id, a.id)));
+		}
+		for (const a of allocations) {
+			await tx
+				.update(scheduledLesson)
+				.set({ date: a.date, period: a.period, room: a.room })
+				.where(and(eq(scheduledLesson.userId, userId), eq(scheduledLesson.id, a.id)));
+		}
+	});
+}
+
+/**
+ * Re-derive date/period/room for a class's sequence from its future slot stream.
+ * The single source of allocation.
+ */
+export async function reallocateClass(
+	userId: string,
+	classId: number,
+	today: string = todayIso()
+): Promise<void> {
+	const inputs = await loadTimetableInputs(userId);
+	await reallocateClassWith(userId, classId, inputs, today);
+}
+
+/** Reallocate every class for a user (used after timetable-wide changes). */
+export async function reallocateAllClasses(
+	userId: string,
+	today: string = todayIso()
+): Promise<void> {
+	const inputs = await loadTimetableInputs(userId);
+	const classes = await db
+		.select({ id: klass.id })
+		.from(klass)
+		.where(eq(klass.userId, userId));
+	await Promise.all(classes.map((c) => reallocateClassWith(userId, c.id, inputs, today)));
 }
 
 export interface AssignResult {
@@ -31,61 +119,58 @@ export async function assignModule(
 	if (!mod || !cls) throw new Error('Module or class not found');
 	if (mod.courseId !== cls.courseId) throw new Error('Class does not study this course');
 
-	const [config, blocks, closures, slots, lessons] = await Promise.all([
-		getConfig(userId),
-		getBlocks(userId),
-		getClosures(userId),
-		getSlots(userId),
-		listLessons(userId, moduleId)
-	]);
+	const lessons = await listLessons(userId, moduleId);
 	if (lessons.length === 0)
 		return { scheduled: 0, unscheduled: 0, firstDate: null, lastDate: null };
 
-	const stream = classPeriodStream(
-		config,
-		blocks.map((b) => ({ startDate: b.startDate, endDate: b.endDate })),
-		closures.map((c) => c.date),
-		slots as SlotData[],
-		classId
+	const [{ next }] = await db
+		.select({ next: sql<number>`coalesce(max(${scheduledLesson.orderIndex}) + 1, 0)` })
+		.from(scheduledLesson)
+		.where(and(eq(scheduledLesson.userId, userId), eq(scheduledLesson.classId, classId)));
+
+	await db.insert(scheduledLesson).values(
+		lessons.map((l, i) => ({
+			userId,
+			classId,
+			lessonId: l.id,
+			moduleId,
+			title: l.title,
+			orderIndex: next + i,
+			date: null,
+			period: null,
+			room: ''
+		}))
 	);
 
-	const [last] = await db
-		.select({ date: scheduledLesson.date, period: scheduledLesson.period })
+	await reallocateClass(userId, classId, today);
+
+	const placed = await db
+		.select({ date: scheduledLesson.date })
 		.from(scheduledLesson)
-		.where(and(eq(scheduledLesson.userId, userId), eq(scheduledLesson.classId, classId)))
-		.orderBy(desc(scheduledLesson.date), desc(scheduledLesson.period))
-		.limit(1);
-
-	const plan = planModuleAssignment(stream, lessons, {
-		notBefore: addDays(today, 1),
-		lastScheduled: last ?? undefined
-	});
-
-	if (plan.placements.length > 0) {
-		await db.insert(scheduledLesson).values(
-			plan.placements.map((p) => ({
-				userId,
-				classId,
-				lessonId: p.lessonId,
-				moduleId,
-				date: p.date,
-				period: p.period,
-				title: p.title,
-				room: p.room
-			}))
-		);
-	}
-
+		.where(
+			and(
+				eq(scheduledLesson.userId, userId),
+				eq(scheduledLesson.classId, classId),
+				eq(scheduledLesson.moduleId, moduleId)
+			)
+		)
+		.orderBy(scheduledLesson.orderIndex);
+	const dated = placed.map((p) => p.date).filter((d): d is string => d !== null);
 	return {
-		scheduled: plan.placements.length,
-		unscheduled: plan.unscheduledCount,
-		firstDate: plan.placements[0]?.date ?? null,
-		lastDate: plan.placements.at(-1)?.date ?? null
+		scheduled: dated.length,
+		unscheduled: placed.length - dated.length,
+		firstDate: dated[0] ?? null,
+		lastDate: dated.at(-1) ?? null
 	};
 }
 
-export function unscheduleModule(userId: string, moduleId: number, classId: number) {
-	return db
+export async function unscheduleModule(
+	userId: string,
+	moduleId: number,
+	classId: number,
+	today: string = todayIso()
+): Promise<void> {
+	await db
 		.delete(scheduledLesson)
 		.where(
 			and(
@@ -94,6 +179,7 @@ export function unscheduleModule(userId: string, moduleId: number, classId: numb
 				eq(scheduledLesson.classId, classId)
 			)
 		);
+	await reallocateClass(userId, classId, today);
 }
 
 export function deleteScheduledLesson(userId: string, id: number) {
@@ -135,4 +221,131 @@ export function listUpcoming(userId: string) {
 		.innerJoin(course, eq(klass.courseId, course.id))
 		.where(eq(scheduledLesson.userId, userId))
 		.orderBy(scheduledLesson.date, scheduledLesson.period);
+}
+
+/** The class's editable sequence: overflow rows + rows on/after today, in order. */
+export function listClassSequence(userId: string, classId: number, today: string = todayIso()) {
+	return db
+		.select({
+			id: scheduledLesson.id,
+			orderIndex: scheduledLesson.orderIndex,
+			date: scheduledLesson.date,
+			period: scheduledLesson.period,
+			room: scheduledLesson.room,
+			title: scheduledLesson.title
+		})
+		.from(scheduledLesson)
+		.where(
+			and(
+				eq(scheduledLesson.userId, userId),
+				eq(scheduledLesson.classId, classId),
+				or(isNull(scheduledLesson.date), gte(scheduledLesson.date, today))
+			)
+		)
+		.orderBy(scheduledLesson.orderIndex);
+}
+
+/** Renumber the visible (flow) rows after the frozen past prefix, in given order. */
+export async function reorderSequence(
+	userId: string,
+	classId: number,
+	orderedIds: number[],
+	today: string = todayIso()
+): Promise<void> {
+	const [{ base }] = await db
+		.select({ base: sql<number>`coalesce(max(${scheduledLesson.orderIndex}), -1)` })
+		.from(scheduledLesson)
+		.where(
+			and(
+				eq(scheduledLesson.userId, userId),
+				eq(scheduledLesson.classId, classId),
+				lt(scheduledLesson.date, today) // frozen past only (null dates excluded)
+			)
+		);
+	await db.transaction(async (tx) => {
+		for (let i = 0; i < orderedIds.length; i++) {
+			await tx
+				.update(scheduledLesson)
+				.set({ orderIndex: base + 1 + i })
+				.where(and(eq(scheduledLesson.userId, userId), eq(scheduledLesson.id, orderedIds[i])));
+		}
+	});
+	await reallocateClass(userId, classId, today);
+}
+
+/** Insert a blank spacer; rows at/after atOrderIndex shift forward by one. */
+export async function insertBlank(
+	userId: string,
+	classId: number,
+	atOrderIndex: number,
+	title: string,
+	today: string = todayIso()
+): Promise<void> {
+	await db.transaction(async (tx) => {
+		await tx
+			.update(scheduledLesson)
+			.set({ orderIndex: sql`${scheduledLesson.orderIndex} + 1` })
+			.where(
+				and(
+					eq(scheduledLesson.userId, userId),
+					eq(scheduledLesson.classId, classId),
+					gte(scheduledLesson.orderIndex, atOrderIndex)
+				)
+			);
+		await tx.insert(scheduledLesson).values({
+			userId,
+			classId,
+			lessonId: null,
+			moduleId: null,
+			title,
+			orderIndex: atOrderIndex,
+			date: null,
+			period: null,
+			room: ''
+		});
+	});
+	await reallocateClass(userId, classId, today);
+}
+
+/** The orderIndex to append a new blank at the end of the class's sequence. */
+export async function nextOrderIndex(userId: string, classId: number): Promise<number> {
+	const [{ next }] = await db
+		.select({ next: sql<number>`coalesce(max(${scheduledLesson.orderIndex}) + 1, 0)` })
+		.from(scheduledLesson)
+		.where(and(eq(scheduledLesson.userId, userId), eq(scheduledLesson.classId, classId)));
+	return next;
+}
+
+/** Look up a row's orderIndex (for inserting a blank above it). */
+export async function getOrderIndex(userId: string, id: number): Promise<number | null> {
+	const [row] = await db
+		.select({ orderIndex: scheduledLesson.orderIndex })
+		.from(scheduledLesson)
+		.where(and(eq(scheduledLesson.userId, userId), eq(scheduledLesson.id, id)));
+	return row?.orderIndex ?? null;
+}
+
+/** Delete one row from the sequence; the tail pulls back on reallocate. */
+export async function deleteFromSequence(
+	userId: string,
+	id: number,
+	today: string = todayIso()
+): Promise<void> {
+	const [row] = await db
+		.select({ classId: scheduledLesson.classId })
+		.from(scheduledLesson)
+		.where(and(eq(scheduledLesson.userId, userId), eq(scheduledLesson.id, id)));
+	if (!row) return;
+	await db
+		.delete(scheduledLesson)
+		.where(and(eq(scheduledLesson.userId, userId), eq(scheduledLesson.id, id)));
+	await reallocateClass(userId, row.classId, today);
+}
+
+/** Rename a single scheduled instance (does not touch the lesson template). */
+export async function renameScheduledLesson(userId: string, id: number, title: string) {
+	return db
+		.update(scheduledLesson)
+		.set({ title })
+		.where(and(eq(scheduledLesson.userId, userId), eq(scheduledLesson.id, id)));
 }
