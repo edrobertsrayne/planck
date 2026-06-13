@@ -87,7 +87,7 @@ Invariant: the frozen past is always a prefix (lowest `orderIndex`) because
 assignment appends chronologically and sequence edits only renumber flow items,
 keeping them after the frozen prefix's maximum `orderIndex`.
 
-Boundary detail: a flow item may be assigned to a slot earlier *today* that has
+Boundary detail: a flow item may be assigned to a slot earlier _today_ that has
 already passed; we ignore intra-day time and treat `today` as the boundary.
 
 ## Server actions & helpers

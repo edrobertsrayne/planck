@@ -9,6 +9,7 @@
 **Tech Stack:** SvelteKit (Svelte 5 runes), TypeScript, Drizzle ORM (Postgres/Neon, `drizzle-kit push` workflow), Vitest, `svelte-dnd-action` (new dependency).
 
 **Key conventions observed in this repo:**
+
 - Pure scheduling logic lives in `src/lib/scheduling/*` with co-located `*.spec.ts` (Vitest). DB query functions in `src/lib/server/queries/*` have **no** unit tests — they are verified via `bun run check` and the app.
 - Reorder pattern (`reorderLessons`/`reorderModules`): submit a comma-joined `orderedIds` string to a `?/reorder` form action; renumber sequentially inside `db.transaction`. **No unique constraint on `orderIndex`** (so sequential UPDATEs don't collide mid-transaction). This plan follows that — it does NOT add a unique constraint on `orderIndex`.
 - Form actions use `use:enhance`. Page loads use `requireUserId(event)`.
@@ -20,6 +21,7 @@
 Make `scheduled_lesson` a sequence: add `orderIndex`, make `date`/`period`/`lessonId`/`moduleId` nullable. Then backfill `orderIndex` for any existing rows.
 
 **Files:**
+
 - Modify: `src/lib/server/db/schema.ts:101-124`
 - Create: `scripts/backfill-order-index.ts`
 
@@ -107,6 +109,7 @@ git commit -m "feat(db): make scheduled_lesson an ordered sequence (orderIndex, 
 The single source of allocation logic: given the class's ordered items and the future slot stream, decide which item lands in which slot and which overflow. Frozen (already-taught) items are excluded from output and left untouched.
 
 **Files:**
+
 - Create: `src/lib/scheduling/allocate.ts`
 - Test: `src/lib/scheduling/allocate.spec.ts`
 
@@ -261,6 +264,7 @@ git commit -m "feat(scheduling): add pure allocateSequence (sequence -> slots, o
 Thin DB wrappers around `allocateSequence`. This is the only place that writes `date`/`period`/`room` derived from the sequence.
 
 **Files:**
+
 - Modify: `src/lib/server/queries/schedule.ts`
 
 - [ ] **Step 1: Replace the imports at the top of `schedule.ts`**
@@ -333,10 +337,7 @@ export async function reallocateAllClasses(
 	userId: string,
 	today: string = todayIso()
 ): Promise<void> {
-	const classes = await db
-		.select({ id: klass.id })
-		.from(klass)
-		.where(eq(klass.userId, userId));
+	const classes = await db.select({ id: klass.id }).from(klass).where(eq(klass.userId, userId));
 	for (const c of classes) await reallocateClass(userId, c.id, today);
 }
 ```
@@ -360,6 +361,7 @@ git commit -m "feat(schedule): add reallocateClass/reallocateAllClasses wrappers
 Assigning a module appends its lessons to the class sequence then reallocates. Unscheduling removes them then reallocates.
 
 **Files:**
+
 - Modify: `src/lib/server/queries/schedule.ts:23-97` (the old `assignModule`/`unscheduleModule`)
 
 - [ ] **Step 1: Replace `assignModule`**
@@ -469,6 +471,7 @@ git commit -m "feat(schedule): assign/unschedule module via sequence + reallocat
 Reorder, insert-blank, delete, rename, and a list query for the class page. Each mutating op (except rename) ends by reallocating.
 
 **Files:**
+
 - Modify: `src/lib/server/queries/schedule.ts`
 
 - [ ] **Step 1: Add the helpers**
@@ -623,6 +626,7 @@ git commit -m "feat(schedule): sequence edit helpers (list/reorder/insert/delete
 Timetable changes must re-derive allocations so the class page and Agenda stay correct. Agenda's per-lesson delete now reflows the tail.
 
 **Files:**
+
 - Modify: `src/routes/(app)/settings/+page.server.ts`
 - Modify: `src/routes/(app)/timetable/+page.server.ts`
 - Modify: `src/routes/(app)/agenda/+page.server.ts`
@@ -668,26 +672,26 @@ import { reallocateAllClasses } from '$lib/server/queries/schedule';
 Add `await reallocateAllClasses(userId);` as the final line of the `set` action (covers both the `clearSlot` early-return path and the `setSlot` path — so restructure to a single exit):
 
 ```ts
-	set: async (event) => {
-		const userId = requireUserId(event);
-		const form = await event.request.formData();
-		const classId = Number(form.get('classId'));
-		const weekLetter = String(form.get('weekLetter'));
-		const dayOfWeek = Number(form.get('dayOfWeek'));
-		const period = Number(form.get('period'));
-		if (!classId) {
-			await clearSlot(userId, weekLetter, dayOfWeek, period);
-		} else {
-			await setSlot(userId, {
-				weekLetter,
-				dayOfWeek,
-				period,
-				classId,
-				room: String(form.get('room') ?? '')
-			});
-		}
-		await reallocateAllClasses(userId);
+set: async (event) => {
+	const userId = requireUserId(event);
+	const form = await event.request.formData();
+	const classId = Number(form.get('classId'));
+	const weekLetter = String(form.get('weekLetter'));
+	const dayOfWeek = Number(form.get('dayOfWeek'));
+	const period = Number(form.get('period'));
+	if (!classId) {
+		await clearSlot(userId, weekLetter, dayOfWeek, period);
+	} else {
+		await setSlot(userId, {
+			weekLetter,
+			dayOfWeek,
+			period,
+			classId,
+			room: String(form.get('room') ?? '')
+		});
 	}
+	await reallocateAllClasses(userId);
+};
 ```
 
 - [ ] **Step 3: agenda — route delete through the sequence helper**
@@ -735,6 +739,7 @@ git commit -m "feat: reallocate on timetable edits; reflow Agenda delete"
 Class names become links to `/classes/{id}` from Agenda, Calendar, and Classes. Add a query that returns a class joined with its course (for the new page header).
 
 **Files:**
+
 - Modify: `src/lib/server/queries/classes.ts`
 - Modify: `src/routes/(app)/agenda/+page.server.ts` (add `classId` to select)
 - Modify: `src/routes/(app)/agenda/+page.svelte` (link class name)
@@ -772,16 +777,15 @@ In `src/routes/(app)/agenda/+page.server.ts`, add `classId: scheduledLesson.clas
 In `src/routes/(app)/agenda/+page.svelte`, replace:
 
 ```svelte
-				<span class="w-16 font-bold">{item.className}</span>
+<span class="w-16 font-bold">{item.className}</span>
 ```
 
 with:
 
 ```svelte
-				<a
-					href="/classes/{item.classId}"
-					class="w-16 font-bold text-pink-dk hover:underline">{item.className}</a
-				>
+<a href="/classes/{item.classId}" class="w-16 font-bold text-pink-dk hover:underline"
+	>{item.className}</a
+>
 ```
 
 - [ ] **Step 4: Calendar load — include `classId`**
@@ -793,16 +797,13 @@ In `src/routes/(app)/calendar/+page.server.ts`, add `classId: scheduledLesson.cl
 In `src/routes/(app)/calendar/+page.svelte`, replace:
 
 ```svelte
-									<div class="text-xs font-bold">{l.className}</div>
+<div class="text-xs font-bold">{l.className}</div>
 ```
 
 with:
 
 ```svelte
-									<a
-										href="/classes/{l.classId}"
-										class="text-xs font-bold hover:underline">{l.className}</a
-									>
+<a href="/classes/{l.classId}" class="text-xs font-bold hover:underline">{l.className}</a>
 ```
 
 - [ ] **Step 6: Classes template — link the class name**
@@ -810,15 +811,15 @@ with:
 In `src/routes/(app)/classes/+page.svelte`, replace:
 
 ```svelte
-				<span class="font-semibold text-ink">{c.name}</span>
+<span class="font-semibold text-ink">{c.name}</span>
 ```
 
 with:
 
 ```svelte
-				<a href="/classes/{c.id}" class="font-semibold text-ink hover:text-pink-dk hover:underline"
-					>{c.name}</a
-				>
+<a href="/classes/{c.id}" class="font-semibold text-ink hover:text-pink-dk hover:underline"
+	>{c.name}</a
+>
 ```
 
 - [ ] **Step 7: Verify**
@@ -838,6 +839,7 @@ git commit -m "feat: link class names to the class page; add getClassWithCourse"
 ### Task 8: Install `svelte-dnd-action`
 
 **Files:**
+
 - Modify: `package.json` (via package manager)
 
 - [ ] **Step 1: Add the dependency**
@@ -857,6 +859,7 @@ git commit -m "chore: add svelte-dnd-action"
 ### Task 9: Class page route — load + actions
 
 **Files:**
+
 - Create: `src/routes/(app)/classes/[classId]/+page.server.ts`
 
 - [ ] **Step 1: Write the page server**
@@ -967,6 +970,7 @@ git commit -m "feat(classes): class page load + sequence-edit actions"
 A single ordered list of flow items. Dated rows show date/period/week; overflow rows (null date) render greyed under a warning. Drag-and-drop via `svelte-dnd-action`; on drop, POST `orderedIds` to `?/reorder` and `invalidateAll()`. Up/down buttons provide an accessible fallback. Inline rename, delete, insert-blank-above, and add-blank-at-end.
 
 **Files:**
+
 - Create: `src/routes/(app)/classes/[classId]/+page.svelte`
 
 - [ ] **Step 1: Write the component**
@@ -1075,7 +1079,8 @@ Create `src/routes/(app)/classes/[classId]/+page.svelte`:
 				{#if item.date}
 					<span class="w-28 shrink-0 font-semibold text-ink/80">{label(item.date)}</span>
 					<span class="w-7 shrink-0 font-bold text-muted">P{item.period}</span>
-					{#if item.weekLetter}<span class="w-10 shrink-0 text-xs text-muted">Wk {item.weekLetter}</span
+					{#if item.weekLetter}<span class="w-10 shrink-0 text-xs text-muted"
+							>Wk {item.weekLetter}</span
 						>{/if}
 				{:else}
 					<span class="w-28 shrink-0 text-xs italic">unscheduled</span>
@@ -1094,7 +1099,8 @@ Create `src/routes/(app)/classes/[classId]/+page.svelte`:
 				</form>
 
 				{#if item.room}<span
-						class="rounded-md bg-field px-2 py-0.5 text-xs font-semibold text-muted">{item.room}</span
+						class="rounded-md bg-field px-2 py-0.5 text-xs font-semibold text-muted"
+						>{item.room}</span
 					>{/if}
 
 				<div class="flex items-center gap-2 opacity-0 transition group-hover:opacity-100">
@@ -1154,6 +1160,7 @@ Expected: No errors.
 - [ ] **Step 3: Manual smoke test (dev server)**
 
 Run: `bun run dev`, then in the browser:
+
 - From **Classes**, **Agenda**, and **Calendar**, click a class name → lands on `/classes/{id}`.
 - Drag a lesson to reorder → dates re-derive after the list settles; refresh confirms persistence.
 - Up/down arrows reorder identically.

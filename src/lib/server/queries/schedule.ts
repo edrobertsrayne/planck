@@ -94,10 +94,7 @@ export async function reallocateAllClasses(
 	today: string = todayIso()
 ): Promise<void> {
 	const inputs = await loadTimetableInputs(userId);
-	const classes = await db
-		.select({ id: klass.id })
-		.from(klass)
-		.where(eq(klass.userId, userId));
+	const classes = await db.select({ id: klass.id }).from(klass).where(eq(klass.userId, userId));
 	await Promise.all(classes.map((c) => reallocateClassWith(userId, c.id, inputs, today)));
 }
 
