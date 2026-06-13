@@ -179,12 +179,6 @@ export async function unscheduleModule(
 	await reallocateClass(userId, classId, today);
 }
 
-export function deleteScheduledLesson(userId: string, id: number) {
-	return db
-		.delete(scheduledLesson)
-		.where(and(eq(scheduledLesson.userId, userId), eq(scheduledLesson.id, id)));
-}
-
 export async function moveScheduledLesson(
 	userId: string,
 	id: number,

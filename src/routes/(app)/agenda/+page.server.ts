@@ -44,6 +44,8 @@ export const load: PageServerLoad = async (event) => {
 	);
 	const weekMap = resolveWeekLetters(config.cycleWeeks, config.anchorLetter, teaching);
 
+	// date/period are nullable in the schema (overflow rows), but the query's
+	// `gte(date, today)` already excludes them; narrow so groupByDate is satisfied.
 	const dated = rows.filter(
 		(r): r is (typeof rows)[number] & { date: string; period: number } =>
 			r.date !== null && r.period !== null
