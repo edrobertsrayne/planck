@@ -1,11 +1,6 @@
 import { eq, and } from 'drizzle-orm';
 import { db } from '$lib/server/db';
-import {
-	timetableConfig,
-	teachingBlock,
-	closureDay,
-	timetableSlot
-} from '$lib/server/db/schema';
+import { timetableConfig, teachingBlock, closureDay, timetableSlot } from '$lib/server/db/schema';
 import type { DayOfWeek } from '$lib/scheduling/dates';
 import type { WeekLetter } from '$lib/scheduling/types';
 
@@ -17,10 +12,7 @@ const DEFAULT_CONFIG = {
 };
 
 export async function getConfig(userId: string) {
-	const [row] = await db
-		.select()
-		.from(timetableConfig)
-		.where(eq(timetableConfig.userId, userId));
+	const [row] = await db.select().from(timetableConfig).where(eq(timetableConfig.userId, userId));
 	if (!row) return { ...DEFAULT_CONFIG };
 	return {
 		cycleWeeks: row.cycleWeeks as 1 | 2,
@@ -58,15 +50,13 @@ export function addBlock(userId: string, name: string, startDate: string, endDat
 }
 
 export function deleteBlock(userId: string, id: number) {
-	return db.delete(teachingBlock).where(and(eq(teachingBlock.userId, userId), eq(teachingBlock.id, id)));
+	return db
+		.delete(teachingBlock)
+		.where(and(eq(teachingBlock.userId, userId), eq(teachingBlock.id, id)));
 }
 
 export function getClosures(userId: string) {
-	return db
-		.select()
-		.from(closureDay)
-		.where(eq(closureDay.userId, userId))
-		.orderBy(closureDay.date);
+	return db.select().from(closureDay).where(eq(closureDay.userId, userId)).orderBy(closureDay.date);
 }
 
 export function addClosure(userId: string, date: string) {
@@ -89,7 +79,12 @@ export async function setSlot(
 		.insert(timetableSlot)
 		.values({ userId, ...data })
 		.onConflictDoUpdate({
-			target: [timetableSlot.userId, timetableSlot.weekLetter, timetableSlot.dayOfWeek, timetableSlot.period],
+			target: [
+				timetableSlot.userId,
+				timetableSlot.weekLetter,
+				timetableSlot.dayOfWeek,
+				timetableSlot.period
+			],
 			set: { classId: data.classId, room: data.room }
 		});
 }

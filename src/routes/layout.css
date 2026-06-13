@@ -1,3 +1,35 @@
 @import 'tailwindcss';
 @plugin '@tailwindcss/forms';
 @plugin '@tailwindcss/typography';
+
+@theme {
+	--font-sans: 'Inter Variable', ui-sans-serif, system-ui, sans-serif;
+	--font-display: 'Fraunces Variable', ui-serif, Georgia, serif;
+
+	--color-pink: #e8488b;
+	--color-pink-hover: #d83d80;
+	--color-pink-dk: #a21d6b;
+	--color-pink-50: #fdf2f8;
+	--color-pink-100: #fce7f3;
+	--color-pink-200: #fbcfe8;
+
+	--color-ink: #3a2f35;
+	--color-muted: #a89aa1;
+	--color-line: #f1e8ec;
+	--color-field: #f7f4f6;
+	--color-danger: #c2476b;
+	--color-success: #2f7d56;
+	--color-success-bg: #e8f5ee;
+
+	--radius-control: 0.625rem; /* 10px */
+	--radius-card: 0.875rem; /* 14px */
+}
+
+@layer base {
+	html {
+		background: #fff;
+		color: var(--color-ink);
+		font-family: var(--font-sans);
+		font-variant-numeric: tabular-nums;
+	}
+}

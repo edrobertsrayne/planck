@@ -36,6 +36,10 @@ export default defineConfig(
 	{
 		// Override or add rule settings here, such as:
 		// 'svelte/button-has-type': 'error'
-		rules: {}
+		rules: {
+			// This app does not use a base path, so route literals are safe as-is.
+			// The project has never enforced this rule; keep navigation literals readable.
+			'svelte/no-navigation-without-resolve': 'off'
+		}
 	}
 );

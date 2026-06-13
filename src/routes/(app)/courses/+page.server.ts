@@ -1,12 +1,7 @@
 import { error } from '@sveltejs/kit';
 import type { Actions, PageServerLoad } from './$types';
 import { requireUserId } from '$lib/server/session';
-import {
-	listCourses,
-	createCourse,
-	updateCourse,
-	deleteCourse
-} from '$lib/server/queries/courses';
+import { listCourses, createCourse, updateCourse, deleteCourse } from '$lib/server/queries/courses';
 
 export const load: PageServerLoad = async (event) => {
 	const userId = requireUserId(event);
@@ -24,7 +19,12 @@ export const actions: Actions = {
 	update: async (event) => {
 		const userId = requireUserId(event);
 		const form = await event.request.formData();
-		await updateCourse(userId, Number(form.get('id')), String(form.get('name')), String(form.get('colour')));
+		await updateCourse(
+			userId,
+			Number(form.get('id')),
+			String(form.get('name')),
+			String(form.get('colour'))
+		);
 	},
 	delete: async (event) => {
 		const userId = requireUserId(event);

@@ -1,5 +1,9 @@
 <script lang="ts">
 	import { enhance } from '$app/forms';
+	import PageHeader from '$lib/components/PageHeader.svelte';
+	import Card from '$lib/components/Card.svelte';
+	import Button from '$lib/components/Button.svelte';
+	import EmptyState from '$lib/components/EmptyState.svelte';
 	let { data } = $props();
 
 	function reorderedIds(index: number, dir: -1 | 1): string {
@@ -11,32 +15,52 @@
 	}
 </script>
 
-<a href="/courses" class="text-sm text-blue-600">← Courses</a>
-<h1 class="mb-4 text-2xl font-bold">{data.course.name}</h1>
+<a href="/courses" class="text-sm font-medium text-pink-dk hover:underline">← Courses</a>
+<PageHeader title={data.course.name} />
 
-<ul class="mb-6 flex flex-col gap-1">
-	{#each data.modules as m, i (m.id)}
-		<li class="flex items-center gap-2">
-			<form method="POST" action="?/reorder" use:enhance>
-				<input type="hidden" name="orderedIds" value={reorderedIds(i, -1)} />
-				<button class="px-1" disabled={i === 0} aria-label="Move up">↑</button>
-			</form>
-			<form method="POST" action="?/reorder" use:enhance>
-				<input type="hidden" name="orderedIds" value={reorderedIds(i, 1)} />
-				<button class="px-1" disabled={i === data.modules.length - 1} aria-label="Move down">↓</button>
-			</form>
-			<a class="font-medium text-blue-700 hover:underline" href="/courses/{data.course.id}/modules/{m.id}">
-				{m.name}
-			</a>
-			<form method="POST" action="?/delete" class="ml-auto">
-				<input type="hidden" name="id" value={m.id} />
-				<button class="text-sm text-red-600">Delete</button>
-			</form>
-		</li>
-	{/each}
-</ul>
+{#if data.modules.length === 0}
+	<EmptyState message="No modules yet. Add the first one below." />
+{:else}
+	<ul class="mb-6 flex flex-col gap-1.5">
+		{#each data.modules as m, i (m.id)}
+			<li class="flex items-center gap-2 rounded-card border border-line bg-white px-4 py-2.5">
+				<form method="POST" action="?/reorder" use:enhance>
+					<input type="hidden" name="orderedIds" value={reorderedIds(i, -1)} />
+					<button
+						class="px-1 text-muted hover:text-ink disabled:opacity-30"
+						disabled={i === 0}
+						aria-label="Move up">↑</button
+					>
+				</form>
+				<form method="POST" action="?/reorder" use:enhance>
+					<input type="hidden" name="orderedIds" value={reorderedIds(i, 1)} />
+					<button
+						class="px-1 text-muted hover:text-ink disabled:opacity-30"
+						disabled={i === data.modules.length - 1}
+						aria-label="Move down">↓</button
+					>
+				</form>
+				<a
+					class="font-semibold text-ink hover:text-pink-dk hover:underline"
+					href="/courses/{data.course.id}/modules/{m.id}">{m.name}</a
+				>
+				<form method="POST" action="?/delete" class="ml-auto">
+					<input type="hidden" name="id" value={m.id} />
+					<Button type="submit" variant="danger" size="sm">Delete</Button>
+				</form>
+			</li>
+		{/each}
+	</ul>
+{/if}
 
-<form method="POST" action="?/create" class="flex items-end gap-2">
-	<input name="name" placeholder="Forces" required class="rounded border p-1" />
-	<button class="rounded bg-blue-600 p-1 px-3 text-white">Add module</button>
-</form>
+<Card>
+	<form method="POST" action="?/create" class="flex items-end gap-3">
+		<input
+			name="name"
+			placeholder="Forces"
+			required
+			class="rounded-control border border-line bg-field px-3 py-2 text-sm"
+		/>
+		<Button type="submit">Add module</Button>
+	</form>
+</Card>

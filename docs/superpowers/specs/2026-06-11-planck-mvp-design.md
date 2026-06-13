@@ -228,4 +228,7 @@ Timetable (assign cells) → Courses (build content) → Classes → assign.
 - Importing timetables/term dates from external systems.
 - Different period structures per day.
 - Multiple courses per class; form groups.
+
+```
+
 ```

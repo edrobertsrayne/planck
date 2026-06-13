@@ -33,9 +33,6 @@ export function resolveWeekLetters(
 	return map;
 }
 
-export function weekLetterForDate(
-	d: IsoDate,
-	map: Map<IsoDate, WeekLetter>
-): WeekLetter | null {
+export function weekLetterForDate(d: IsoDate, map: Map<IsoDate, WeekLetter>): WeekLetter | null {
 	return map.get(mondayOf(d)) ?? null;
 }

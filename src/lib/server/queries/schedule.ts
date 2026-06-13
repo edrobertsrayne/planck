@@ -38,7 +38,8 @@ export async function assignModule(
 		getSlots(userId),
 		listLessons(userId, moduleId)
 	]);
-	if (lessons.length === 0) return { scheduled: 0, unscheduled: 0, firstDate: null, lastDate: null };
+	if (lessons.length === 0)
+		return { scheduled: 0, unscheduled: 0, firstDate: null, lastDate: null };
 
 	const stream = classPeriodStream(
 		config,
