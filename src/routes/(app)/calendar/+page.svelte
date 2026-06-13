@@ -68,7 +68,9 @@
 									class="flex h-full flex-col gap-1.5 rounded-lg p-2.5"
 									style="background:{withAlpha(l.colour, 0.16)}"
 								>
-									<div class="text-xs font-bold">{l.className}</div>
+									<a href="/classes/{l.classId}" class="text-xs font-bold hover:underline"
+										>{l.className}</a
+									>
 									<div class="text-[11px] leading-tight text-ink/75">{l.title}</div>
 									<div class="mt-auto text-[10px] font-semibold text-muted">{l.room}</div>
 								</div>

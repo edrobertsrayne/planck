@@ -39,3 +39,18 @@ export async function getClass(userId: string, id: number) {
 		.where(and(eq(klass.userId, userId), eq(klass.id, id)));
 	return row ?? null;
 }
+
+export async function getClassWithCourse(userId: string, id: number) {
+	const [row] = await db
+		.select({
+			id: klass.id,
+			name: klass.name,
+			courseId: klass.courseId,
+			courseName: course.name,
+			colour: course.colour
+		})
+		.from(klass)
+		.innerJoin(course, eq(klass.courseId, course.id))
+		.where(and(eq(klass.userId, userId), eq(klass.id, id)));
+	return row ?? null;
+}

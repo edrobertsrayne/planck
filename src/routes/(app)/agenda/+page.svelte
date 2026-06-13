@@ -42,7 +42,9 @@
 				>
 					<span class="w-6 font-bold text-muted">P{item.period}</span>
 					<SubjectDot colour={item.colour} shape="bar" />
-					<span class="w-16 font-bold">{item.className}</span>
+					<a href="/classes/{item.classId}" class="w-16 font-bold text-pink-dk hover:underline"
+						>{item.className}</a
+					>
 					<span class="flex-1 text-ink/80">{item.courseName} — {item.title}</span>
 					<span class="rounded-md bg-field px-2 py-0.5 text-xs font-semibold text-muted"
 						>{item.room}</span
