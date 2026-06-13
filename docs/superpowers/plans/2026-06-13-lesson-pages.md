@@ -36,6 +36,7 @@ Expected: no new errors beyond the pre-existing repo baseline.
 ## Task 1: Database schema
 
 **Files:**
+
 - Modify: `src/lib/server/db/schema.ts`
 
 - [ ] **Step 1: Add `plan` to `lesson` and `scheduledLesson`, and add the two attachment tables**
@@ -101,6 +102,7 @@ git commit -m "feat(db): add lesson plan column and lesson_link/lesson_file tabl
 ## Task 2: Owner discriminator helper (pure)
 
 **Files:**
+
 - Create: `src/lib/lesson-content/owner.ts`
 - Test: `src/lib/lesson-content/owner.spec.ts`
 
@@ -187,6 +189,7 @@ git commit -m "feat(lessons): owner discriminator helper"
 ## Task 3: Copy-on-schedule transforms (pure)
 
 **Files:**
+
 - Create: `src/lib/lesson-content/copy.ts`
 - Test: `src/lib/lesson-content/copy.spec.ts`
 
@@ -207,8 +210,22 @@ describe('buildCopiedLinkRows', () => {
 			42
 		);
 		expect(rows).toEqual([
-			{ userId: 'user-1', lessonId: null, scheduledLessonId: 42, url: 'https://a.com', label: 'A', orderIndex: 0 },
-			{ userId: 'user-1', lessonId: null, scheduledLessonId: 42, url: 'https://b.com', label: null, orderIndex: 1 }
+			{
+				userId: 'user-1',
+				lessonId: null,
+				scheduledLessonId: 42,
+				url: 'https://a.com',
+				label: 'A',
+				orderIndex: 0
+			},
+			{
+				userId: 'user-1',
+				lessonId: null,
+				scheduledLessonId: 42,
+				url: 'https://b.com',
+				label: null,
+				orderIndex: 1
+			}
 		]);
 	});
 });
@@ -353,6 +370,7 @@ git commit -m "feat(lessons): copy-on-schedule row transforms"
 ## Task 4: File validation + reorder (pure)
 
 **Files:**
+
 - Create: `src/lib/lesson-content/files.ts`
 - Test: `src/lib/lesson-content/files.spec.ts`
 
@@ -360,12 +378,7 @@ git commit -m "feat(lessons): copy-on-schedule row transforms"
 
 ```ts
 import { describe, it, expect } from 'vitest';
-import {
-	validateFile,
-	applyOrder,
-	MAX_FILE_BYTES,
-	ALLOWED_CONTENT_TYPES
-} from './files';
+import { validateFile, applyOrder, MAX_FILE_BYTES, ALLOWED_CONTENT_TYPES } from './files';
 
 describe('validateFile', () => {
 	it('accepts an allowed type within the size limit', () => {
@@ -432,7 +445,9 @@ export const ALLOWED_CONTENT_TYPES = [
 export type ValidateResult = { ok: true } | { ok: false; error: string };
 
 export function validateFile(input: { contentType: string; size: number }): ValidateResult {
-	if (!ALLOWED_CONTENT_TYPES.includes(input.contentType as (typeof ALLOWED_CONTENT_TYPES)[number])) {
+	if (
+		!ALLOWED_CONTENT_TYPES.includes(input.contentType as (typeof ALLOWED_CONTENT_TYPES)[number])
+	) {
 		return { ok: false, error: `File type not allowed: ${input.contentType}` };
 	}
 	if (input.size > MAX_FILE_BYTES) {
@@ -464,6 +479,7 @@ git commit -m "feat(lessons): file validation and reorder helpers"
 ## Task 5: Blob adapter
 
 **Files:**
+
 - Create: `src/lib/server/blob.ts`
 
 No unit test (thin wrapper over `@vercel/blob`; mocked in component/query tests). Verified by `bun run check`.
@@ -508,6 +524,7 @@ git commit -m "feat(lessons): vercel blob adapter"
 ## Task 6: Lesson getters (template + scheduled)
 
 **Files:**
+
 - Modify: `src/lib/server/queries/courses.ts`
 - Modify: `src/lib/server/queries/schedule.ts`
 
@@ -579,6 +596,7 @@ git commit -m "feat(lessons): getters for template and scheduled lessons"
 ## Task 7: Lesson-content query module (links, files, plan)
 
 **Files:**
+
 - Create: `src/lib/server/queries/lesson-content.ts`
 
 No unit test (DB-coupled; pure parts already tested in Tasks 2–4). Verified by `bun run check` and pages.
@@ -616,7 +634,9 @@ export function saveLessonPlan(userId: string, owner: OwnerRef, plan: string) {
 		: db
 				.update(scheduledLesson)
 				.set({ plan })
-				.where(and(eq(scheduledLesson.userId, userId), eq(scheduledLesson.id, owner.scheduledLessonId)));
+				.where(
+					and(eq(scheduledLesson.userId, userId), eq(scheduledLesson.id, owner.scheduledLessonId))
+				);
 }
 
 // --- links ---
@@ -706,6 +726,7 @@ git commit -m "feat(lessons): lesson-content query module (plan/links/files)"
 ## Task 8: Wire copy-on-schedule into `assignModule`
 
 **Files:**
+
 - Modify: `src/lib/server/queries/schedule.ts`
 
 - [ ] **Step 1: Add a content-copy helper and call it from `assignModule`**
@@ -713,7 +734,14 @@ git commit -m "feat(lessons): lesson-content query module (plan/links/files)"
 At the top of `src/lib/server/queries/schedule.ts`, extend the schema import and add new imports:
 
 ```ts
-import { scheduledLesson, klass, course, lesson, lessonLink, lessonFile } from '$lib/server/db/schema';
+import {
+	scheduledLesson,
+	klass,
+	course,
+	lesson,
+	lessonLink,
+	lessonFile
+} from '$lib/server/db/schema';
 import { buildCopiedLinkRows, buildCopiedFileRows } from '$lib/lesson-content/copy';
 import { copyBlob } from '$lib/server/blob';
 ```
@@ -781,8 +809,29 @@ async function copyLessonContent(
 In `assignModule`, the current code does a single bulk `db.insert(scheduledLesson).values(lessons.map(...))`. Replace that bulk insert with a per-lesson insert that returns the new id, then copy content. Replace:
 
 ```ts
-	await db.insert(scheduledLesson).values(
-		lessons.map((l, i) => ({
+await db.insert(scheduledLesson).values(
+	lessons.map((l, i) => ({
+		userId,
+		classId,
+		lessonId: l.id,
+		moduleId,
+		title: l.title,
+		orderIndex: next + i,
+		date: null,
+		period: null,
+		room: ''
+	}))
+);
+```
+
+with:
+
+```ts
+for (let i = 0; i < lessons.length; i++) {
+	const l = lessons[i];
+	const [inserted] = await db
+		.insert(scheduledLesson)
+		.values({
 			userId,
 			classId,
 			lessonId: l.id,
@@ -792,31 +841,10 @@ In `assignModule`, the current code does a single bulk `db.insert(scheduledLesso
 			date: null,
 			period: null,
 			room: ''
-		}))
-	);
-```
-
-with:
-
-```ts
-	for (let i = 0; i < lessons.length; i++) {
-		const l = lessons[i];
-		const [inserted] = await db
-			.insert(scheduledLesson)
-			.values({
-				userId,
-				classId,
-				lessonId: l.id,
-				moduleId,
-				title: l.title,
-				orderIndex: next + i,
-				date: null,
-				period: null,
-				room: ''
-			})
-			.returning({ id: scheduledLesson.id });
-		await copyLessonContent(userId, l.id, inserted.id);
-	}
+		})
+		.returning({ id: scheduledLesson.id });
+	await copyLessonContent(userId, l.id, inserted.id);
+}
 ```
 
 - [ ] **Step 3: Verify it compiles**
@@ -841,6 +869,7 @@ git commit -m "feat(lessons): copy plan/links/files when scheduling a module"
 ## Task 9: Upload token route
 
 **Files:**
+
 - Create: `src/routes/api/lesson-files/upload/+server.ts`
 
 - [ ] **Step 1: Write the route**
@@ -858,7 +887,11 @@ import { db } from '$lib/server/db';
 import { lesson, scheduledLesson } from '$lib/server/db/schema';
 import { ALLOWED_CONTENT_TYPES, MAX_FILE_BYTES } from '$lib/lesson-content/files';
 
-async function userOwnsTarget(userId: string, ownerType: string, ownerId: number): Promise<boolean> {
+async function userOwnsTarget(
+	userId: string,
+	ownerType: string,
+	ownerId: number
+): Promise<boolean> {
 	if (ownerType === 'lesson') {
 		const [row] = await db
 			.select({ id: lesson.id })
@@ -919,6 +952,7 @@ git commit -m "feat(lessons): blob upload token route with ownership check"
 ## Task 10: `LessonPlanEditor.svelte` (Milkdown Crepe)
 
 **Files:**
+
 - Create: `src/lib/components/LessonPlanEditor.svelte`
 - Test: `src/lib/components/LessonPlanEditor.svelte.test.ts`
 
@@ -998,7 +1032,13 @@ The editor mounts client-side only, syncs Markdown into a hidden input before su
 	}
 </script>
 
-<form method="POST" action={saveAction} use:enhance onsubmit={syncMarkdown} class="flex flex-col gap-3">
+<form
+	method="POST"
+	action={saveAction}
+	use:enhance
+	onsubmit={syncMarkdown}
+	class="flex flex-col gap-3"
+>
 	<div bind:this={editorEl} class="rounded-card border border-line bg-white"></div>
 	<input type="hidden" name="plan" bind:value={markdown} />
 	<div class="flex justify-end">
@@ -1030,6 +1070,7 @@ git commit -m "feat(lessons): Milkdown plan editor component"
 ## Task 11: `LessonLinks.svelte`
 
 **Files:**
+
 - Create: `src/lib/components/LessonLinks.svelte`
 - Test: `src/lib/components/LessonLinks.svelte.test.ts`
 
@@ -1050,7 +1091,9 @@ test('renders each link with its label or url as text, opening in a new tab', as
 	const a = screen.getByRole('link', { name: 'Intro video' });
 	await expect.element(a).toHaveAttribute('href', 'https://youtube.com/watch?v=x');
 	await expect.element(a).toHaveAttribute('target', '_blank');
-	await expect.element(screen.getByRole('link', { name: 'https://example.com' })).toBeInTheDocument();
+	await expect
+		.element(screen.getByRole('link', { name: 'https://example.com' }))
+		.toBeInTheDocument();
 });
 
 test('renders an add-link form with url and label fields', async () => {
@@ -1144,6 +1187,7 @@ git commit -m "feat(lessons): links section component"
 ## Task 12: `LessonFiles.svelte`
 
 **Files:**
+
 - Create: `src/lib/components/LessonFiles.svelte`
 - Test: `src/lib/components/LessonFiles.svelte.test.ts`
 
@@ -1164,7 +1208,13 @@ vi.mock('@vercel/blob/client', () => ({
 import LessonFiles from './LessonFiles.svelte';
 
 const files = [
-	{ id: 1, filename: 'worksheet.pdf', blobUrl: 'https://blob/ws', contentType: 'application/pdf', size: 2048 }
+	{
+		id: 1,
+		filename: 'worksheet.pdf',
+		blobUrl: 'https://blob/ws',
+		contentType: 'application/pdf',
+		size: 2048
+	}
 ];
 
 test('lists each file as a download link with a remove button', async () => {
@@ -1261,7 +1311,12 @@ Upload goes directly to Blob via the token route, then the returned metadata is 
 	<ul class="mb-4 flex flex-col gap-1.5">
 		{#each files as file (file.id)}
 			<li class="flex items-center gap-2 rounded-card border border-line bg-white px-4 py-2.5">
-				<a href={file.blobUrl} target="_blank" rel="noopener noreferrer" class="flex-1 truncate text-pink-dk hover:underline">
+				<a
+					href={file.blobUrl}
+					target="_blank"
+					rel="noopener noreferrer"
+					class="flex-1 truncate text-pink-dk hover:underline"
+				>
 					{file.filename}
 				</a>
 				<span class="text-xs text-muted">{Math.round(file.size / 1024)} KB</span>
@@ -1275,7 +1330,9 @@ Upload goes directly to Blob via the token route, then the returned metadata is 
 {/if}
 
 <label class="inline-flex cursor-pointer items-center gap-2">
-	<span class="rounded-control border border-line bg-field px-3 py-2 text-sm font-medium hover:border-pink-200">
+	<span
+		class="rounded-control border border-line bg-field px-3 py-2 text-sm font-medium hover:border-pink-200"
+	>
 		{uploading ? 'Uploading…' : 'Upload file'}
 	</span>
 	<input type="file" class="sr-only" onchange={onFileChange} disabled={uploading} />
@@ -1306,6 +1363,7 @@ git commit -m "feat(lessons): files section component with client-side blob uplo
 ## Task 13: Template lesson page
 
 **Files:**
+
 - Create: `src/routes/(app)/courses/[courseId]/modules/[moduleId]/lessons/[lessonId]/+page.server.ts`
 - Create: `src/routes/(app)/courses/[courseId]/modules/[moduleId]/lessons/[lessonId]/+page.svelte`
 
@@ -1343,7 +1401,11 @@ export const actions: Actions = {
 	savePlan: async (event) => {
 		const userId = requireUserId(event);
 		const form = await event.request.formData();
-		await saveLessonPlan(userId, { lessonId: Number(event.params.lessonId) }, String(form.get('plan')));
+		await saveLessonPlan(
+			userId,
+			{ lessonId: Number(event.params.lessonId) },
+			String(form.get('plan'))
+		);
 	},
 	addLink: async (event) => {
 		const userId = requireUserId(event);
@@ -1363,13 +1425,17 @@ export const actions: Actions = {
 	addFile: async (event) => {
 		const userId = requireUserId(event);
 		const form = await event.request.formData();
-		await addFile(userId, { lessonId: Number(event.params.lessonId) }, {
-			blobUrl: String(form.get('blobUrl')),
-			pathname: String(form.get('pathname')),
-			filename: String(form.get('filename')),
-			contentType: String(form.get('contentType')),
-			size: Number(form.get('size'))
-		});
+		await addFile(
+			userId,
+			{ lessonId: Number(event.params.lessonId) },
+			{
+				blobUrl: String(form.get('blobUrl')),
+				pathname: String(form.get('pathname')),
+				filename: String(form.get('filename')),
+				contentType: String(form.get('contentType')),
+				size: Number(form.get('size'))
+			}
+		);
 	},
 	deleteFile: async (event) => {
 		const userId = requireUserId(event);
@@ -1437,6 +1503,7 @@ git commit -m "feat(lessons): template lesson page"
 ## Task 14: Scheduled lesson page
 
 **Files:**
+
 - Create: `src/routes/(app)/classes/[classId]/lessons/[scheduledLessonId]/+page.server.ts`
 - Create: `src/routes/(app)/classes/[classId]/lessons/[scheduledLessonId]/+page.svelte`
 
@@ -1577,6 +1644,7 @@ git commit -m "feat(lessons): scheduled lesson page"
 ## Task 15: Entry points (link to the lesson pages)
 
 **Files:**
+
 - Modify: `src/routes/(app)/courses/[courseId]/modules/[moduleId]/+page.svelte`
 - Modify: `src/routes/(app)/classes/[classId]/+page.svelte`
 
@@ -1585,19 +1653,17 @@ git commit -m "feat(lessons): scheduled lesson page"
 In `src/routes/(app)/courses/[courseId]/modules/[moduleId]/+page.svelte`, replace the title `<span>` (currently lines ~46–48):
 
 ```svelte
-				<span class="text-ink"
-					><span class="font-semibold text-muted">{i + 1}.</span> {l.title}</span
-				>
+<span class="text-ink"><span class="font-semibold text-muted">{i + 1}.</span> {l.title}</span>
 ```
 
 with a link to the lesson page (the module exposes `data.module.courseId` and `data.module.id`):
 
 ```svelte
-				<a
-					href="/courses/{data.module.courseId}/modules/{data.module.id}/lessons/{l.id}"
-					class="text-ink hover:underline"
-					><span class="font-semibold text-muted">{i + 1}.</span> {l.title}</a
-				>
+<a
+	href="/courses/{data.module.courseId}/modules/{data.module.id}/lessons/{l.id}"
+	class="text-ink hover:underline"
+	><span class="font-semibold text-muted">{i + 1}.</span> {l.title}</a
+>
 ```
 
 - [ ] **Step 2: Add an "Open" link to each scheduled lesson on the class page**
@@ -1605,11 +1671,11 @@ with a link to the lesson page (the module exposes `data.module.courseId` and `d
 In `src/routes/(app)/classes/[classId]/+page.svelte`, inside the hover action group (the `<div class="flex items-center gap-2 opacity-0 ...">` block, currently ~line 128), add an anchor before the "+ Blank above" form:
 
 ```svelte
-					<a
-						href="/classes/{data.klass.id}/lessons/{item.id}"
-						class="rounded-control border border-line px-2 py-1 text-xs font-medium hover:border-pink-200"
-						>Open</a
-					>
+<a
+	href="/classes/{data.klass.id}/lessons/{item.id}"
+	class="rounded-control border border-line px-2 py-1 text-xs font-medium hover:border-pink-200"
+	>Open</a
+>
 ```
 
 - [ ] **Step 3: Validate both pages with the Svelte autofixer**
@@ -1633,6 +1699,7 @@ git commit -m "feat(lessons): link module + class pages to lesson pages"
 ## Task 16: E2E happy path
 
 **Files:**
+
 - Create: `e2e/lesson-page.e2e.ts`
 
 The existing Playwright config (`playwright.config.ts`) uses `testMatch: '**/*.e2e.{ts,js}'`, so the file **must** be named `*.e2e.ts` to be discovered. There is no seeded-session helper — `e2e/happy-path.test.ts` signs up through the UI; mirror that. This test creates its own data through the UI, navigates to the template lesson page via the link added in Task 15, types a plan, saves, adds a link, and asserts persistence after reload.

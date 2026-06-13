@@ -7,7 +7,11 @@ import { db } from '$lib/server/db';
 import { lesson, scheduledLesson } from '$lib/server/db/schema';
 import { ALLOWED_CONTENT_TYPES, MAX_FILE_BYTES } from '$lib/lesson-content/files';
 
-async function userOwnsTarget(userId: string, ownerType: string, ownerId: number): Promise<boolean> {
+async function userOwnsTarget(
+	userId: string,
+	ownerType: string,
+	ownerId: number
+): Promise<boolean> {
 	if (ownerType === 'lesson') {
 		const [row] = await db
 			.select({ id: lesson.id })
@@ -33,7 +37,7 @@ export const POST: RequestHandler = async (event) => {
 		body,
 		request: event.request,
 		onBeforeGenerateToken: async (_pathname, clientPayload) => {
-			let payload: { ownerType?: string; ownerId?: number } = {};
+			let payload: { ownerType?: string; ownerId?: number };
 			try {
 				payload = JSON.parse(clientPayload ?? '{}');
 			} catch {

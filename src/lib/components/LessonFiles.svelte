@@ -67,7 +67,12 @@
 	<ul class="mb-4 flex flex-col gap-1.5">
 		{#each files as file (file.id)}
 			<li class="flex items-center gap-2 rounded-card border border-line bg-white px-4 py-2.5">
-				<a href={file.blobUrl} target="_blank" rel="noopener noreferrer" class="flex-1 truncate text-pink-dk hover:underline">
+				<a
+					href={file.blobUrl}
+					target="_blank"
+					rel="noopener noreferrer"
+					class="flex-1 truncate text-pink-dk hover:underline"
+				>
 					{file.filename}
 				</a>
 				<span class="text-xs text-muted">{Math.round(file.size / 1024)} KB</span>
@@ -81,7 +86,9 @@
 {/if}
 
 <label class="inline-flex cursor-pointer items-center gap-2">
-	<span class="rounded-control border border-line bg-field px-3 py-2 text-sm font-medium hover:border-pink-200">
+	<span
+		class="rounded-control border border-line bg-field px-3 py-2 text-sm font-medium hover:border-pink-200"
+	>
 		{uploading ? 'Uploading…' : 'Upload file'}
 	</span>
 	<input type="file" class="sr-only" onchange={onFileChange} disabled={uploading} />

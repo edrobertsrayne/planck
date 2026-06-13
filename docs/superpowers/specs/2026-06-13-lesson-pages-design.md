@@ -21,8 +21,8 @@ The project is deployed on **Vercel**, so file storage uses **Vercel Blob**.
 
 The data model has two lesson entities:
 
-- `lesson` — a reusable **template** that lives inside a *module* of a *course*.
-- `scheduled_lesson` — an **instance** placed onto a specific *class*'s timeline
+- `lesson` — a reusable **template** that lives inside a _module_ of a _course_.
+- `scheduled_lesson` — an **instance** placed onto a specific _class_'s timeline
   (can also be a blank spacer with no `lessonId`).
 
 **Both** get an editable page, and they are **independent after scheduling**:
@@ -34,7 +34,7 @@ The data model has two lesson entities:
   template never changes already-scheduled lessons; editing a scheduled lesson
   never changes the template.
 
-This is why the content fields live on *both* tables.
+This is why the content fields live on _both_ tables.
 
 ## Editor: Milkdown Crepe
 
@@ -61,7 +61,7 @@ blur), writing the Markdown string to the `plan` column.
 Add a `plan` column (Markdown text, default empty) to **both** `lesson` and
 `scheduled_lesson`.
 
-Links and files attach to *either* a template lesson or a scheduled lesson. We
+Links and files attach to _either_ a template lesson or a scheduled lesson. We
 model this with **two nullable foreign keys per table**, exactly one set per row,
 both `onDelete: cascade`. This gives honest cascade deletes and a single query
 path (chosen over a polymorphic `ownerType`/`ownerId`, which loses real FKs, and
@@ -173,7 +173,7 @@ and the storage backend stays swappable.
   - copy-on-schedule duplication (plan + links + file-row repointing),
   - the "exactly one owner FK" invariant,
   - link/file reorder logic.
-  These are pure functions / mocked DB — no network.
+    These are pure functions / mocked DB — no network.
 - **Component (vitest-browser-svelte):** the three section components render,
   validate input, and emit the right actions; Blob/network mocked.
 - **E2E (playwright):** one happy path — open a lesson page, type a plan, add a

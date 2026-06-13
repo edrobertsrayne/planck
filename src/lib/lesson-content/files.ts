@@ -21,7 +21,9 @@ export const ALLOWED_CONTENT_TYPES = [
 export type ValidateResult = { ok: true } | { ok: false; error: string };
 
 export function validateFile(input: { contentType: string; size: number }): ValidateResult {
-	if (!ALLOWED_CONTENT_TYPES.includes(input.contentType as (typeof ALLOWED_CONTENT_TYPES)[number])) {
+	if (
+		!ALLOWED_CONTENT_TYPES.includes(input.contentType as (typeof ALLOWED_CONTENT_TYPES)[number])
+	) {
 		return { ok: false, error: `File type not allowed: ${input.contentType}` };
 	}
 	if (input.size > MAX_FILE_BYTES) {

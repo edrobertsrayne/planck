@@ -28,7 +28,11 @@ export const actions: Actions = {
 	savePlan: async (event) => {
 		const userId = requireUserId(event);
 		const form = await event.request.formData();
-		await saveLessonPlan(userId, { lessonId: Number(event.params.lessonId) }, String(form.get('plan')));
+		await saveLessonPlan(
+			userId,
+			{ lessonId: Number(event.params.lessonId) },
+			String(form.get('plan'))
+		);
 	},
 	addLink: async (event) => {
 		const userId = requireUserId(event);
@@ -48,13 +52,17 @@ export const actions: Actions = {
 	addFile: async (event) => {
 		const userId = requireUserId(event);
 		const form = await event.request.formData();
-		await addFile(userId, { lessonId: Number(event.params.lessonId) }, {
-			blobUrl: String(form.get('blobUrl')),
-			pathname: String(form.get('pathname')),
-			filename: String(form.get('filename')),
-			contentType: String(form.get('contentType')),
-			size: Number(form.get('size'))
-		});
+		await addFile(
+			userId,
+			{ lessonId: Number(event.params.lessonId) },
+			{
+				blobUrl: String(form.get('blobUrl')),
+				pathname: String(form.get('pathname')),
+				filename: String(form.get('filename')),
+				contentType: String(form.get('contentType')),
+				size: Number(form.get('size'))
+			}
+		);
 	},
 	deleteFile: async (event) => {
 		const userId = requireUserId(event);

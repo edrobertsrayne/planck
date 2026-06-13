@@ -1,6 +1,13 @@
 import { eq, and, sql, lt, gte, or, isNull } from 'drizzle-orm';
 import { db } from '$lib/server/db';
-import { scheduledLesson, klass, course, lesson, lessonLink, lessonFile } from '$lib/server/db/schema';
+import {
+	scheduledLesson,
+	klass,
+	course,
+	lesson,
+	lessonLink,
+	lessonFile
+} from '$lib/server/db/schema';
 import { buildCopiedLinkRows, buildCopiedFileRows } from '$lib/lesson-content/copy';
 import { copyBlob } from '$lib/server/blob';
 import { getConfig, getBlocks, getClosures, getSlots } from './timetable';

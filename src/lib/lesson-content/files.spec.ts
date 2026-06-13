@@ -1,10 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import {
-	validateFile,
-	applyOrder,
-	MAX_FILE_BYTES,
-	ALLOWED_CONTENT_TYPES
-} from './files';
+import { validateFile, applyOrder, MAX_FILE_BYTES, ALLOWED_CONTENT_TYPES } from './files';
 
 describe('validateFile', () => {
 	it('accepts an allowed type within the size limit', () => {

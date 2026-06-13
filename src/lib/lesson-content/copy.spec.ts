@@ -12,8 +12,22 @@ describe('buildCopiedLinkRows', () => {
 			42
 		);
 		expect(rows).toEqual([
-			{ userId: 'user-1', lessonId: null, scheduledLessonId: 42, url: 'https://a.com', label: 'A', orderIndex: 0 },
-			{ userId: 'user-1', lessonId: null, scheduledLessonId: 42, url: 'https://b.com', label: null, orderIndex: 1 }
+			{
+				userId: 'user-1',
+				lessonId: null,
+				scheduledLessonId: 42,
+				url: 'https://a.com',
+				label: 'A',
+				orderIndex: 0
+			},
+			{
+				userId: 'user-1',
+				lessonId: null,
+				scheduledLessonId: 42,
+				url: 'https://b.com',
+				label: null,
+				orderIndex: 1
+			}
 		]);
 	});
 });

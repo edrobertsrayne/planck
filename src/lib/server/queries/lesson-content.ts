@@ -27,7 +27,9 @@ export function saveLessonPlan(userId: string, owner: OwnerRef, plan: string) {
 		: db
 				.update(scheduledLesson)
 				.set({ plan })
-				.where(and(eq(scheduledLesson.userId, userId), eq(scheduledLesson.id, owner.scheduledLessonId)));
+				.where(
+					and(eq(scheduledLesson.userId, userId), eq(scheduledLesson.id, owner.scheduledLessonId))
+				);
 }
 
 // --- links ---

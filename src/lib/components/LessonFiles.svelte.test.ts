@@ -12,7 +12,13 @@ vi.mock('@vercel/blob/client', () => ({
 import LessonFiles from './LessonFiles.svelte';
 
 const files = [
-	{ id: 1, filename: 'worksheet.pdf', blobUrl: 'https://blob/ws', contentType: 'application/pdf', size: 2048 }
+	{
+		id: 1,
+		filename: 'worksheet.pdf',
+		blobUrl: 'https://blob/ws',
+		contentType: 'application/pdf',
+		size: 2048
+	}
 ];
 
 test('lists each file as a download link with a remove button', async () => {
