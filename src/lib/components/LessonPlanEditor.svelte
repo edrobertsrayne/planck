@@ -1,50 +1,92 @@
 <script lang="ts">
 	import { onMount, onDestroy, untrack } from 'svelte';
-	import { enhance } from '$app/forms';
-	import Button from './Button.svelte';
 
 	let { value = '', saveAction }: { value?: string; saveAction: string } = $props();
+
+	type SaveStatus = 'saved' | 'unsaved' | 'saving' | 'error';
 
 	let editorEl: HTMLDivElement;
 	// eslint-disable-next-line @typescript-eslint/no-explicit-any
 	let crepe: any = null;
-	// markdown is initialised once from the prop; the crepe editor owns its content thereafter.
-	// untrack prevents Svelte from warning about capturing the initial prop value in $state.
-	let markdown = $state<string>(untrack(() => value));
+	// The last value we know is persisted; edits matching it need no save.
+	let savedValue = untrack(() => value);
+	let ready = false;
+	let timer: ReturnType<typeof setTimeout> | undefined;
+	let status = $state<SaveStatus>('saved');
 
 	onMount(async () => {
 		const { Crepe } = await import('@milkdown/crepe');
 		await import('@milkdown/crepe/theme/common/style.css');
 		await import('@milkdown/crepe/theme/frame.css');
 		crepe = new Crepe({ root: editorEl, defaultValue: value });
+		crepe.on(
+			(listener: { markdownUpdated: (fn: (ctx: unknown, markdown: string) => void) => void }) => {
+				listener.markdownUpdated((_ctx, markdown) => {
+					if (!ready || markdown === savedValue) return;
+					status = 'unsaved';
+					clearTimeout(timer);
+					timer = setTimeout(save, 1000);
+				});
+			}
+		);
 		await crepe.create();
+		ready = true;
 	});
 
 	onDestroy(() => {
+		clearTimeout(timer);
+		// Persist any pending edits even if we're navigating away.
+		if (crepe && status !== 'saved' && status !== 'saving') flush(crepe.getMarkdown());
 		crepe?.destroy();
 	});
 
-	function syncMarkdown() {
-		if (crepe) markdown = crepe.getMarkdown();
+	async function save() {
+		clearTimeout(timer);
+		if (!crepe) return;
+		const markdown: string = crepe.getMarkdown();
+		if (markdown === savedValue) {
+			status = 'saved';
+			return;
+		}
+		status = 'saving';
+		try {
+			const body = new FormData();
+			body.set('plan', markdown);
+			const res = await fetch(saveAction, { method: 'POST', body });
+			if (!res.ok) throw new Error('save failed');
+			savedValue = markdown;
+			status = 'saved';
+		} catch {
+			status = 'error';
+		}
 	}
+
+	// Fire-and-forget save that survives unmount/navigation.
+	function flush(markdown: string) {
+		const body = new FormData();
+		body.set('plan', markdown);
+		fetch(saveAction, { method: 'POST', body, keepalive: true }).catch(() => {});
+	}
+
+	const label = $derived(
+		status === 'saving'
+			? 'Saving…'
+			: status === 'unsaved'
+				? 'Unsaved changes'
+				: status === 'error'
+					? 'Save failed'
+					: 'Saved'
+	);
 </script>
 
-<form
-	method="POST"
-	action={saveAction}
-	use:enhance
-	onsubmit={syncMarkdown}
-	class="flex flex-col gap-3"
->
+<div class="flex flex-col gap-2">
 	<div
 		bind:this={editorEl}
-		class="lesson-plan-editor min-h-[60vh] w-full rounded-card border border-line bg-white"
+		onfocusout={save}
+		class="lesson-plan-editor min-h-72 w-full rounded-card border border-line bg-white"
 	></div>
-	<input type="hidden" name="plan" bind:value={markdown} />
-	<div class="flex justify-end">
-		<Button type="submit">Save plan</Button>
-	</div>
-</form>
+	<p class="text-right text-xs {status === 'error' ? 'text-danger' : 'text-muted'}">{label}</p>
+</div>
 
 <style>
 	/* Let the editor use the full available width and trim Crepe's wide block-handle

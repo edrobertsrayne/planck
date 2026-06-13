@@ -8,6 +8,9 @@ vi.mock('@milkdown/crepe', () => {
 			create() {
 				return Promise.resolve();
 			}
+			on() {
+				return this;
+			}
 			getMarkdown() {
 				return '# Edited';
 			}
@@ -18,14 +21,14 @@ vi.mock('@milkdown/crepe', () => {
 
 import LessonPlanEditor from './LessonPlanEditor.svelte';
 
-test('renders an editor container and a Save button', async () => {
+test('renders the editor container', async () => {
 	const screen = render(LessonPlanEditor, { value: '# Hello', saveAction: '?/savePlan' });
-	await expect.element(screen.getByRole('button', { name: 'Save plan' })).toBeInTheDocument();
+	const container = screen.container.querySelector('.lesson-plan-editor');
+	expect(container).not.toBeNull();
 });
 
-test('submits the current markdown in a hidden field on save', async () => {
+test('shows a save-status indicator and has no manual save button (autosave)', async () => {
 	const screen = render(LessonPlanEditor, { value: '# Hello', saveAction: '?/savePlan' });
-	const hidden = screen.container.querySelector('input[name="plan"]') as HTMLInputElement;
-	await expect.element(screen.getByRole('button', { name: 'Save plan' })).toBeInTheDocument();
-	expect(hidden).not.toBeNull();
+	await expect.element(screen.getByText('Saved')).toBeInTheDocument();
+	expect(screen.container.querySelector('button')).toBeNull();
 });

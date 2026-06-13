@@ -26,12 +26,17 @@ test('edit a lesson plan and attach a link from the lesson page', async ({ page 
 	await page.getByRole('link', { name: /L1 Intro/ }).click();
 	await expect(page.getByRole('heading', { name: 'L1 Intro' })).toBeVisible();
 
-	// Type into the Milkdown editor (mounts client-side) and save.
+	// Type into the Milkdown editor (mounts client-side). It autosaves (debounced);
+	// wait for the savePlan POST to confirm the write landed.
 	const editor = page.locator('.milkdown [contenteditable="true"]');
 	await expect(editor).toBeVisible({ timeout: 10000 });
 	await editor.click();
 	await editor.pressSequentially('Lesson objectives: understand forces.');
-	await page.getByRole('button', { name: 'Save plan' }).click();
+	await page.waitForResponse(
+		(resp) => resp.url().includes('savePlan') && resp.request().method() === 'POST',
+		{ timeout: 10000 }
+	);
+	await expect(page.getByText('Saved')).toBeVisible();
 
 	// Add a link.
 	await page.getByPlaceholder('https://…').fill('https://youtube.com/watch?v=abc');
