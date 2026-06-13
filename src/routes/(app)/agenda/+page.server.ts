@@ -4,7 +4,7 @@ import { fail } from '@sveltejs/kit';
 import { requireUserId } from '$lib/server/session';
 import { db } from '$lib/server/db';
 import { scheduledLesson, klass, course } from '$lib/server/db/schema';
-import { todayIso, deleteScheduledLesson, moveScheduledLesson } from '$lib/server/queries/schedule';
+import { todayIso, deleteFromSequence, moveScheduledLesson } from '$lib/server/queries/schedule';
 import { getConfig, getBlocks, getClosures, getSlots } from '$lib/server/queries/timetable';
 import { dayOfWeekIso } from '$lib/scheduling/dates';
 import { listTeachingDays } from '$lib/scheduling/teaching-days';
@@ -44,7 +44,11 @@ export const load: PageServerLoad = async (event) => {
 	);
 	const weekMap = resolveWeekLetters(config.cycleWeeks, config.anchorLetter, teaching);
 
-	const groups = groupByDate(rows).map((g) => ({
+	const dated = rows.filter(
+		(r): r is (typeof rows)[number] & { date: string; period: number } =>
+			r.date !== null && r.period !== null
+	);
+	const groups = groupByDate(dated).map((g) => ({
 		...g,
 		weekLetter: weekLetterForDate(g.date, weekMap)
 	}));
@@ -55,7 +59,7 @@ export const actions: Actions = {
 	deleteLesson: async (event) => {
 		const userId = requireUserId(event);
 		const form = await event.request.formData();
-		await deleteScheduledLesson(userId, Number(form.get('id')));
+		await deleteFromSequence(userId, Number(form.get('id')));
 	},
 
 	moveLesson: async (event) => {

@@ -2,6 +2,7 @@ import type { Actions, PageServerLoad } from './$types';
 import { requireUserId } from '$lib/server/session';
 import { getConfig, getSlots, setSlot, clearSlot } from '$lib/server/queries/timetable';
 import { listClasses } from '$lib/server/queries/classes';
+import { reallocateAllClasses } from '$lib/server/queries/schedule';
 
 export const load: PageServerLoad = async (event) => {
 	const userId = requireUserId(event);
@@ -23,14 +24,15 @@ export const actions: Actions = {
 		const period = Number(form.get('period'));
 		if (!classId) {
 			await clearSlot(userId, weekLetter, dayOfWeek, period);
-			return;
+		} else {
+			await setSlot(userId, {
+				weekLetter,
+				dayOfWeek,
+				period,
+				classId,
+				room: String(form.get('room') ?? '')
+			});
 		}
-		await setSlot(userId, {
-			weekLetter,
-			dayOfWeek,
-			period,
-			classId,
-			room: String(form.get('room') ?? '')
-		});
+		await reallocateAllClasses(userId);
 	}
 };
