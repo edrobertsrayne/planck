@@ -88,7 +88,7 @@
 	{/if}
 
 	{#if form?.assigned}
-		<p class="mt-3 text-sm text-[#2f7d56]">
+		<p class="mt-3 text-sm text-success">
 			Scheduled {form.assigned.scheduled} lessons
 			{#if form.assigned.firstDate}({form.assigned.firstDate} → {form.assigned.lastDate}){/if}.
 			{#if form.assigned.unscheduled > 0}

@@ -18,6 +18,8 @@
 	--color-line: #f1e8ec;
 	--color-field: #f7f4f6;
 	--color-danger: #c2476b;
+	--color-success: #2f7d56;
+	--color-success-bg: #e8f5ee;
 
 	--radius-control: 0.625rem; /* 10px */
 	--radius-card: 0.875rem; /* 14px */

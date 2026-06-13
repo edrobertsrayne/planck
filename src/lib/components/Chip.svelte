@@ -8,7 +8,7 @@
 	const tones: Record<Tone, string> = {
 		pink: 'bg-pink-100 text-pink-dk',
 		neutral: 'bg-field text-muted',
-		success: 'bg-[#e8f5ee] text-[#2f7d56]'
+		success: 'bg-success-bg text-success'
 	};
 </script>
 
