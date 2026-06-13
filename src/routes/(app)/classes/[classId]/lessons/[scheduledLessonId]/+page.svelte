@@ -14,10 +14,10 @@
 >
 <PageHeader title={data.lesson.title} subtitle={data.lesson.courseName} />
 
-<Card class="mb-6">
+<section class="mb-6">
 	<h2 class="mb-3 font-display text-lg font-semibold">Lesson plan</h2>
 	<LessonPlanEditor value={data.lesson.plan} saveAction="?/savePlan" />
-</Card>
+</section>
 
 <Card class="mb-6">
 	<h2 class="mb-3 font-display text-lg font-semibold">Links</h2>

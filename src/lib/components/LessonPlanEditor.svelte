@@ -36,9 +36,23 @@
 	onsubmit={syncMarkdown}
 	class="flex flex-col gap-3"
 >
-	<div bind:this={editorEl} class="rounded-card border border-line bg-white"></div>
+	<div
+		bind:this={editorEl}
+		class="lesson-plan-editor min-h-[60vh] w-full rounded-card border border-line bg-white"
+	></div>
 	<input type="hidden" name="plan" bind:value={markdown} />
 	<div class="flex justify-end">
 		<Button type="submit">Save plan</Button>
 	</div>
 </form>
+
+<style>
+	/* Let the editor use the full available width and trim Crepe's wide block-handle
+	   gutter so text and handles sit close to the left edge. */
+	.lesson-plan-editor :global(.milkdown) {
+		width: 100%;
+	}
+	.lesson-plan-editor :global(.milkdown .ProseMirror) {
+		padding: 1.5rem 1.5rem 1.5rem 3.25rem;
+	}
+</style>
