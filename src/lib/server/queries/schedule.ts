@@ -346,3 +346,21 @@ export async function renameScheduledLesson(userId: string, id: number, title: s
 		.set({ title })
 		.where(and(eq(scheduledLesson.userId, userId), eq(scheduledLesson.id, id)));
 }
+
+/** A scheduled lesson with its class + course context for the lesson page. */
+export async function getScheduledLesson(userId: string, id: number) {
+	const [row] = await db
+		.select({
+			id: scheduledLesson.id,
+			title: scheduledLesson.title,
+			plan: scheduledLesson.plan,
+			classId: scheduledLesson.classId,
+			className: klass.name,
+			courseName: course.name
+		})
+		.from(scheduledLesson)
+		.innerJoin(klass, eq(scheduledLesson.classId, klass.id))
+		.innerJoin(course, eq(klass.courseId, course.id))
+		.where(and(eq(scheduledLesson.userId, userId), eq(scheduledLesson.id, id)));
+	return row ?? null;
+}

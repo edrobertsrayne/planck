@@ -114,3 +114,22 @@ export async function reorderLessons(userId: string, orderedIds: number[]) {
 		await db.batch(updates as [(typeof updates)[number], ...(typeof updates)[number][]]);
 	}
 }
+
+/** A template lesson with its module + course context for the lesson page. */
+export async function getLesson(userId: string, id: number) {
+	const [row] = await db
+		.select({
+			id: lesson.id,
+			title: lesson.title,
+			plan: lesson.plan,
+			moduleId: lesson.moduleId,
+			moduleName: module.name,
+			courseId: module.courseId,
+			courseName: course.name
+		})
+		.from(lesson)
+		.innerJoin(module, eq(lesson.moduleId, module.id))
+		.innerJoin(course, eq(module.courseId, course.id))
+		.where(and(eq(lesson.userId, userId), eq(lesson.id, id)));
+	return row ?? null;
+}
