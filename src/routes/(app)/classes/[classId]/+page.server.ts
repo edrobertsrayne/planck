@@ -77,6 +77,8 @@ export const actions: Actions = {
 	rename: async (event) => {
 		const userId = requireUserId(event);
 		const form = await event.request.formData();
-		await renameScheduledLesson(userId, Number(form.get('id')), String(form.get('title')).trim());
+		const title = String(form.get('title')).trim();
+		if (!title) return; // ignore empty titles rather than blanking the lesson label
+		await renameScheduledLesson(userId, Number(form.get('id')), title);
 	}
 };

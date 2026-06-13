@@ -179,6 +179,11 @@ export async function unscheduleModule(
 	await reallocateClass(userId, classId, today);
 }
 
+/**
+ * Agenda's one-off manual move: sets a concrete date/period directly. This is
+ * deliberately NOT reflowed through reallocateClass — a later reallocation (e.g.
+ * after a timetable edit) will overwrite it. Known, accepted limitation.
+ */
 export async function moveScheduledLesson(
 	userId: string,
 	id: number,
