@@ -33,7 +33,12 @@ export const POST: RequestHandler = async (event) => {
 		body,
 		request: event.request,
 		onBeforeGenerateToken: async (_pathname, clientPayload) => {
-			const payload = JSON.parse(clientPayload ?? '{}') as { ownerType?: string; ownerId?: number };
+			let payload: { ownerType?: string; ownerId?: number } = {};
+			try {
+				payload = JSON.parse(clientPayload ?? '{}');
+			} catch {
+				throw error(400, 'Invalid client payload');
+			}
 			if (!payload.ownerType || !payload.ownerId) throw error(400, 'Missing owner');
 			const owns = await userOwnsTarget(userId, payload.ownerType, payload.ownerId);
 			if (!owns) throw error(403, 'Not your lesson');
