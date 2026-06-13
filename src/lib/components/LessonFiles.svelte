@@ -49,7 +49,8 @@
 			body.set('filename', file.name);
 			body.set('contentType', blob.contentType || file.type);
 			body.set('size', String(file.size));
-			await fetch('?/addFile', { method: 'POST', body });
+			const res = await fetch('?/addFile', { method: 'POST', body });
+			if (!res.ok) throw new Error('Failed to save file');
 			await invalidateAll();
 		} catch {
 			errorMsg = 'Upload failed. Please try again.';
