@@ -1,4 +1,4 @@
-import { eq, and } from 'drizzle-orm';
+import { eq, and, sql } from 'drizzle-orm';
 import { db } from '$lib/server/db';
 import { lesson, scheduledLesson, lessonLink, lessonFile } from '$lib/server/db/schema';
 import { ownerColumns, type OwnerRef } from '$lib/lesson-content/owner';
@@ -41,13 +41,16 @@ export function listLinks(userId: string, owner: OwnerRef) {
 
 export async function addLink(userId: string, owner: OwnerRef, url: string, label: string | null) {
 	const cols = ownerColumns(owner);
-	const existing = await listLinks(userId, owner);
+	const [{ next }] = await db
+		.select({ next: sql<number>`coalesce(max(${lessonLink.orderIndex}) + 1, 0)` })
+		.from(lessonLink)
+		.where(and(eq(lessonLink.userId, userId), linkOwnerEq(owner)));
 	return db.insert(lessonLink).values({
 		userId,
 		...cols,
 		url,
 		label: label && label.length > 0 ? label : null,
-		orderIndex: existing.length
+		orderIndex: next
 	});
 }
 
@@ -84,8 +87,11 @@ export async function addFile(
 	const cols = ownerColumns(owner);
 	// Confirm the blob actually exists before recording it (the client reported it).
 	await headBlob(file.blobUrl);
-	const existing = await listFiles(userId, owner);
-	return db.insert(lessonFile).values({ userId, ...cols, ...file, orderIndex: existing.length });
+	const [{ next }] = await db
+		.select({ next: sql<number>`coalesce(max(${lessonFile.orderIndex}) + 1, 0)` })
+		.from(lessonFile)
+		.where(and(eq(lessonFile.userId, userId), fileOwnerEq(owner)));
+	return db.insert(lessonFile).values({ userId, ...cols, ...file, orderIndex: next });
 }
 
 /** Delete a file row and its blob. Looks up pathname first (scoped to user). */
@@ -95,6 +101,6 @@ export async function deleteFile(userId: string, id: number): Promise<void> {
 		.from(lessonFile)
 		.where(and(eq(lessonFile.userId, userId), eq(lessonFile.id, id)));
 	if (!row) return;
-	await deleteBlob(row.pathname);
 	await db.delete(lessonFile).where(and(eq(lessonFile.userId, userId), eq(lessonFile.id, id)));
+	await deleteBlob(row.pathname);
 }
