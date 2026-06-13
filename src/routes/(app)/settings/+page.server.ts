@@ -10,6 +10,7 @@ import {
 	addClosure,
 	deleteClosure
 } from '$lib/server/queries/timetable';
+import { reallocateAllClasses } from '$lib/server/queries/schedule';
 
 export const load: PageServerLoad = async (event) => {
 	const userId = requireUserId(event);
@@ -35,6 +36,7 @@ export const actions: Actions = {
 			periodsPerDay: Number(form.get('periodsPerDay')),
 			anchorLetter: String(form.get('anchorLetter'))
 		});
+		await reallocateAllClasses(userId);
 	},
 	addBlock: async (event) => {
 		const userId = requireUserId(event);
@@ -45,20 +47,24 @@ export const actions: Actions = {
 			String(form.get('startDate')),
 			String(form.get('endDate'))
 		);
+		await reallocateAllClasses(userId);
 	},
 	deleteBlock: async (event) => {
 		const userId = requireUserId(event);
 		const form = await event.request.formData();
 		await deleteBlock(userId, Number(form.get('id')));
+		await reallocateAllClasses(userId);
 	},
 	addClosure: async (event) => {
 		const userId = requireUserId(event);
 		const form = await event.request.formData();
 		await addClosure(userId, String(form.get('date')));
+		await reallocateAllClasses(userId);
 	},
 	deleteClosure: async (event) => {
 		const userId = requireUserId(event);
 		const form = await event.request.formData();
 		await deleteClosure(userId, Number(form.get('id')));
+		await reallocateAllClasses(userId);
 	}
 };

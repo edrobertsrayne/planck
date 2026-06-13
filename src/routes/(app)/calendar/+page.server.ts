@@ -18,6 +18,7 @@ export const load: PageServerLoad = async (event) => {
 	const rows = await db
 		.select({
 			id: scheduledLesson.id,
+			classId: scheduledLesson.classId,
 			date: scheduledLesson.date,
 			period: scheduledLesson.period,
 			title: scheduledLesson.title,

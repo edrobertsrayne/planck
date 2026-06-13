@@ -16,7 +16,9 @@
 		{#each data.classes as c (c.id)}
 			<li class="flex items-center gap-3 rounded-card border border-line bg-white px-4 py-3">
 				<SubjectDot colour={c.colour} />
-				<span class="font-semibold text-ink">{c.name}</span>
+				<a href="/classes/{c.id}" class="font-semibold text-ink hover:text-pink-dk hover:underline"
+					>{c.name}</a
+				>
 				<span class="text-sm text-muted">{c.courseName}</span>
 				<form method="POST" action="?/delete" class="ml-auto">
 					<input type="hidden" name="id" value={c.id} />
