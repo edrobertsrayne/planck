@@ -17,7 +17,8 @@ export function ownerColumns(owner: OwnerRef): OwnerColumns {
 		'scheduledLessonId' in owner && owner.scheduledLessonId != null
 			? owner.scheduledLessonId
 			: null;
-	if ((lessonId === null) === (scheduledLessonId === null)) {
+	const exactlyOne = (lessonId === null) !== (scheduledLessonId === null);
+	if (!exactlyOne) {
 		throw new Error('ownerColumns: exactly one of lessonId / scheduledLessonId is required');
 	}
 	return { lessonId, scheduledLessonId };
