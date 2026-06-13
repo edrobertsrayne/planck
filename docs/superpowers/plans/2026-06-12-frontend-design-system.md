@@ -36,6 +36,7 @@ These are invariants. Breaking one is a bug even if the page "looks right".
 ## File Structure
 
 **Created:**
+
 - `src/lib/components/Button.svelte` — variant/size button.
 - `src/lib/components/Chip.svelte` — pill (week letter / status / neutral).
 - `src/lib/components/Card.svelte` — hairline container, optional hover lift.
@@ -48,6 +49,7 @@ These are invariants. Breaking one is a bug even if the page "looks right".
 - `src/lib/components/Button.svelte.test.ts` — browser test for variant classes + submit type.
 
 **Modified:**
+
 - `src/routes/layout.css` — add `@theme` tokens + base layer.
 - `src/routes/+layout.svelte` — import fonts.
 - `src/routes/(app)/+layout.svelte` — top-bar + rail shell.
@@ -58,6 +60,7 @@ These are invariants. Breaking one is a bug even if the page "looks right".
 ## Task 1: Design tokens & fonts
 
 **Files:**
+
 - Modify: `src/routes/layout.css`
 - Modify: `src/routes/+layout.svelte`
 - Add deps: `@fontsource-variable/inter`, `@fontsource-variable/fraunces`
@@ -65,9 +68,11 @@ These are invariants. Breaking one is a bug even if the page "looks right".
 - [ ] **Step 1: Install the font packages**
 
 Run:
+
 ```bash
 bun add -d @fontsource-variable/inter @fontsource-variable/fraunces
 ```
+
 Expected: both packages added to `devDependencies`.
 
 - [ ] **Step 2: Import fonts in the root layout**
@@ -141,6 +146,7 @@ git commit -m "feat(design): add Bloom design tokens and self-hosted fonts"
 ## Task 2: Colour helper + unit test
 
 **Files:**
+
 - Create: `src/lib/colour.ts`
 - Test: `src/lib/colour.spec.ts`
 
@@ -210,6 +216,7 @@ git commit -m "feat(design): add withAlpha colour helper"
 ## Task 3: Button component (with test)
 
 **Files:**
+
 - Create: `src/lib/components/Button.svelte`
 - Test: `src/lib/components/Button.svelte.test.ts`
 
@@ -311,6 +318,7 @@ git commit -m "feat(design): add Button component"
 These are static-markup components; they're verified via `svelte-autofixer` + `bun run check` + visual use in later tasks (no dedicated browser tests — YAGNI for pure markup).
 
 **Files:**
+
 - Create: `src/lib/components/Chip.svelte`
 - Create: `src/lib/components/Card.svelte`
 - Create: `src/lib/components/PageHeader.svelte`
@@ -441,10 +449,7 @@ Create `src/lib/components/SubjectDot.svelte`:
 
 ```svelte
 <script lang="ts">
-	let {
-		colour,
-		shape = 'dot'
-	}: { colour: string; shape?: 'dot' | 'bar' } = $props();
+	let { colour, shape = 'dot' }: { colour: string; shape?: 'dot' | 'bar' } = $props();
 </script>
 
 {#if shape === 'bar'}
@@ -474,6 +479,7 @@ git commit -m "feat(design): add Chip, Card, PageHeader, EmptyState, Field, Subj
 ## Task 5: App shell — top-bar + rail
 
 **Files:**
+
 - Modify: `src/routes/(app)/+layout.svelte`
 
 Keeps the existing `links` array, `page` active logic, and `signOut()`. Restructures layout to a global top bar + nav rail. Sign-out lives in a native `<details>` account menu (no extra JS/state).
@@ -507,7 +513,14 @@ Replace the entire contents of `src/routes/(app)/+layout.svelte` with:
 </script>
 
 {#snippet icon(href: string)}
-	<svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+	<svg
+		width="17"
+		height="17"
+		viewBox="0 0 24 24"
+		fill="none"
+		stroke="currentColor"
+		stroke-width="2"
+	>
 		{#if href === '/agenda'}
 			<rect x="3" y="4" width="18" height="17" rx="2" /><path d="M3 9h18M8 2v4M16 2v4" />
 		{:else if href === '/calendar'}
@@ -532,7 +545,14 @@ Replace the entire contents of `src/routes/(app)/+layout.svelte` with:
 		<div
 			class="ml-1 hidden max-w-md flex-1 items-center gap-2 rounded-control border border-line bg-field px-3 py-2 text-sm text-muted md:flex"
 		>
-			<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
+			<svg
+				width="15"
+				height="15"
+				viewBox="0 0 24 24"
+				fill="none"
+				stroke="currentColor"
+				stroke-width="2.2"
+			>
 				<circle cx="11" cy="11" r="7" /><path d="m20 20-3.5-3.5" />
 			</svg>
 			Search lessons, classes, courses…
@@ -595,6 +615,7 @@ git commit -m "feat(design): top-bar + rail app shell"
 ## Task 6: Agenda page
 
 **Files:**
+
 - Modify: `src/routes/(app)/agenda/+page.svelte`
 
 Preserve: `data.groups`, `g.date`/`g.weekLetter`/`g.items`, item fields, the two forms (`/agenda?/moveLesson`, `/agenda?/deleteLesson`) with names `id`/`date`/`period`, `moveError`, and the `{courseName} — {title}` text.
@@ -639,7 +660,8 @@ Replace the entire contents of `src/routes/(app)/agenda/+page.svelte` with:
 	<section class="mb-6">
 		<h2 class="mb-3 flex items-center gap-2 font-display text-lg font-semibold text-ink/80">
 			{label(g.date)}
-			{#if g.weekLetter}<span class="text-xs font-normal text-muted">· Week {g.weekLetter}</span>{/if}
+			{#if g.weekLetter}<span class="text-xs font-normal text-muted">· Week {g.weekLetter}</span
+				>{/if}
 		</h2>
 		<div class="flex flex-col gap-2">
 			{#each g.items as item (item.id)}
@@ -705,6 +727,7 @@ git commit -m "feat(design): restyle agenda page"
 ## Task 7: Calendar page
 
 **Files:**
+
 - Modify: `src/routes/(app)/calendar/+page.svelte`
 
 Preserve all `data` usage and the `?start=` prev/next links. Apply the roomier grid (taller cells, stacked class → title → room, quiet dot for empty), faint subject tint via `withAlpha`.
@@ -816,6 +839,7 @@ git commit -m "feat(design): restyle calendar grid with breathing room"
 ## Task 8: Timetable page
 
 **Files:**
+
 - Modify: `src/routes/(app)/timetable/+page.svelte`
 
 CRITICAL: keep `<tbody>` → first `<tr>` → first `<td>` containing `select[name="classId"]` (e2e depends on it). Keep `input[name="room"]`, hidden `weekLetter`/`dayOfWeek`/`period`, the `requestSubmit()` handlers, and the Week A/B toggle.
@@ -855,7 +879,10 @@ Replace the entire contents of `src/routes/(app)/timetable/+page.svelte` with:
 	}
 </script>
 
-<PageHeader title="Timetable" subtitle={'Pick a class to assign a cell; choose "— free —" to clear it.'} />
+<PageHeader
+	title="Timetable"
+	subtitle={'Pick a class to assign a cell; choose "— free —" to clear it.'}
+/>
 
 {#if data.config.cycleWeeks === 2}
 	<div class="mb-4 inline-flex gap-1 rounded-control border border-line bg-field p-1">
@@ -948,6 +975,7 @@ git commit -m "feat(design): restyle timetable grid"
 ## Task 9: Courses, course detail, module pages
 
 **Files:**
+
 - Modify: `src/routes/(app)/courses/+page.svelte`
 - Modify: `src/routes/(app)/courses/[courseId]/+page.svelte`
 - Modify: `src/routes/(app)/courses/[courseId]/modules/[moduleId]/+page.svelte`
@@ -995,7 +1023,12 @@ Replace the entire contents of `src/routes/(app)/courses/+page.svelte` with:
 			required
 			class="rounded-control border border-line bg-field px-3 py-2 text-sm"
 		/>
-		<input name="colour" type="color" value="#3884ff" class="h-9 w-12 rounded-control border border-line" />
+		<input
+			name="colour"
+			type="color"
+			value="#3884ff"
+			class="h-9 w-12 rounded-control border border-line"
+		/>
 		<Button type="submit">Add course</Button>
 	</form>
 </Card>
@@ -1034,7 +1067,11 @@ Replace the entire contents of `src/routes/(app)/courses/[courseId]/+page.svelte
 			<li class="flex items-center gap-2 rounded-card border border-line bg-white px-4 py-2.5">
 				<form method="POST" action="?/reorder" use:enhance>
 					<input type="hidden" name="orderedIds" value={reorderedIds(i, -1)} />
-					<button class="px-1 text-muted hover:text-ink disabled:opacity-30" disabled={i === 0} aria-label="Move up">↑</button>
+					<button
+						class="px-1 text-muted hover:text-ink disabled:opacity-30"
+						disabled={i === 0}
+						aria-label="Move up">↑</button
+					>
 				</form>
 				<form method="POST" action="?/reorder" use:enhance>
 					<input type="hidden" name="orderedIds" value={reorderedIds(i, 1)} />
@@ -1106,7 +1143,11 @@ Replace the entire contents of `src/routes/(app)/courses/[courseId]/modules/[mod
 			<li class="flex items-center gap-2 rounded-card border border-line bg-white px-4 py-2.5">
 				<form method="POST" action="?/reorder" use:enhance>
 					<input type="hidden" name="orderedIds" value={reorderedIds(i, -1)} />
-					<button class="px-1 text-muted hover:text-ink disabled:opacity-30" disabled={i === 0} aria-label="Move up">↑</button>
+					<button
+						class="px-1 text-muted hover:text-ink disabled:opacity-30"
+						disabled={i === 0}
+						aria-label="Move up">↑</button
+					>
 				</form>
 				<form method="POST" action="?/reorder" use:enhance>
 					<input type="hidden" name="orderedIds" value={reorderedIds(i, 1)} />
@@ -1116,7 +1157,9 @@ Replace the entire contents of `src/routes/(app)/courses/[courseId]/modules/[mod
 						aria-label="Move down">↓</button
 					>
 				</form>
-				<span class="text-ink"><span class="font-semibold text-muted">{i + 1}.</span> {l.title}</span>
+				<span class="text-ink"
+					><span class="font-semibold text-muted">{i + 1}.</span> {l.title}</span
+				>
 				<form method="POST" action="?/delete" class="ml-auto">
 					<input type="hidden" name="id" value={l.id} />
 					<Button type="submit" variant="danger" size="sm">Delete</Button>
@@ -1145,7 +1188,10 @@ Replace the entire contents of `src/routes/(app)/courses/[courseId]/modules/[mod
 	{:else}
 		<form method="POST" action="?/assign" use:enhance class="flex items-end gap-3">
 			<Field label="Class">
-				<select name="classId" class="rounded-control border border-line bg-field px-3 py-2 text-sm">
+				<select
+					name="classId"
+					class="rounded-control border border-line bg-field px-3 py-2 text-sm"
+				>
 					{#each data.classes as c (c.id)}
 						<option value={c.id}>{c.name}</option>
 					{/each}
@@ -1186,6 +1232,7 @@ git commit -m "feat(design): restyle courses, course detail, module pages"
 ## Task 10: Classes page
 
 **Files:**
+
 - Modify: `src/routes/(app)/classes/+page.svelte`
 
 - [ ] **Step 1: Replace the page**
@@ -1260,6 +1307,7 @@ git commit -m "feat(design): restyle classes page"
 ## Task 11: Settings page
 
 **Files:**
+
 - Modify: `src/routes/(app)/settings/+page.svelte`
 
 Preserve every form/name and the three sections. Use `Field` + `Card` + `Button`.
@@ -1393,6 +1441,7 @@ git commit -m "feat(design): restyle settings page"
 ## Task 12: Login & signup pages
 
 **Files:**
+
 - Modify: `src/routes/login/+page.svelte`
 - Modify: `src/routes/signup/+page.svelte`
 
@@ -1421,7 +1470,8 @@ Replace the entire contents of `src/routes/login/+page.svelte` with:
 		else await goto('/agenda');
 	}
 
-	const inputClass = 'rounded-control border border-line bg-field px-3 py-2.5 text-sm focus:border-pink focus:outline-none focus:ring-2 focus:ring-pink-100';
+	const inputClass =
+		'rounded-control border border-line bg-field px-3 py-2.5 text-sm focus:border-pink focus:outline-none focus:ring-2 focus:ring-pink-100';
 </script>
 
 <div class="mx-auto mt-24 max-w-sm px-4">
@@ -1471,7 +1521,8 @@ Replace the entire contents of `src/routes/signup/+page.svelte` with:
 		else await goto('/agenda');
 	}
 
-	const inputClass = 'rounded-control border border-line bg-field px-3 py-2.5 text-sm focus:border-pink focus:outline-none focus:ring-2 focus:ring-pink-100';
+	const inputClass =
+		'rounded-control border border-line bg-field px-3 py-2.5 text-sm focus:border-pink focus:outline-none focus:ring-2 focus:ring-pink-100';
 </script>
 
 <div class="mx-auto mt-24 max-w-sm px-4">
@@ -1549,4 +1600,7 @@ git commit -m "chore(design): format and final verification" --allow-empty
 - **Deviation from spec, intentional:** the spec's fixed per-subject pastel table is treated as guidance only; because courses/classes carry a user-chosen `colour`, the implementation derives fills from that stored colour (via `SubjectDot` and `withAlpha`) rather than a name→colour map. This keeps the pass loader-free. The "global search" is a non-functional visual element (in spec scope notes). The "New lesson" CTA from the mockup is **omitted** from the shell (no existing single creation flow to target; lessons are created per-module). This avoids inventing a feature; noted here so it isn't mistaken for a gap.
 - **Placeholder scan:** no TBD/TODO; all code blocks complete. ✅
 - **Type/name consistency:** token names (`pink`, `pink-hover`, `pink-dk`, `pink-50/100/200`, `ink`, `muted`, `line`, `field`, `danger`, `rounded-control`, `rounded-card`, `font-display`) are defined in Task 1 and used consistently; `withAlpha` signature matches its callers in Tasks 7 & 8; `Button` prop API (`variant`/`size`/`type`) matches all usages. ✅
+
+```
+
 ```

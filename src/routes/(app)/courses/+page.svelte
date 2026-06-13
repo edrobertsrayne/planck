@@ -36,7 +36,12 @@
 			required
 			class="rounded-control border border-line bg-field px-3 py-2 text-sm"
 		/>
-		<input name="colour" type="color" value="#3884ff" class="h-9 w-12 rounded-control border border-line" />
+		<input
+			name="colour"
+			type="color"
+			value="#3884ff"
+			class="h-9 w-12 rounded-control border border-line"
+		/>
 		<Button type="submit">Add course</Button>
 	</form>
 </Card>

@@ -32,7 +32,8 @@
 	<section class="mb-6">
 		<h2 class="mb-3 flex items-center gap-2 font-display text-lg font-semibold text-ink/80">
 			{label(g.date)}
-			{#if g.weekLetter}<span class="text-xs font-normal text-muted">· Week {g.weekLetter}</span>{/if}
+			{#if g.weekLetter}<span class="text-xs font-normal text-muted">· Week {g.weekLetter}</span
+				>{/if}
 		</h2>
 		<div class="flex flex-col gap-2">
 			{#each g.items as item (item.id)}

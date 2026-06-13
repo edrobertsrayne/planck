@@ -22,7 +22,12 @@ export const actions: Actions = {
 	update: async (event) => {
 		const userId = requireUserId(event);
 		const form = await event.request.formData();
-		await updateClass(userId, Number(form.get('id')), String(form.get('name')), Number(form.get('courseId')));
+		await updateClass(
+			userId,
+			Number(form.get('id')),
+			String(form.get('name')),
+			Number(form.get('courseId'))
+		);
 	},
 	delete: async (event) => {
 		const userId = requireUserId(event);

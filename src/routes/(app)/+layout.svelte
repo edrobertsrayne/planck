@@ -22,7 +22,14 @@
 </script>
 
 {#snippet icon(href: string)}
-	<svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+	<svg
+		width="17"
+		height="17"
+		viewBox="0 0 24 24"
+		fill="none"
+		stroke="currentColor"
+		stroke-width="2"
+	>
 		{#if href === '/agenda'}
 			<rect x="3" y="4" width="18" height="17" rx="2" /><path d="M3 9h18M8 2v4M16 2v4" />
 		{:else if href === '/calendar'}
@@ -47,7 +54,14 @@
 		<div
 			class="ml-1 hidden max-w-md flex-1 items-center gap-2 rounded-control border border-line bg-field px-3 py-2 text-sm text-muted md:flex"
 		>
-			<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
+			<svg
+				width="15"
+				height="15"
+				viewBox="0 0 24 24"
+				fill="none"
+				stroke="currentColor"
+				stroke-width="2.2"
+			>
 				<circle cx="11" cy="11" r="7" /><path d="m20 20-3.5-3.5" />
 			</svg>
 			Search lessons, classes, courses…

@@ -29,7 +29,11 @@
 			<li class="flex items-center gap-2 rounded-card border border-line bg-white px-4 py-2.5">
 				<form method="POST" action="?/reorder" use:enhance>
 					<input type="hidden" name="orderedIds" value={reorderedIds(i, -1)} />
-					<button class="px-1 text-muted hover:text-ink disabled:opacity-30" disabled={i === 0} aria-label="Move up">↑</button>
+					<button
+						class="px-1 text-muted hover:text-ink disabled:opacity-30"
+						disabled={i === 0}
+						aria-label="Move up">↑</button
+					>
 				</form>
 				<form method="POST" action="?/reorder" use:enhance>
 					<input type="hidden" name="orderedIds" value={reorderedIds(i, 1)} />
@@ -39,7 +43,9 @@
 						aria-label="Move down">↓</button
 					>
 				</form>
-				<span class="text-ink"><span class="font-semibold text-muted">{i + 1}.</span> {l.title}</span>
+				<span class="text-ink"
+					><span class="font-semibold text-muted">{i + 1}.</span> {l.title}</span
+				>
 				<form method="POST" action="?/delete" class="ml-auto">
 					<input type="hidden" name="id" value={l.id} />
 					<Button type="submit" variant="danger" size="sm">Delete</Button>
@@ -68,7 +74,10 @@
 	{:else}
 		<form method="POST" action="?/assign" use:enhance class="flex items-end gap-3">
 			<Field label="Class">
-				<select name="classId" class="rounded-control border border-line bg-field px-3 py-2 text-sm">
+				<select
+					name="classId"
+					class="rounded-control border border-line bg-field px-3 py-2 text-sm"
+				>
 					{#each data.classes as c (c.id)}
 						<option value={c.id}>{c.name}</option>
 					{/each}

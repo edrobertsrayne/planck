@@ -46,7 +46,10 @@ export async function createModule(userId: string, courseId: number, name: strin
 }
 
 export function renameModule(userId: string, id: number, name: string) {
-	return db.update(module).set({ name }).where(and(eq(module.userId, userId), eq(module.id, id)));
+	return db
+		.update(module)
+		.set({ name })
+		.where(and(eq(module.userId, userId), eq(module.id, id)));
 }
 
 export function deleteModule(userId: string, id: number) {
@@ -89,7 +92,10 @@ export async function createLesson(userId: string, moduleId: number, title: stri
 }
 
 export function renameLesson(userId: string, id: number, title: string) {
-	return db.update(lesson).set({ title }).where(and(eq(lesson.userId, userId), eq(lesson.id, id)));
+	return db
+		.update(lesson)
+		.set({ title })
+		.where(and(eq(lesson.userId, userId), eq(lesson.id, id)));
 }
 
 export function deleteLesson(userId: string, id: number) {

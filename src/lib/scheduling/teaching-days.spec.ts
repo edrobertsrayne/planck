@@ -11,13 +11,7 @@ describe('listTeachingDays', () => {
 			[...teachingDays]
 		);
 		// Sat 19th and Sun 20th excluded
-		expect(result).toEqual([
-			'2026-09-14',
-			'2026-09-15',
-			'2026-09-16',
-			'2026-09-17',
-			'2026-09-18'
-		]);
+		expect(result).toEqual(['2026-09-14', '2026-09-15', '2026-09-16', '2026-09-17', '2026-09-18']);
 	});
 
 	it('excludes closure days', () => {

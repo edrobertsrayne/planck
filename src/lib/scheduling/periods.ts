@@ -1,12 +1,7 @@
 import { dayOfWeekIso, mondayOf, type IsoDate } from './dates';
 import { listTeachingDays } from './teaching-days';
 import { resolveWeekLetters } from './week-letter';
-import type {
-	TimetableConfigData,
-	TeachingBlockData,
-	SlotData,
-	PeriodOccurrence
-} from './types';
+import type { TimetableConfigData, TeachingBlockData, SlotData, PeriodOccurrence } from './types';
 
 export function classPeriodStream(
 	config: TimetableConfigData,

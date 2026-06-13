@@ -21,18 +21,18 @@ Implemented as Tailwind v4 `@theme` tokens in `src/routes/layout.css` so the who
 
 ### Colour tokens
 
-| Token | Value | Use |
-|---|---|---|
-| `--color-pink` | `#e8488b` | Primary actions, links, focus accents |
-| `--color-pink-dk` | `#a21d6b` | Text on pink tints |
-| `--color-pink-50` | `#fdf2f8` | Faint surface |
+| Token              | Value     | Use                                          |
+| ------------------ | --------- | -------------------------------------------- |
+| `--color-pink`     | `#e8488b` | Primary actions, links, focus accents        |
+| `--color-pink-dk`  | `#a21d6b` | Text on pink tints                           |
+| `--color-pink-50`  | `#fdf2f8` | Faint surface                                |
 | `--color-pink-100` | `#fce7f3` | Active nav pill, chips, selected rows, hover |
-| `--color-pink-200` | `#fbcfe8` | Hover borders |
-| `--color-ink` | `#3a2f35` | Primary text (warm near-black) |
-| `--color-muted` | `#a89aa1` | Secondary text |
-| `--color-line` | `#f1e8ec` | Hairline borders |
-| `--color-field` | `#f7f4f6` | Input / tag fills (near-white, faint warm) |
-| `--color-bg` | `#ffffff` | Page background |
+| `--color-pink-200` | `#fbcfe8` | Hover borders                                |
+| `--color-ink`      | `#3a2f35` | Primary text (warm near-black)               |
+| `--color-muted`    | `#a89aa1` | Secondary text                               |
+| `--color-line`     | `#f1e8ec` | Hairline borders                             |
+| `--color-field`    | `#f7f4f6` | Input / tag fills (near-white, faint warm)   |
+| `--color-bg`       | `#ffffff` | Page background                              |
 
 Neutrals are warm (rose-tinted), not cold grey.
 
@@ -40,15 +40,15 @@ Neutrals are warm (rose-tinted), not cold grey.
 
 A fixed pastel set, each paired with a darker accessible text tone, applied to period bars, calendar cells, and subject chips. Initial set:
 
-| Subject | Fill | Text |
-|---|---|---|
-| English | `#ffd1dc` | `#9a3b54` |
-| Science | `#bfe3f0` | `#2f6b86` |
-| Maths | `#c7f0d8` | `#2f7d56` |
-| History | `#ffe9b8` | `#946a18` |
+| Subject   | Fill      | Text      |
+| --------- | --------- | --------- |
+| English   | `#ffd1dc` | `#9a3b54` |
+| Science   | `#bfe3f0` | `#2f6b86` |
+| Maths     | `#c7f0d8` | `#2f7d56` |
+| History   | `#ffe9b8` | `#946a18` |
 | Geography | `#d9ccf2` | `#5a44a0` |
-| Art | `#ffd9c2` | `#9a5530` |
-| PE | `#cfece8` | `#2c7d72` |
+| Art       | `#ffd9c2` | `#9a5530` |
+| PE        | `#cfece8` | `#2c7d72` |
 
 The current data model already carries a per-lesson `colour` value; the design keeps using that field. A `subjectColour` helper maps a stable key (subject/course) onto the pastel set, with a deterministic fallback for unmapped subjects. Existing stored colours continue to render (used directly as the bar/cell fill); the helper governs new/derived colours and chip text tones. Exact mapping source (course field vs. subject name) is an implementation-plan detail.
 

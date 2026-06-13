@@ -1,8 +1,5 @@
 <script lang="ts">
-	let {
-		colour,
-		shape = 'dot'
-	}: { colour: string; shape?: 'dot' | 'bar' } = $props();
+	let { colour, shape = 'dot' }: { colour: string; shape?: 'dot' | 'bar' } = $props();
 </script>
 
 {#if shape === 'bar'}

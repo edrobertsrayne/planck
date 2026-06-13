@@ -26,7 +26,11 @@
 			<li class="flex items-center gap-2 rounded-card border border-line bg-white px-4 py-2.5">
 				<form method="POST" action="?/reorder" use:enhance>
 					<input type="hidden" name="orderedIds" value={reorderedIds(i, -1)} />
-					<button class="px-1 text-muted hover:text-ink disabled:opacity-30" disabled={i === 0} aria-label="Move up">↑</button>
+					<button
+						class="px-1 text-muted hover:text-ink disabled:opacity-30"
+						disabled={i === 0}
+						aria-label="Move up">↑</button
+					>
 				</form>
 				<form method="POST" action="?/reorder" use:enhance>
 					<input type="hidden" name="orderedIds" value={reorderedIds(i, 1)} />

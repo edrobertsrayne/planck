@@ -28,7 +28,10 @@
 	}
 </script>
 
-<PageHeader title="Timetable" subtitle='Pick a class to assign a cell; choose "— free —" to clear it.' />
+<PageHeader
+	title="Timetable"
+	subtitle="Pick a class to assign a cell; choose “— free —” to clear it."
+/>
 
 {#if data.config.cycleWeeks === 2}
 	<div class="mb-4 inline-flex gap-1 rounded-control border border-line bg-field p-1">

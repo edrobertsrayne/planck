@@ -9,6 +9,7 @@
 **Tech Stack:** SvelteKit (Svelte 5 runes), TypeScript, Drizzle ORM on Postgres (neon-http), better-auth (email/password), Tailwind v4, vitest (unit), Playwright (e2e). Package manager: **bun**.
 
 **Conventions for every task:**
+
 - Run unit tests with `bun run test:unit -- --run <path>`; type-check with `bun run check`.
 - Dates are represented everywhere as `'YYYY-MM-DD'` strings (`IsoDate`) and compared lexicographically. All date math is done in UTC to avoid DST drift.
 - Every Svelte component written during implementation MUST be passed through the Svelte MCP `svelte-autofixer` tool until it reports no issues (project rule in CLAUDE.md).
@@ -21,6 +22,7 @@
 ### Task 1: Generate auth tables and define the domain schema
 
 **Files:**
+
 - Generate: `src/lib/server/db/auth.schema.ts` (via CLI)
 - Modify: `src/lib/server/db/schema.ts`
 
@@ -34,14 +36,7 @@ Expected: `src/lib/server/db/auth.schema.ts` is overwritten with real exports in
 Replace the entire contents of `src/lib/server/db/schema.ts` with:
 
 ```ts
-import {
-	pgTable,
-	serial,
-	integer,
-	text,
-	date,
-	unique
-} from 'drizzle-orm/pg-core';
+import { pgTable, serial, integer, text, date, unique } from 'drizzle-orm/pg-core';
 import { user } from './auth.schema';
 
 // One row per teacher.
@@ -190,6 +185,7 @@ git commit -m "feat(db): add planck domain schema"
 ### Task 2: Date helpers
 
 **Files:**
+
 - Create: `src/lib/scheduling/dates.ts`
 - Test: `src/lib/scheduling/dates.spec.ts`
 
@@ -295,6 +291,7 @@ git commit -m "feat(scheduling): add UTC date helpers"
 ### Task 3: Shared scheduling types
 
 **Files:**
+
 - Create: `src/lib/scheduling/types.ts`
 
 This task has no test of its own (types only); it is consumed by later tested tasks.
@@ -369,6 +366,7 @@ git commit -m "feat(scheduling): add shared scheduling types"
 ### Task 4: List teaching days
 
 **Files:**
+
 - Create: `src/lib/scheduling/teaching-days.ts`
 - Test: `src/lib/scheduling/teaching-days.spec.ts`
 
@@ -389,13 +387,7 @@ describe('listTeachingDays', () => {
 			[...teachingDays]
 		);
 		// Sat 19th and Sun 20th excluded
-		expect(result).toEqual([
-			'2026-09-14',
-			'2026-09-15',
-			'2026-09-16',
-			'2026-09-17',
-			'2026-09-18'
-		]);
+		expect(result).toEqual(['2026-09-14', '2026-09-15', '2026-09-16', '2026-09-17', '2026-09-18']);
 	});
 
 	it('excludes closure days', () => {
@@ -481,6 +473,7 @@ git commit -m "feat(scheduling): list teaching days from blocks and closures"
 ### Task 5: Resolve week letters (A/B cycle)
 
 **Files:**
+
 - Create: `src/lib/scheduling/week-letter.ts`
 - Test: `src/lib/scheduling/week-letter.spec.ts`
 
@@ -586,10 +579,7 @@ export function resolveWeekLetters(
 	return map;
 }
 
-export function weekLetterForDate(
-	d: IsoDate,
-	map: Map<IsoDate, WeekLetter>
-): WeekLetter | null {
+export function weekLetterForDate(d: IsoDate, map: Map<IsoDate, WeekLetter>): WeekLetter | null {
 	return map.get(mondayOf(d)) ?? null;
 }
 ```
@@ -611,6 +601,7 @@ git commit -m "feat(scheduling): resolve A/B week letters across teaching weeks"
 ### Task 6: Build a class's period stream
 
 **Files:**
+
 - Create: `src/lib/scheduling/periods.ts`
 - Test: `src/lib/scheduling/periods.spec.ts`
 
@@ -676,12 +667,7 @@ Expected: FAIL — cannot find module `./periods`.
 import { dayOfWeekIso, mondayOf, type IsoDate } from './dates';
 import { listTeachingDays } from './teaching-days';
 import { resolveWeekLetters } from './week-letter';
-import type {
-	TimetableConfigData,
-	TeachingBlockData,
-	SlotData,
-	PeriodOccurrence
-} from './types';
+import type { TimetableConfigData, TeachingBlockData, SlotData, PeriodOccurrence } from './types';
 
 export function classPeriodStream(
 	config: TimetableConfigData,
@@ -725,6 +711,7 @@ git commit -m "feat(scheduling): build a class period stream from the timetable"
 ### Task 7: The scheduler (module placement)
 
 **Files:**
+
 - Create: `src/lib/scheduling/scheduler.ts`
 - Test: `src/lib/scheduling/scheduler.spec.ts`
 
@@ -796,12 +783,7 @@ Expected: FAIL — cannot find module `./scheduler`.
 ```ts
 // src/lib/scheduling/scheduler.ts
 import type { IsoDate } from './dates';
-import type {
-	PeriodOccurrence,
-	LessonData,
-	AssignmentPlan,
-	Placement
-} from './types';
+import type { PeriodOccurrence, LessonData, AssignmentPlan, Placement } from './types';
 
 interface PlanOptions {
 	/** Earliest date a lesson may be placed (the next teaching day). */
@@ -861,6 +843,7 @@ git commit -m "feat(scheduling): plan module assignment by appending into the pe
 ### Task 8: Auth client, login/signup, and route guard
 
 **Files:**
+
 - Create: `src/lib/auth-client.ts`
 - Create: `src/routes/login/+page.svelte`
 - Create: `src/routes/login/+page.server.ts`
@@ -1043,8 +1026,7 @@ export const load: PageServerLoad = async ({ locals }) => {
 Replace `src/routes/+page.svelte` contents with a minimal placeholder (it will never render due to the redirect):
 
 ```svelte
-<!-- src/routes/+page.svelte -->
-<p>Redirecting…</p>
+<!-- src/routes/+page.svelte --><p>Redirecting…</p>
 ```
 
 - [ ] **Step 8: Verify the guard manually**
@@ -1066,6 +1048,7 @@ git commit -m "feat(auth): add login/signup, app shell, and route guard"
 ### Task 9: Session helper and timetable/term queries
 
 **Files:**
+
 - Create: `src/lib/server/session.ts`
 - Create: `src/lib/server/queries/timetable.ts`
 
@@ -1089,12 +1072,7 @@ export function requireUserId(event: { locals: App.Locals }): string {
 // src/lib/server/queries/timetable.ts
 import { eq, and } from 'drizzle-orm';
 import { db } from '$lib/server/db';
-import {
-	timetableConfig,
-	teachingBlock,
-	closureDay,
-	timetableSlot
-} from '$lib/server/db/schema';
+import { timetableConfig, teachingBlock, closureDay, timetableSlot } from '$lib/server/db/schema';
 import type { DayOfWeek } from '$lib/scheduling/dates';
 import type { WeekLetter } from '$lib/scheduling/types';
 
@@ -1106,10 +1084,7 @@ const DEFAULT_CONFIG = {
 };
 
 export async function getConfig(userId: string) {
-	const [row] = await db
-		.select()
-		.from(timetableConfig)
-		.where(eq(timetableConfig.userId, userId));
+	const [row] = await db.select().from(timetableConfig).where(eq(timetableConfig.userId, userId));
 	if (!row) return { ...DEFAULT_CONFIG };
 	return {
 		cycleWeeks: row.cycleWeeks as 1 | 2,
@@ -1147,15 +1122,13 @@ export function addBlock(userId: string, name: string, startDate: string, endDat
 }
 
 export function deleteBlock(userId: string, id: number) {
-	return db.delete(teachingBlock).where(and(eq(teachingBlock.userId, userId), eq(teachingBlock.id, id)));
+	return db
+		.delete(teachingBlock)
+		.where(and(eq(teachingBlock.userId, userId), eq(teachingBlock.id, id)));
 }
 
 export function getClosures(userId: string) {
-	return db
-		.select()
-		.from(closureDay)
-		.where(eq(closureDay.userId, userId))
-		.orderBy(closureDay.date);
+	return db.select().from(closureDay).where(eq(closureDay.userId, userId)).orderBy(closureDay.date);
 }
 
 export function addClosure(userId: string, date: string) {
@@ -1178,7 +1151,12 @@ export async function setSlot(
 		.insert(timetableSlot)
 		.values({ userId, ...data })
 		.onConflictDoUpdate({
-			target: [timetableSlot.userId, timetableSlot.weekLetter, timetableSlot.dayOfWeek, timetableSlot.period],
+			target: [
+				timetableSlot.userId,
+				timetableSlot.weekLetter,
+				timetableSlot.dayOfWeek,
+				timetableSlot.period
+			],
 			set: { classId: data.classId, room: data.room }
 		});
 }
@@ -1214,6 +1192,7 @@ git commit -m "feat(server): add session helper and timetable/term queries"
 ### Task 10: Course, class, and schedule queries
 
 **Files:**
+
 - Create: `src/lib/server/queries/courses.ts`
 - Create: `src/lib/server/queries/classes.ts`
 - Create: `src/lib/server/queries/schedule.ts`
@@ -1270,7 +1249,10 @@ export async function createModule(userId: string, courseId: number, name: strin
 }
 
 export function renameModule(userId: string, id: number, name: string) {
-	return db.update(module).set({ name }).where(and(eq(module.userId, userId), eq(module.id, id)));
+	return db
+		.update(module)
+		.set({ name })
+		.where(and(eq(module.userId, userId), eq(module.id, id)));
 }
 
 export function deleteModule(userId: string, id: number) {
@@ -1314,7 +1296,10 @@ export async function createLesson(userId: string, moduleId: number, title: stri
 }
 
 export function renameLesson(userId: string, id: number, title: string) {
-	return db.update(lesson).set({ title }).where(and(eq(lesson.userId, userId), eq(lesson.id, id)));
+	return db
+		.update(lesson)
+		.set({ title })
+		.where(and(eq(lesson.userId, userId), eq(lesson.id, id)));
 }
 
 export function deleteLesson(userId: string, id: number) {
@@ -1424,7 +1409,8 @@ export async function assignModule(
 		getSlots(userId),
 		listLessons(userId, moduleId)
 	]);
-	if (lessons.length === 0) return { scheduled: 0, unscheduled: 0, firstDate: null, lastDate: null };
+	if (lessons.length === 0)
+		return { scheduled: 0, unscheduled: 0, firstDate: null, lastDate: null };
 
 	const stream = classPeriodStream(
 		config,
@@ -1544,6 +1530,7 @@ git commit -m "feat(server): add course, class, and schedule queries + assign or
 ### Task 11: Settings page
 
 **Files:**
+
 - Create: `src/routes/(app)/settings/+page.server.ts`
 - Create: `src/routes/(app)/settings/+page.svelte`
 
@@ -1740,6 +1727,7 @@ git commit -m "feat(settings): timetable config and term dates"
 ### Task 12: Courses list and course detail (modules)
 
 **Files:**
+
 - Create: `src/routes/(app)/courses/+page.server.ts`
 - Create: `src/routes/(app)/courses/+page.svelte`
 - Create: `src/routes/(app)/courses/[courseId]/+page.server.ts`
@@ -1752,12 +1740,7 @@ git commit -m "feat(settings): timetable config and term dates"
 import { error } from '@sveltejs/kit';
 import type { Actions, PageServerLoad } from './$types';
 import { requireUserId } from '$lib/server/session';
-import {
-	listCourses,
-	createCourse,
-	updateCourse,
-	deleteCourse
-} from '$lib/server/queries/courses';
+import { listCourses, createCourse, updateCourse, deleteCourse } from '$lib/server/queries/courses';
 
 export const load: PageServerLoad = async (event) => {
 	const userId = requireUserId(event);
@@ -1775,7 +1758,12 @@ export const actions: Actions = {
 	update: async (event) => {
 		const userId = requireUserId(event);
 		const form = await event.request.formData();
-		await updateCourse(userId, Number(form.get('id')), String(form.get('name')), String(form.get('colour')));
+		await updateCourse(
+			userId,
+			Number(form.get('id')),
+			String(form.get('name')),
+			String(form.get('colour'))
+		);
 	},
 	delete: async (event) => {
 		const userId = requireUserId(event);
@@ -1895,9 +1883,14 @@ Reorder is exposed as up/down buttons that submit the full new order to the `reo
 			</form>
 			<form method="POST" action="?/reorder" use:enhance>
 				<input type="hidden" name="orderedIds" value={reorderedIds(i, 1)} />
-				<button class="px-1" disabled={i === data.modules.length - 1} aria-label="Move down">↓</button>
+				<button class="px-1" disabled={i === data.modules.length - 1} aria-label="Move down"
+					>↓</button
+				>
 			</form>
-			<a class="font-medium text-blue-700 hover:underline" href="/courses/{data.course.id}/modules/{m.id}">
+			<a
+				class="font-medium text-blue-700 hover:underline"
+				href="/courses/{data.course.id}/modules/{m.id}"
+			>
 				{m.name}
 			</a>
 			<form method="POST" action="?/delete" class="ml-auto">
@@ -1930,6 +1923,7 @@ git commit -m "feat(courses): course list and module management"
 ### Task 13: Module detail (lessons) with assign action
 
 **Files:**
+
 - Create: `src/routes/(app)/courses/[courseId]/modules/[moduleId]/+page.server.ts`
 - Create: `src/routes/(app)/courses/[courseId]/modules/[moduleId]/+page.svelte`
 
@@ -2029,7 +2023,9 @@ export const actions: Actions = {
 			</form>
 			<form method="POST" action="?/reorder" use:enhance>
 				<input type="hidden" name="orderedIds" value={reorderedIds(i, 1)} />
-				<button class="px-1" disabled={i === data.lessons.length - 1} aria-label="Move down">↓</button>
+				<button class="px-1" disabled={i === data.lessons.length - 1} aria-label="Move down"
+					>↓</button
+				>
 			</form>
 			<span>{i + 1}. {l.title}</span>
 			<form method="POST" action="?/delete" class="ml-auto">
@@ -2096,6 +2092,7 @@ git commit -m "feat(courses): lesson management and assign-module-to-class"
 ### Task 14: Classes page
 
 **Files:**
+
 - Create: `src/routes/(app)/classes/+page.server.ts`
 - Create: `src/routes/(app)/classes/+page.svelte`
 
@@ -2127,7 +2124,12 @@ export const actions: Actions = {
 	update: async (event) => {
 		const userId = requireUserId(event);
 		const form = await event.request.formData();
-		await updateClass(userId, Number(form.get('id')), String(form.get('name')), Number(form.get('courseId')));
+		await updateClass(
+			userId,
+			Number(form.get('id')),
+			String(form.get('name')),
+			Number(form.get('courseId'))
+		);
 	},
 	delete: async (event) => {
 		const userId = requireUserId(event);
@@ -2194,6 +2196,7 @@ git commit -m "feat(classes): class CRUD tied to a course"
 ### Task 15: Timetable grid
 
 **Files:**
+
 - Create: `src/routes/(app)/timetable/+page.server.ts`
 - Create: `src/routes/(app)/timetable/+page.svelte`
 
@@ -2324,7 +2327,9 @@ export const actions: Actions = {
 		{/each}
 	</tbody>
 </table>
-<p class="mt-2 text-sm text-gray-600">Pick a class to assign a cell; choose "— free —" to clear it.</p>
+<p class="mt-2 text-sm text-gray-600">
+	Pick a class to assign a cell; choose "— free —" to clear it.
+</p>
 ```
 
 - [ ] **Step 3: Verify**
@@ -2345,6 +2350,7 @@ git commit -m "feat(timetable): week A/B grid builder with rooms"
 ### Task 16: Agenda page
 
 **Files:**
+
 - Create: `src/lib/scheduling/week-label.ts`
 - Create: `src/lib/scheduling/week-label.spec.ts`
 - Create: `src/routes/(app)/agenda/+page.server.ts`
@@ -2485,7 +2491,8 @@ export const load: PageServerLoad = async (event) => {
 {#each data.groups as g (g.date)}
 	<h2 class="mt-5 mb-1 border-b pb-1 font-semibold">
 		{label(g.date)}
-		{#if g.weekLetter}<span class="text-sm font-normal text-gray-500">· Week {g.weekLetter}</span>{/if}
+		{#if g.weekLetter}<span class="text-sm font-normal text-gray-500">· Week {g.weekLetter}</span
+			>{/if}
 	</h2>
 	{#each g.items as item (item.id)}
 		<div class="flex items-center gap-3 border-b border-dashed py-1.5 text-sm">
@@ -2494,11 +2501,7 @@ export const load: PageServerLoad = async (event) => {
 			<span class="w-16 font-bold">{item.className}</span>
 			<span class="flex-1">{item.courseName} — {item.title}</span>
 			<span class="text-gray-500">{item.room}</span>
-			<form
-				method="POST"
-				action="/agenda?/deleteLesson"
-				use:enhance
-			>
+			<form method="POST" action="/agenda?/deleteLesson" use:enhance>
 				<input type="hidden" name="id" value={item.id} />
 				<button class="text-xs text-red-600">Delete</button>
 			</form>
@@ -2527,6 +2530,7 @@ git commit -m "feat(agenda): default upcoming-lessons view grouped by day"
 ### Task 17: Calendar grid view
 
 **Files:**
+
 - Create: `src/routes/(app)/calendar/+page.server.ts`
 - Create: `src/routes/(app)/calendar/+page.svelte`
 
@@ -2629,7 +2633,9 @@ export const load: PageServerLoad = async (event) => {
 
 <div class="mb-3 flex items-center gap-3">
 	<h1 class="text-2xl font-bold">Calendar</h1>
-	{#if data.weekLetter}<span class="rounded bg-gray-200 px-2 py-0.5 text-sm">Week {data.weekLetter}</span>{/if}
+	{#if data.weekLetter}<span class="rounded bg-gray-200 px-2 py-0.5 text-sm"
+			>Week {data.weekLetter}</span
+		>{/if}
 	<a class="ml-auto rounded border px-2 py-1 text-sm" href="?start={data.prevStart}">← Prev</a>
 	<a class="rounded border px-2 py-1 text-sm" href="?start={data.nextStart}">Next →</a>
 </div>
@@ -2639,7 +2645,9 @@ export const load: PageServerLoad = async (event) => {
 		<tr>
 			<th class="border p-2"></th>
 			{#each days as d (d.n)}
-				<th class="border p-2 text-sm">{d.label}<br /><span class="font-normal text-gray-500">{fmt(dateFor(d.n))}</span></th>
+				<th class="border p-2 text-sm"
+					>{d.label}<br /><span class="font-normal text-gray-500">{fmt(dateFor(d.n))}</span></th
+				>
 			{/each}
 		</tr>
 	</thead>
@@ -2683,6 +2691,7 @@ git commit -m "feat(calendar): weekly day x period grid view"
 ### Task 18: Edit scheduled lessons (move + delete + unschedule)
 
 **Files:**
+
 - Create: `src/routes/(app)/agenda/+page.server.ts` actions (modify the file from Task 16 — add `export const actions`)
 - Modify: `src/routes/(app)/agenda/+page.svelte` (add a move control)
 
@@ -2723,7 +2732,9 @@ export const actions: Actions = {
 		const slots = await getSlots(userId);
 		const dow = dayOfWeekIso(date);
 		// Target must be a timetabled period for this class on that weekday (either week letter).
-		const target = slots.find((s) => s.classId === row.classId && s.dayOfWeek === dow && s.period === period);
+		const target = slots.find(
+			(s) => s.classId === row.classId && s.dayOfWeek === dow && s.period === period
+		);
 		if (!target) return fail(400, { moveError: 'That period is not timetabled for this class' });
 
 		// Enforce "free period" — refuse if the class already has a lesson there.
@@ -2756,7 +2767,14 @@ In `src/routes/(app)/agenda/+page.svelte`, replace the delete `<form>` block ins
 	<form method="POST" action="/agenda?/moveLesson" use:enhance class="flex items-center gap-1">
 		<input type="hidden" name="id" value={item.id} />
 		<input type="date" name="date" required class="rounded border text-xs" />
-		<input type="number" name="period" min="1" placeholder="P" required class="w-12 rounded border text-xs" />
+		<input
+			type="number"
+			name="period"
+			min="1"
+			placeholder="P"
+			required
+			class="w-12 rounded border text-xs"
+		/>
 		<button class="text-xs text-blue-600">Move</button>
 	</form>
 	<form method="POST" action="/agenda?/deleteLesson" use:enhance>
@@ -2775,7 +2793,7 @@ Add near the top of the markup, after the `<h1>`, a place to surface move errors
 And update the script's props to include `form`:
 
 ```svelte
-let { data, form } = $props();
+let {(data, form)} = $props();
 ```
 
 - [ ] **Step 3: Verify**
@@ -2796,6 +2814,7 @@ git commit -m "feat(agenda): move and delete individual scheduled lessons"
 ### Task 19: Playwright happy-path test
 
 **Files:**
+
 - Create: `e2e/happy-path.test.ts`
 - Reference: `playwright.config.ts` (already present)
 

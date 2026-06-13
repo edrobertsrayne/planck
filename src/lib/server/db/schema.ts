@@ -1,11 +1,4 @@
-import {
-	pgTable,
-	serial,
-	integer,
-	text,
-	date,
-	unique
-} from 'drizzle-orm/pg-core';
+import { pgTable, serial, integer, text, date, unique } from 'drizzle-orm/pg-core';
 import { user } from './auth.schema';
 
 // One row per teacher.
