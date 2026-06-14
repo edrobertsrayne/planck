@@ -1,4 +1,9 @@
+import { browser } from '$app/environment';
 import { createAuthClient } from '@neondatabase/auth';
-import { PUBLIC_NEON_AUTH_URL } from '$env/static/public';
 
-export const authClient = createAuthClient(PUBLIC_NEON_AUTH_URL);
+// The client talks to the same-origin proxy, which forwards to Neon and rewrites
+// cookies to first-party. Absolute origin avoids any ambiguity during the brief
+// SSR import window (the client only issues requests in the browser).
+const baseURL = browser ? `${window.location.origin}/api/auth` : '/api/auth';
+
+export const authClient = createAuthClient(baseURL);
