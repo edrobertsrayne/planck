@@ -18,10 +18,11 @@ function resolve(): Client {
 	return instance;
 }
 
+// Forward property access straight through. The underlying better-auth client is
+// itself a Proxy over a function, so nested namespaces (e.g. `signIn`) are
+// callable proxies — binding them would turn them into plain functions and break
+// `signIn.email`/`signUp.email`. The client's methods are `this`-independent, so
+// no binding is needed.
 export const authClient = new Proxy({} as Client, {
-	get(_target, prop) {
-		const client = resolve();
-		const value = Reflect.get(client, prop);
-		return typeof value === 'function' ? value.bind(client) : value;
-	}
+	get: (_target, prop) => Reflect.get(resolve(), prop)
 });

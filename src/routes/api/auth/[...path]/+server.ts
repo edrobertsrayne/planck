@@ -40,10 +40,23 @@ async function proxy(event: Parameters<RequestHandler>[0]): Promise<Response> {
 		if (lower === 'set-cookie') continue; // handled below
 		if (lower === 'content-encoding' || lower === 'content-length' || lower === 'transfer-encoding')
 			continue; // let the platform recompute
+		if (lower === 'location') {
+			// Keep redirects on the app origin: rewrite any absolute Neon URL back
+			// through this proxy so the browser never hits Neon directly.
+			resHeaders.set(
+				key,
+				value.startsWith(baseUrl) ? `/api/auth${value.slice(baseUrl.length)}` : value
+			);
+			continue;
+		}
 		resHeaders.set(key, value);
 	}
-	// getSetCookie() returns each Set-Cookie separately (Node/undici + SvelteKit support it).
-	for (const sc of upstream.headers.getSetCookie?.() ?? []) {
+	// getSetCookie() returns each Set-Cookie separately. Fall back to the single
+	// header so auth cookies are never silently dropped if it's unavailable.
+	const setCookies = upstream.headers.getSetCookie?.() ?? [];
+	const rawSetCookie = upstream.headers.get('set-cookie');
+	if (setCookies.length === 0 && rawSetCookie) setCookies.push(rawSetCookie);
+	for (const sc of setCookies) {
 		resHeaders.append('set-cookie', toFirstPartySetCookie(sc, { secure }));
 	}
 
