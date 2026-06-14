@@ -6,7 +6,7 @@ import { requireUserId } from '$lib/server/session';
 import { env } from '$env/dynamic/private';
 import { db } from '$lib/server/db';
 import { lesson, scheduledLesson } from '$lib/server/db/schema';
-import { ALLOWED_CONTENT_TYPES, MAX_FILE_BYTES } from '$lib/lesson-content/files';
+import { ALLOWED_CONTENT_TYPES, MAX_FILE_BYTES } from '$lib/resources/files';
 
 async function userOwnsTarget(
 	userId: string,

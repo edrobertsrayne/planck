@@ -8,7 +8,7 @@ import {
 	lessonLink,
 	lessonFile
 } from '$lib/server/db/schema';
-import { buildCopiedLinkRows, buildCopiedFileRows } from '$lib/lesson-content/copy';
+import { buildCopiedLinkRows, buildCopiedFileRows } from '$lib/resources/copy';
 import { copyBlob } from '$lib/server/blob';
 import { getConfig, getBlocks, getClosures, getSlots } from './timetable';
 import { getModule, listLessons } from './courses';

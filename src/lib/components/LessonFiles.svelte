@@ -3,7 +3,7 @@
 	import { invalidateAll } from '$app/navigation';
 	import Button from './Button.svelte';
 	import EmptyState from './EmptyState.svelte';
-	import { validateFile } from '$lib/lesson-content/files';
+	import { validateFile } from '$lib/resources/files';
 
 	type FileRow = {
 		id: number;

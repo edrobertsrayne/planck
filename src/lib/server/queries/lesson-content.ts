@@ -1,8 +1,8 @@
 import { eq, and, sql } from 'drizzle-orm';
 import { db } from '$lib/server/db';
 import { lesson, scheduledLesson, lessonLink, lessonFile } from '$lib/server/db/schema';
-import { ownerColumns, type OwnerRef } from '$lib/lesson-content/owner';
-import { applyOrder } from '$lib/lesson-content/files';
+import { ownerColumns, type OwnerRef } from '$lib/resources/owner';
+import { applyOrder } from '$lib/resources/files';
 import { deleteBlob, headBlob } from '$lib/server/blob';
 
 // --- owner where-clause helpers (branch on which side of the discriminator) ---
