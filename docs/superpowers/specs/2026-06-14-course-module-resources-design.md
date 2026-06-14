@@ -75,16 +75,16 @@ cascades modules → lessons → their resource rows as today.
 
 ```ts
 type OwnerRef =
-  | { lessonId: number }
-  | { scheduledLessonId: number }
-  | { courseId: number }
-  | { moduleId: number };
+	| { lessonId: number }
+	| { scheduledLessonId: number }
+	| { courseId: number }
+	| { moduleId: number };
 
 interface OwnerColumns {
-  lessonId: number | null;
-  scheduledLessonId: number | null;
-  courseId: number | null;
-  moduleId: number | null;
+	lessonId: number | null;
+	scheduledLessonId: number | null;
+	courseId: number | null;
+	moduleId: number | null;
 }
 ```
 
@@ -212,7 +212,7 @@ would orphan existing blobs for no user benefit.
 ## Known limitations (pre-existing, out of scope)
 
 Cascade deletes (deleting a course, module, or lesson) remove `resource_file`
-*rows* but do not delete the underlying blobs — identical to how deleting a lesson
+_rows_ but do not delete the underlying blobs — identical to how deleting a lesson
 already behaves. Explicit per-row deletion (`deleteFile`) still removes the blob.
 Recorded here for awareness; not addressed by this work.
 

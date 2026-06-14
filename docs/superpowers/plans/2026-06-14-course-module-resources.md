@@ -15,12 +15,14 @@
 ## File Structure
 
 **Renamed/moved:**
+
 - `src/lib/lesson-content/{owner,files,copy}.ts` (+ `.spec.ts`) → `src/lib/resources/…`
 - `src/lib/components/LessonLinks.svelte` → `ResourceLinks.svelte` (+ test)
 - `src/lib/components/LessonFiles.svelte` → `ResourceFiles.svelte` (+ test)
 - `src/routes/api/lesson-files/upload/+server.ts` → `src/routes/api/resource-files/upload/+server.ts`
 
 **Modified:**
+
 - `src/lib/server/db/schema.ts` — rename tables, add columns
 - `src/lib/server/queries/lesson-content.ts` — slim to `saveLessonPlan` only
 - `src/lib/server/queries/schedule.ts` — renamed symbols/import path
@@ -29,6 +31,7 @@
 - The two lesson pages — import/prop renames only
 
 **Created:**
+
 - `src/lib/server/queries/resources.ts` — generic links/files CRUD (4 owners)
 - `scripts/migrate-resource-rename.ts` — one-off DB migration runner
 
@@ -39,6 +42,7 @@
 ## Task 1: Rename lib dir `lesson-content` → `resources` (mechanical, no behaviour change)
 
 **Files:**
+
 - Move: `src/lib/lesson-content/{owner,owner.spec,files,files.spec,copy,copy.spec}.ts` → `src/lib/resources/…`
 - Modify imports in: `src/lib/server/queries/lesson-content.ts`, `src/lib/server/queries/schedule.ts`, `src/lib/components/LessonFiles.svelte`, `src/routes/api/lesson-files/upload/+server.ts`
 
@@ -56,6 +60,7 @@ grep -rl "\$lib/lesson-content/" src/ | xargs sed -i 's#\$lib/lesson-content/#$l
 ```
 
 Affected lines become:
+
 - `src/lib/server/queries/lesson-content.ts`: `from '$lib/resources/owner'`, `from '$lib/resources/files'`
 - `src/lib/server/queries/schedule.ts`: `from '$lib/resources/copy'`
 - `src/lib/components/LessonFiles.svelte`: `from '$lib/resources/files'`
@@ -80,6 +85,7 @@ git commit -m "refactor: move lesson-content lib dir to resources"
 The breaking symbol rename + the live migration, done together so the build stays green at the commit.
 
 **Files:**
+
 - Create: `scripts/migrate-resource-rename.ts`
 - Modify: `src/lib/server/db/schema.ts`, `src/lib/server/queries/lesson-content.ts`, `src/lib/server/queries/schedule.ts`
 
@@ -275,6 +281,7 @@ git commit -m "feat(db): rename lesson_link/file to resource_*, add course/modul
 Owner extension and the query split land in **one commit**: once `OwnerRef` is 4-way, the old 2-way branch helpers in `lesson-content.ts` no longer type-check, so they are replaced by the new generic `resources.ts` at the same time.
 
 **Files:**
+
 - Test: `src/lib/resources/owner.spec.ts`
 - Modify: `src/lib/resources/owner.ts`
 - Create: `src/lib/server/queries/resources.ts`
@@ -522,7 +529,9 @@ export function saveLessonPlan(userId: string, owner: OwnerRef, plan: string) {
 		return db
 			.update(scheduledLesson)
 			.set({ plan })
-			.where(and(eq(scheduledLesson.userId, userId), eq(scheduledLesson.id, owner.scheduledLessonId)));
+			.where(
+				and(eq(scheduledLesson.userId, userId), eq(scheduledLesson.id, owner.scheduledLessonId))
+			);
 	}
 	throw new Error('saveLessonPlan: owner must be a lesson or scheduled lesson');
 }
@@ -562,6 +571,7 @@ git commit -m "feat(resources): 4-way OwnerRef + split generic resources query m
 ## Task 4: Rename upload route + add course/module ownership
 
 **Files:**
+
 - Move: `src/routes/api/lesson-files/upload/+server.ts` → `src/routes/api/resource-files/upload/+server.ts`
 - Modify the moved file (ownership) and `src/lib/components/LessonFiles.svelte` (URL)
 
@@ -649,6 +659,7 @@ git commit -m "feat(upload): rename route to resource-files, allow course/module
 ## Task 5: Rename components to `Resource*` and widen `ownerType`
 
 **Files:**
+
 - Move: `LessonLinks.svelte`→`ResourceLinks.svelte`, `LessonFiles.svelte`→`ResourceFiles.svelte` (+ their `.test.ts`)
 - Modify: both lesson `+page.svelte` files
 
@@ -734,8 +745,8 @@ test('renders for a module owner', async () => {
 In `…/lessons/[lessonId]/+page.svelte` and `…/lessons/[scheduledLessonId]/+page.svelte`, change the two component imports:
 
 ```svelte
-import ResourceLinks from '$lib/components/ResourceLinks.svelte';
-import ResourceFiles from '$lib/components/ResourceFiles.svelte';
+import ResourceLinks from '$lib/components/ResourceLinks.svelte'; import ResourceFiles from
+'$lib/components/ResourceFiles.svelte';
 ```
 
 and in the markup rename the tags `<LessonLinks … />` → `<ResourceLinks … />` and `<LessonFiles … />` → `<ResourceFiles … />` (keep the existing `ownerType`/`ownerId` props unchanged).
@@ -757,6 +768,7 @@ git commit -m "refactor(components): rename Lesson{Links,Files} to Resource{Link
 ## Task 6: Course page — load resources, add actions, render cards
 
 **Files:**
+
 - Modify: `src/routes/(app)/courses/[courseId]/+page.server.ts`
 - Modify: `src/routes/(app)/courses/[courseId]/+page.svelte`
 
@@ -765,7 +777,14 @@ git commit -m "refactor(components): rename Lesson{Links,Files} to Resource{Link
 In `src/routes/(app)/courses/[courseId]/+page.server.ts`, add the import:
 
 ```ts
-import { listLinks, addLink, deleteLink, listFiles, addFile, deleteFile } from '$lib/server/queries/resources';
+import {
+	listLinks,
+	addLink,
+	deleteLink,
+	listFiles,
+	addFile,
+	deleteFile
+} from '$lib/server/queries/resources';
 ```
 
 Change `load`'s return to include resources:
@@ -863,6 +882,7 @@ git commit -m "feat(courses): attach links and files to a course"
 ## Task 7: Module page — load resources, add actions, reorder layout, render cards
 
 **Files:**
+
 - Modify: `src/routes/(app)/courses/[courseId]/modules/[moduleId]/+page.server.ts`
 - Modify: `src/routes/(app)/courses/[courseId]/modules/[moduleId]/+page.svelte`
 
@@ -871,7 +891,14 @@ git commit -m "feat(courses): attach links and files to a course"
 In `…/modules/[moduleId]/+page.server.ts`, add the import:
 
 ```ts
-import { listLinks, addLink, deleteLink, listFiles, addFile, deleteFile } from '$lib/server/queries/resources';
+import {
+	listLinks,
+	addLink,
+	deleteLink,
+	listFiles,
+	addFile,
+	deleteFile
+} from '$lib/server/queries/resources';
 ```
 
 Add to `load`'s return object (alongside `module`, `lessons`, `classes`):
