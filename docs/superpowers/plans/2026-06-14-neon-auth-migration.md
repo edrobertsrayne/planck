@@ -67,6 +67,7 @@ In a scratch node REPL or a throwaway `+page.svelte`, log the object returned by
 ## Task 1: Add the Neon Auth dependency
 
 **Files:**
+
 - Modify: `package.json`
 
 - [ ] **Step 1: Install the package**
@@ -91,6 +92,7 @@ git commit -m "build: add @neondatabase/auth"
 ## Task 2: Server session helper (`fetchSession`) — test first
 
 **Files:**
+
 - Create: `src/lib/server/neon-auth.ts`
 - Test: `src/lib/server/neon-auth.spec.ts`
 
@@ -225,6 +227,7 @@ git commit -m "feat(auth): add Neon Auth get-session helper"
 ## Task 3: Rewrite `hooks.server.ts` and delete the local auth instance
 
 **Files:**
+
 - Modify: `src/hooks.server.ts`
 - Delete: `src/lib/server/auth.ts`
 
@@ -280,6 +283,7 @@ git commit -m "feat(auth): validate sessions via Neon Auth in hooks; drop local 
 ## Task 4: Update `app.d.ts` types
 
 **Files:**
+
 - Modify: `src/app.d.ts`
 
 - [ ] **Step 1: Replace the type declarations**
@@ -325,6 +329,7 @@ git commit -m "refactor(auth): type Locals from Neon Auth session shape"
 ## Task 5: Repoint the client and verify the UI pages
 
 **Files:**
+
 - Modify: `src/lib/auth-client.ts`
 - Read/verify: `src/routes/login/+page.svelte`, `src/routes/signup/+page.svelte`, `src/routes/(app)/+layout.svelte`
 
@@ -344,6 +349,7 @@ export const authClient = createAuthClient(PUBLIC_NEON_AUTH_URL);
 - [ ] **Step 2: Verify the consuming pages need no changes**
 
 Confirm these call sites still type-check against the new client (they use the Better Auth API, which the default adapter preserves):
+
 - `login/+page.svelte`: `authClient.signIn.email({ email, password })`
 - `signup/+page.svelte`: `authClient.signUp.email({ name, email, password })`
 - `(app)/+layout.svelte`: `authClient.signOut()`
@@ -363,6 +369,7 @@ git commit -m "feat(auth): point auth client at Neon Auth"
 ## Task 6: Remove user FKs from the app schema and delete the auth schema
 
 **Files:**
+
 - Delete: `src/lib/server/db/auth.schema.ts`
 - Modify: `src/lib/server/db/schema.ts`
 
@@ -434,6 +441,7 @@ git commit -m "feat(db): drop local user tables and FKs; userId is plain text"
 ## Task 7: Remove Better Auth dependencies and scripts
 
 **Files:**
+
 - Modify: `package.json`
 
 - [ ] **Step 1: Remove the packages**
@@ -470,6 +478,7 @@ git commit -m "build: remove better-auth and @better-auth/cli"
 ## Task 8: Update env templates and Vercel configuration
 
 **Files:**
+
 - Modify: `.env.example`
 - Modify: `.env`
 
@@ -516,6 +525,7 @@ Expected: all PASS.
 - [ ] **Step 2: Manual local flow**
 
 Run `bun run dev`, then in the browser:
+
 1. Visit `/signup`, create an account → expect redirect to `/agenda`.
 2. Reload `/agenda` → still authenticated (session validated by hooks).
 3. Create a course → confirm it persists (writes use `locals.user.id`).

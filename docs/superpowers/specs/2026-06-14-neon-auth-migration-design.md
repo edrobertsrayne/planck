@@ -14,7 +14,7 @@ to run") and integrate auth cleanly via the Neon–Vercel integration.
 
 - **Neon Auth is built on Better Auth** (managed REST service, currently Better
   Auth v1.4.18). This project is already on `better-auth ~1.4.21`, so this is a
-  change of *where the auth server runs and where user tables live* — not a
+  change of _where the auth server runs and where user tables live_ — not a
   swap between two unrelated auth systems.
 - The framework-agnostic client package `@neondatabase/auth` (latest
   `0.4.2-beta`) defaults to the `BetterAuthVanillaAdapter`, which exposes the
@@ -43,11 +43,13 @@ to run") and integrate auth cleanly via the Neon–Vercel integration.
 ## Design
 
 ### 1. Dependencies & config
+
 - Add `@neondatabase/auth`.
 - Remove `better-auth` and `@better-auth/cli`.
 - Drop the `auth:schema` script from `package.json`.
 
 ### 2. Enable Neon Auth & wire Vercel
+
 - Enable Auth in the Neon Console (the `.neon` file already lists the `auth`
   feature). Obtain the **Auth URL**.
 - Through the Neon–Vercel integration, env vars are injected into Vercel.
@@ -58,18 +60,21 @@ to run") and integrate auth cleanly via the Neon–Vercel integration.
   `BETTER_AUTH_SECRET` and `BETTER_AUTH_URL`.
 
 ### 3. Client (`src/lib/auth-client.ts`)
+
 ```ts
 import { createAuthClient } from '@neondatabase/auth';
 import { PUBLIC_NEON_AUTH_URL } from '$env/static/public';
 
 export const authClient = createAuthClient(PUBLIC_NEON_AUTH_URL);
 ```
+
 `login/+page.svelte`, `signup/+page.svelte`, and `(app)/+layout.svelte` keep
 calling `authClient.signIn.email` / `signUp.email` / `signOut` — expected to be
 zero changes beyond the import. (Verify the returned object exposes these
 directly vs. under `.adapter`; adjust the wrapper if needed.)
 
 ### 4. Server session (`src/hooks.server.ts`)
+
 - Replace the local `betterAuth` call with Approach A: forward request cookies to
   `{NEON_AUTH_URL}/get-session`, parse `{ user, session }`, set
   `event.locals.user` / `event.locals.session`.
@@ -78,6 +83,7 @@ directly vs. under `.adapter`; adjust the wrapper if needed.)
   all `queries/*` are untouched — they only read `locals.user.id`.
 
 ### 5. Database schema
+
 - **Delete `src/lib/server/db/auth.schema.ts`** (user/session/account/
   verification — Neon owns these in `neon_auth`).
 - Remove the FK references to the local `user` table from `schema.ts`; keep
@@ -85,22 +91,26 @@ directly vs. under `.adapter`; adjust the wrapper if needed.)
 - Push the schema change to the clean dev DB (`db:push`).
 
 ### 6. `src/app.d.ts`
+
 Replace the `better-auth` type imports with local interfaces describing the
 `user`/`session` shape returned by Neon's get-session response.
 
 ### 7. Verification
+
 - `bun run check` and `bun run lint` pass.
 - Manual: sign up → redirected to `/agenda`; reload → session persists via
   hooks; sign out → redirected to `/login`.
 - Deploy to a Vercel preview and confirm the full flow with injected env vars.
 
 ## Out of scope (YAGNI)
+
 - Anonymous access / Neon RLS.
 - Local JWT verification (Approach B).
 - OAuth providers.
 - Data migration (starting clean).
 
 ## Risks
+
 - `@neondatabase/auth` is pre-1.0 (`0.4.2-beta`); API may shift.
 - SvelteKit server integration is unofficial — the exact get-session endpoint
   path and cookie names need confirmation during implementation (small spike).
