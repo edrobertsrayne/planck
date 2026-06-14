@@ -363,10 +363,16 @@ git commit -m "feat(auth): point auth client at same-origin proxy"
 
 - Modify: `.env`, `.env.example`
 
-- [ ] **Step 1: Update `.env.example`** to:
+- [ ] **Step 1: Update `.env.example`** to list EVERY env var the app reads.
+
+The complete set the code accesses (audited via `grep -rhoE "env\.[A-Z_]+" src/`):
+`DATABASE_URL`, `NEON_AUTH_URL`, `NEON_AUTH_ORIGIN`, `BLOB_READ_WRITE_TOKEN`.
+(`PUBLIC_NEON_AUTH_URL` is removed in this plan; `DATABASE_URL_UNPOOLED` /
+`BLOB_STORE_ID` are injected by the Neon/Vercel integrations and not read by app
+code, so they are intentionally omitted.) Write `.env.example` as:
 
 ```bash
-# Drizzle
+# Drizzle / Neon Postgres
 DATABASE_URL="postgres://user:password@host:port/db-name"
 
 # Neon Auth (server-side; the browser uses the same-origin /api/auth proxy)
@@ -375,6 +381,10 @@ NEON_AUTH_URL=""
 # The proxy always sends this as the Origin header so unpredictable Vercel
 # preview URLs still pass Neon's origin check.
 NEON_AUTH_ORIGIN=""
+
+# Vercel Blob (lesson file uploads). On Vercel this is auto-injected; set it
+# locally for dev parity.
+BLOB_READ_WRITE_TOKEN=""
 ```
 
 - [ ] **Step 2: Update `.env`** — remove `PUBLIC_NEON_AUTH_URL` (no longer used by the client) and add `NEON_AUTH_ORIGIN` set to the dev origin for local testing, e.g.:
