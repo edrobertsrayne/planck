@@ -11,6 +11,14 @@ import {
 } from '$lib/server/queries/courses';
 import { listClasses } from '$lib/server/queries/classes';
 import { assignModule } from '$lib/server/queries/schedule';
+import {
+	listLinks,
+	addLink,
+	deleteLink,
+	listFiles,
+	addFile,
+	deleteFile
+} from '$lib/server/queries/resources';
 
 export const load: PageServerLoad = async (event) => {
 	const userId = requireUserId(event);
@@ -21,7 +29,9 @@ export const load: PageServerLoad = async (event) => {
 	return {
 		module: mod,
 		lessons: await listLessons(userId, moduleId),
-		classes: allClasses.filter((c) => c.courseId === mod.courseId)
+		classes: allClasses.filter((c) => c.courseId === mod.courseId),
+		links: await listLinks(userId, { moduleId }),
+		files: await listFiles(userId, { moduleId })
 	};
 };
 
@@ -56,5 +66,40 @@ export const actions: Actions = {
 		} catch (e) {
 			return fail(400, { assignError: (e as Error).message });
 		}
+	},
+	addLink: async (event) => {
+		const userId = requireUserId(event);
+		const form = await event.request.formData();
+		await addLink(
+			userId,
+			{ moduleId: Number(event.params.moduleId) },
+			String(form.get('url')),
+			form.get('label') ? String(form.get('label')) : null
+		);
+	},
+	deleteLink: async (event) => {
+		const userId = requireUserId(event);
+		const form = await event.request.formData();
+		await deleteLink(userId, Number(form.get('id')));
+	},
+	addFile: async (event) => {
+		const userId = requireUserId(event);
+		const form = await event.request.formData();
+		await addFile(
+			userId,
+			{ moduleId: Number(event.params.moduleId) },
+			{
+				blobUrl: String(form.get('blobUrl')),
+				pathname: String(form.get('pathname')),
+				filename: String(form.get('filename')),
+				contentType: String(form.get('contentType')),
+				size: Number(form.get('size'))
+			}
+		);
+	},
+	deleteFile: async (event) => {
+		const userId = requireUserId(event);
+		const form = await event.request.formData();
+		await deleteFile(userId, Number(form.get('id')));
 	}
 };

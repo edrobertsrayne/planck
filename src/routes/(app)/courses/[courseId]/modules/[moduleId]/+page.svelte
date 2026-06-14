@@ -5,6 +5,8 @@
 	import Button from '$lib/components/Button.svelte';
 	import Field from '$lib/components/Field.svelte';
 	import EmptyState from '$lib/components/EmptyState.svelte';
+	import ResourceLinks from '$lib/components/ResourceLinks.svelte';
+	import ResourceFiles from '$lib/components/ResourceFiles.svelte';
 	let { data, form } = $props();
 
 	function reorderedIds(index: number, dir: -1 | 1): string {
@@ -20,6 +22,40 @@
 	>← Modules</a
 >
 <PageHeader title={data.module.name} />
+
+<Card class="mb-8">
+	<h2 class="mb-3 font-display text-lg font-semibold">Schedule this module</h2>
+	{#if data.classes.length === 0}
+		<p class="text-sm text-muted">No classes study this course yet. Create one under Classes.</p>
+	{:else}
+		<form method="POST" action="?/assign" use:enhance class="flex items-end gap-3">
+			<Field label="Class">
+				<select
+					name="classId"
+					class="rounded-control border border-line bg-field px-3 py-2 text-sm"
+				>
+					{#each data.classes as c (c.id)}
+						<option value={c.id}>{c.name}</option>
+					{/each}
+				</select>
+			</Field>
+			<Button type="submit">Assign</Button>
+		</form>
+	{/if}
+
+	{#if form?.assigned}
+		<p class="mt-3 text-sm text-success">
+			Scheduled {form.assigned.scheduled} lessons
+			{#if form.assigned.firstDate}({form.assigned.firstDate} → {form.assigned.lastDate}){/if}.
+			{#if form.assigned.unscheduled > 0}
+				{form.assigned.unscheduled} did not fit before the end of your teaching blocks.
+			{/if}
+		</p>
+	{/if}
+	{#if form?.assignError}
+		<p class="mt-3 text-sm text-danger">{form.assignError}</p>
+	{/if}
+</Card>
 
 {#if data.lessons.length === 0}
 	<EmptyState message="No lessons in this module yet." />
@@ -69,36 +105,12 @@
 	</form>
 </Card>
 
-<Card>
-	<h2 class="mb-3 font-display text-lg font-semibold">Schedule this module</h2>
-	{#if data.classes.length === 0}
-		<p class="text-sm text-muted">No classes study this course yet. Create one under Classes.</p>
-	{:else}
-		<form method="POST" action="?/assign" use:enhance class="flex items-end gap-3">
-			<Field label="Class">
-				<select
-					name="classId"
-					class="rounded-control border border-line bg-field px-3 py-2 text-sm"
-				>
-					{#each data.classes as c (c.id)}
-						<option value={c.id}>{c.name}</option>
-					{/each}
-				</select>
-			</Field>
-			<Button type="submit">Assign</Button>
-		</form>
-	{/if}
+<Card class="mb-6">
+	<h2 class="mb-3 font-display text-lg font-semibold">Links</h2>
+	<ResourceLinks links={data.links} />
+</Card>
 
-	{#if form?.assigned}
-		<p class="mt-3 text-sm text-success">
-			Scheduled {form.assigned.scheduled} lessons
-			{#if form.assigned.firstDate}({form.assigned.firstDate} → {form.assigned.lastDate}){/if}.
-			{#if form.assigned.unscheduled > 0}
-				{form.assigned.unscheduled} did not fit before the end of your teaching blocks.
-			{/if}
-		</p>
-	{/if}
-	{#if form?.assignError}
-		<p class="mt-3 text-sm text-danger">{form.assignError}</p>
-	{/if}
+<Card>
+	<h2 class="mb-3 font-display text-lg font-semibold">Files</h2>
+	<ResourceFiles files={data.files} ownerType="module" ownerId={data.module.id} />
 </Card>
