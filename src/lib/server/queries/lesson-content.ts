@@ -1,6 +1,6 @@
 import { eq, and, sql } from 'drizzle-orm';
 import { db } from '$lib/server/db';
-import { lesson, scheduledLesson, lessonLink, lessonFile } from '$lib/server/db/schema';
+import { lesson, scheduledLesson, resourceLink, resourceFile } from '$lib/server/db/schema';
 import { ownerColumns, type OwnerRef } from '$lib/resources/owner';
 import { applyOrder } from '$lib/resources/files';
 import { deleteBlob, headBlob } from '$lib/server/blob';
@@ -8,13 +8,13 @@ import { deleteBlob, headBlob } from '$lib/server/blob';
 // --- owner where-clause helpers (branch on which side of the discriminator) ---
 function linkOwnerEq(owner: OwnerRef) {
 	return 'lessonId' in owner
-		? eq(lessonLink.lessonId, owner.lessonId)
-		: eq(lessonLink.scheduledLessonId, owner.scheduledLessonId);
+		? eq(resourceLink.lessonId, owner.lessonId)
+		: eq(resourceLink.scheduledLessonId, owner.scheduledLessonId);
 }
 function fileOwnerEq(owner: OwnerRef) {
 	return 'lessonId' in owner
-		? eq(lessonFile.lessonId, owner.lessonId)
-		: eq(lessonFile.scheduledLessonId, owner.scheduledLessonId);
+		? eq(resourceFile.lessonId, owner.lessonId)
+		: eq(resourceFile.scheduledLessonId, owner.scheduledLessonId);
 }
 
 // --- plan ---
@@ -36,18 +36,18 @@ export function saveLessonPlan(userId: string, owner: OwnerRef, plan: string) {
 export function listLinks(userId: string, owner: OwnerRef) {
 	return db
 		.select()
-		.from(lessonLink)
-		.where(and(eq(lessonLink.userId, userId), linkOwnerEq(owner)))
-		.orderBy(lessonLink.orderIndex);
+		.from(resourceLink)
+		.where(and(eq(resourceLink.userId, userId), linkOwnerEq(owner)))
+		.orderBy(resourceLink.orderIndex);
 }
 
 export async function addLink(userId: string, owner: OwnerRef, url: string, label: string | null) {
 	const cols = ownerColumns(owner);
 	const [{ next }] = await db
-		.select({ next: sql<number>`coalesce(max(${lessonLink.orderIndex}) + 1, 0)` })
-		.from(lessonLink)
-		.where(and(eq(lessonLink.userId, userId), linkOwnerEq(owner)));
-	return db.insert(lessonLink).values({
+		.select({ next: sql<number>`coalesce(max(${resourceLink.orderIndex}) + 1, 0)` })
+		.from(resourceLink)
+		.where(and(eq(resourceLink.userId, userId), linkOwnerEq(owner)));
+	return db.insert(resourceLink).values({
 		userId,
 		...cols,
 		url,
@@ -57,15 +57,17 @@ export async function addLink(userId: string, owner: OwnerRef, url: string, labe
 }
 
 export function deleteLink(userId: string, id: number) {
-	return db.delete(lessonLink).where(and(eq(lessonLink.userId, userId), eq(lessonLink.id, id)));
+	return db
+		.delete(resourceLink)
+		.where(and(eq(resourceLink.userId, userId), eq(resourceLink.id, id)));
 }
 
 export async function reorderLinks(userId: string, orderedIds: number[]) {
 	const updates = applyOrder(orderedIds).map((o) =>
 		db
-			.update(lessonLink)
+			.update(resourceLink)
 			.set({ orderIndex: o.orderIndex })
-			.where(and(eq(lessonLink.userId, userId), eq(lessonLink.id, o.id)))
+			.where(and(eq(resourceLink.userId, userId), eq(resourceLink.id, o.id)))
 	);
 	if (updates.length > 0) {
 		await db.batch(updates as [(typeof updates)[number], ...(typeof updates)[number][]]);
@@ -76,9 +78,9 @@ export async function reorderLinks(userId: string, orderedIds: number[]) {
 export function listFiles(userId: string, owner: OwnerRef) {
 	return db
 		.select()
-		.from(lessonFile)
-		.where(and(eq(lessonFile.userId, userId), fileOwnerEq(owner)))
-		.orderBy(lessonFile.orderIndex);
+		.from(resourceFile)
+		.where(and(eq(resourceFile.userId, userId), fileOwnerEq(owner)))
+		.orderBy(resourceFile.orderIndex);
 }
 
 export async function addFile(
@@ -90,19 +92,21 @@ export async function addFile(
 	// Confirm the blob actually exists before recording it (the client reported it).
 	await headBlob(file.blobUrl);
 	const [{ next }] = await db
-		.select({ next: sql<number>`coalesce(max(${lessonFile.orderIndex}) + 1, 0)` })
-		.from(lessonFile)
-		.where(and(eq(lessonFile.userId, userId), fileOwnerEq(owner)));
-	return db.insert(lessonFile).values({ userId, ...cols, ...file, orderIndex: next });
+		.select({ next: sql<number>`coalesce(max(${resourceFile.orderIndex}) + 1, 0)` })
+		.from(resourceFile)
+		.where(and(eq(resourceFile.userId, userId), fileOwnerEq(owner)));
+	return db.insert(resourceFile).values({ userId, ...cols, ...file, orderIndex: next });
 }
 
 /** Delete a file row and its blob. Looks up pathname first (scoped to user). */
 export async function deleteFile(userId: string, id: number): Promise<void> {
 	const [row] = await db
-		.select({ pathname: lessonFile.pathname })
-		.from(lessonFile)
-		.where(and(eq(lessonFile.userId, userId), eq(lessonFile.id, id)));
+		.select({ pathname: resourceFile.pathname })
+		.from(resourceFile)
+		.where(and(eq(resourceFile.userId, userId), eq(resourceFile.id, id)));
 	if (!row) return;
-	await db.delete(lessonFile).where(and(eq(lessonFile.userId, userId), eq(lessonFile.id, id)));
+	await db
+		.delete(resourceFile)
+		.where(and(eq(resourceFile.userId, userId), eq(resourceFile.id, id)));
 	await deleteBlob(row.pathname);
 }
