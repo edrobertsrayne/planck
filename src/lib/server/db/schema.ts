@@ -1,13 +1,9 @@
 import { pgTable, serial, integer, text, date, unique } from 'drizzle-orm/pg-core';
-import { user } from './auth.schema';
 
 // One row per teacher.
 export const timetableConfig = pgTable('timetable_config', {
 	id: serial('id').primaryKey(),
-	userId: text('user_id')
-		.notNull()
-		.unique()
-		.references(() => user.id, { onDelete: 'cascade' }),
+	userId: text('user_id').notNull().unique(),
 	cycleWeeks: integer('cycle_weeks').notNull().default(2),
 	teachingDays: integer('teaching_days').array().notNull().default([1, 2, 3, 4, 5]),
 	periodsPerDay: integer('periods_per_day').notNull().default(5),
@@ -16,9 +12,7 @@ export const timetableConfig = pgTable('timetable_config', {
 
 export const teachingBlock = pgTable('teaching_block', {
 	id: serial('id').primaryKey(),
-	userId: text('user_id')
-		.notNull()
-		.references(() => user.id, { onDelete: 'cascade' }),
+	userId: text('user_id').notNull(),
 	name: text('name').notNull(),
 	startDate: date('start_date', { mode: 'string' }).notNull(),
 	endDate: date('end_date', { mode: 'string' }).notNull()
@@ -28,9 +22,7 @@ export const closureDay = pgTable(
 	'closure_day',
 	{
 		id: serial('id').primaryKey(),
-		userId: text('user_id')
-			.notNull()
-			.references(() => user.id, { onDelete: 'cascade' }),
+		userId: text('user_id').notNull(),
 		date: date('date', { mode: 'string' }).notNull()
 	},
 	(t) => [unique().on(t.userId, t.date)]
@@ -38,18 +30,14 @@ export const closureDay = pgTable(
 
 export const course = pgTable('course', {
 	id: serial('id').primaryKey(),
-	userId: text('user_id')
-		.notNull()
-		.references(() => user.id, { onDelete: 'cascade' }),
+	userId: text('user_id').notNull(),
 	name: text('name').notNull(),
 	colour: text('colour').notNull().default('#3884ff')
 });
 
 export const module = pgTable('module', {
 	id: serial('id').primaryKey(),
-	userId: text('user_id')
-		.notNull()
-		.references(() => user.id, { onDelete: 'cascade' }),
+	userId: text('user_id').notNull(),
 	courseId: integer('course_id')
 		.notNull()
 		.references(() => course.id, { onDelete: 'cascade' }),
@@ -59,9 +47,7 @@ export const module = pgTable('module', {
 
 export const lesson = pgTable('lesson', {
 	id: serial('id').primaryKey(),
-	userId: text('user_id')
-		.notNull()
-		.references(() => user.id, { onDelete: 'cascade' }),
+	userId: text('user_id').notNull(),
 	moduleId: integer('module_id')
 		.notNull()
 		.references(() => module.id, { onDelete: 'cascade' }),
@@ -72,9 +58,7 @@ export const lesson = pgTable('lesson', {
 
 export const klass = pgTable('class', {
 	id: serial('id').primaryKey(),
-	userId: text('user_id')
-		.notNull()
-		.references(() => user.id, { onDelete: 'cascade' }),
+	userId: text('user_id').notNull(),
 	name: text('name').notNull(),
 	courseId: integer('course_id')
 		.notNull()
@@ -85,9 +69,7 @@ export const timetableSlot = pgTable(
 	'timetable_slot',
 	{
 		id: serial('id').primaryKey(),
-		userId: text('user_id')
-			.notNull()
-			.references(() => user.id, { onDelete: 'cascade' }),
+		userId: text('user_id').notNull(),
 		weekLetter: text('week_letter').notNull(),
 		dayOfWeek: integer('day_of_week').notNull(),
 		period: integer('period').notNull(),
@@ -103,9 +85,7 @@ export const scheduledLesson = pgTable(
 	'scheduled_lesson',
 	{
 		id: serial('id').primaryKey(),
-		userId: text('user_id')
-			.notNull()
-			.references(() => user.id, { onDelete: 'cascade' }),
+		userId: text('user_id').notNull(),
 		classId: integer('class_id')
 			.notNull()
 			.references(() => klass.id, { onDelete: 'cascade' }),
@@ -126,9 +106,7 @@ export const scheduledLesson = pgTable(
 
 export const lessonLink = pgTable('lesson_link', {
 	id: serial('id').primaryKey(),
-	userId: text('user_id')
-		.notNull()
-		.references(() => user.id, { onDelete: 'cascade' }),
+	userId: text('user_id').notNull(),
 	// Exactly one of lessonId / scheduledLessonId is set (enforced in app code).
 	lessonId: integer('lesson_id').references(() => lesson.id, { onDelete: 'cascade' }),
 	scheduledLessonId: integer('scheduled_lesson_id').references(() => scheduledLesson.id, {
@@ -141,9 +119,7 @@ export const lessonLink = pgTable('lesson_link', {
 
 export const lessonFile = pgTable('lesson_file', {
 	id: serial('id').primaryKey(),
-	userId: text('user_id')
-		.notNull()
-		.references(() => user.id, { onDelete: 'cascade' }),
+	userId: text('user_id').notNull(),
 	// Exactly one of lessonId / scheduledLessonId is set (enforced in app code).
 	lessonId: integer('lesson_id').references(() => lesson.id, { onDelete: 'cascade' }),
 	scheduledLessonId: integer('scheduled_lesson_id').references(() => scheduledLesson.id, {
@@ -156,5 +132,3 @@ export const lessonFile = pgTable('lesson_file', {
 	size: integer('size').notNull(),
 	orderIndex: integer('order_index').notNull().default(0)
 });
-
-export * from './auth.schema';
