@@ -17,8 +17,14 @@ async function proxy(event: Parameters<RequestHandler>[0]): Promise<Response> {
 	// Neon validates Origin against its trusted list; always send the registered one.
 	headers.set('origin', env.NEON_AUTH_ORIGIN ?? url.origin);
 
-	const body =
-		request.method === 'GET' || request.method === 'HEAD' ? undefined : await request.text();
+	// Forward a body only when there is one. An empty-string body can trip undici
+	// ("fetch failed") on a zero-length HTTP/2 POST, and forwarding undefined lets
+	// the upstream return its own response (e.g. 400) instead of the proxy throwing.
+	let body: string | undefined;
+	if (request.method !== 'GET' && request.method !== 'HEAD') {
+		const raw = await request.text();
+		body = raw.length > 0 ? raw : undefined;
+	}
 
 	const upstream = await fetch(target, {
 		method: request.method,
