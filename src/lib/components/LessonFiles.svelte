@@ -39,7 +39,7 @@
 			const { upload } = await import('@vercel/blob/client');
 			const blob = await upload(file.name, file, {
 				access: 'public',
-				handleUploadUrl: '/api/lesson-files/upload',
+				handleUploadUrl: '/api/resource-files/upload',
 				clientPayload: JSON.stringify({ ownerType, ownerId })
 			});
 
