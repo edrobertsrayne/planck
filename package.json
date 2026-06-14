@@ -58,6 +58,7 @@
 	},
 	"dependencies": {
 		"@milkdown/crepe": "^7.21.2",
+		"@neondatabase/auth": "^0.4.2-beta",
 		"@sveltejs/adapter-vercel": "^6.3.3",
 		"@vercel/blob": "^2.4.0",
 		"svelte-dnd-action": "^0.9.70"
