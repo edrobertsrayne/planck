@@ -4,6 +4,8 @@
 	import Card from '$lib/components/Card.svelte';
 	import Button from '$lib/components/Button.svelte';
 	import EmptyState from '$lib/components/EmptyState.svelte';
+	import ResourceLinks from '$lib/components/ResourceLinks.svelte';
+	import ResourceFiles from '$lib/components/ResourceFiles.svelte';
 	let { data } = $props();
 
 	function reorderedIds(index: number, dir: -1 | 1): string {
@@ -63,4 +65,14 @@
 		/>
 		<Button type="submit">Add module</Button>
 	</form>
+</Card>
+
+<Card class="mt-8 mb-6">
+	<h2 class="mb-3 font-display text-lg font-semibold">Links</h2>
+	<ResourceLinks links={data.links} />
+</Card>
+
+<Card>
+	<h2 class="mb-3 font-display text-lg font-semibold">Files</h2>
+	<ResourceFiles files={data.files} ownerType="course" ownerId={data.course.id} />
 </Card>
