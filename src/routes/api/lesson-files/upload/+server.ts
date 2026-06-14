@@ -3,6 +3,7 @@ import { handleUpload, type HandleUploadBody } from '@vercel/blob/client';
 import { eq, and } from 'drizzle-orm';
 import type { RequestHandler } from './$types';
 import { requireUserId } from '$lib/server/session';
+import { env } from '$env/dynamic/private';
 import { db } from '$lib/server/db';
 import { lesson, scheduledLesson } from '$lib/server/db/schema';
 import { ALLOWED_CONTENT_TYPES, MAX_FILE_BYTES } from '$lib/lesson-content/files';
@@ -52,8 +53,10 @@ export const POST: RequestHandler = async (event) => {
 				addRandomSuffix: true
 			};
 		},
-		// Not used (no public webhook on localhost); the client records the row via a form action.
-		onUploadCompleted: async () => {}
+		// No onUploadCompleted: the client records the row via the ?/addFile form
+		// action, so we don't need (and can't reach) a webhook callback on localhost.
+		// Vite dev doesn't populate process.env from .env; pass the token explicitly.
+		token: env.BLOB_READ_WRITE_TOKEN
 	});
 
 	return json(result);
