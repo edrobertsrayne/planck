@@ -16,7 +16,11 @@
 		files,
 		ownerType,
 		ownerId
-	}: { files: FileRow[]; ownerType: 'lesson' | 'scheduled'; ownerId: number } = $props();
+	}: {
+		files: FileRow[];
+		ownerType: 'lesson' | 'scheduled' | 'course' | 'module';
+		ownerId: number;
+	} = $props();
 
 	let uploading = $state(false);
 	let errorMsg = $state('');

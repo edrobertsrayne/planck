@@ -9,7 +9,7 @@ vi.mock('@vercel/blob/client', () => ({
 	})
 }));
 
-import LessonFiles from './LessonFiles.svelte';
+import ResourceFiles from './ResourceFiles.svelte';
 
 const files = [
 	{
@@ -22,15 +22,21 @@ const files = [
 ];
 
 test('lists each file as a download link with a remove button', async () => {
-	const screen = render(LessonFiles, { files, ownerType: 'lesson', ownerId: 5 });
+	const screen = render(ResourceFiles, { files, ownerType: 'lesson', ownerId: 5 });
 	await expect
 		.element(screen.getByRole('link', { name: 'worksheet.pdf' }))
 		.toHaveAttribute('href', 'https://blob/ws');
 	await expect.element(screen.getByRole('button', { name: 'Remove' })).toBeInTheDocument();
 });
 
-test('shows a file input for uploading', async () => {
-	const screen = render(LessonFiles, { files: [], ownerType: 'scheduled', ownerId: 9 });
+test('shows a file input for uploading on a course owner', async () => {
+	const screen = render(ResourceFiles, { files: [], ownerType: 'course', ownerId: 3 });
+	const input = screen.container.querySelector('input[type="file"]');
+	expect(input).not.toBeNull();
+});
+
+test('renders for a module owner', async () => {
+	const screen = render(ResourceFiles, { files: [], ownerType: 'module', ownerId: 7 });
 	const input = screen.container.querySelector('input[type="file"]');
 	expect(input).not.toBeNull();
 });
