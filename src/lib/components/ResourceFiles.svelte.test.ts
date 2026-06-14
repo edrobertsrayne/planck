@@ -40,3 +40,9 @@ test('renders for a module owner', async () => {
 	const input = screen.container.querySelector('input[type="file"]');
 	expect(input).not.toBeNull();
 });
+
+test('renders for a scheduled-lesson owner', async () => {
+	const screen = render(ResourceFiles, { files: [], ownerType: 'scheduled', ownerId: 9 });
+	const input = screen.container.querySelector('input[type="file"]');
+	expect(input).not.toBeNull();
+});
