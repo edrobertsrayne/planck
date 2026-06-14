@@ -126,6 +126,11 @@
 					>{/if}
 
 				<div class="flex items-center gap-2 opacity-0 transition group-hover:opacity-100">
+					<a
+						href="/classes/{data.klass.id}/lessons/{item.id}"
+						class="rounded-control border border-line px-2 py-1 text-xs font-medium hover:border-pink-200"
+						>Open</a
+					>
 					<form method="POST" action="?/insertBlank" use:enhance>
 						<input type="hidden" name="beforeId" value={item.id} />
 						<Button type="submit" variant="secondary" size="sm">+ Blank above</Button>

@@ -66,7 +66,8 @@ export const lesson = pgTable('lesson', {
 		.notNull()
 		.references(() => module.id, { onDelete: 'cascade' }),
 	title: text('title').notNull(),
-	orderIndex: integer('order_index').notNull().default(0)
+	orderIndex: integer('order_index').notNull().default(0),
+	plan: text('plan').notNull().default('')
 });
 
 export const klass = pgTable('class', {
@@ -117,9 +118,43 @@ export const scheduledLesson = pgTable(
 		date: date('date', { mode: 'string' }),
 		period: integer('period'),
 		title: text('title').notNull(),
-		room: text('room').notNull().default('')
+		room: text('room').notNull().default(''),
+		plan: text('plan').notNull().default('')
 	},
 	(t) => [unique().on(t.userId, t.classId, t.date, t.period)]
 );
+
+export const lessonLink = pgTable('lesson_link', {
+	id: serial('id').primaryKey(),
+	userId: text('user_id')
+		.notNull()
+		.references(() => user.id, { onDelete: 'cascade' }),
+	// Exactly one of lessonId / scheduledLessonId is set (enforced in app code).
+	lessonId: integer('lesson_id').references(() => lesson.id, { onDelete: 'cascade' }),
+	scheduledLessonId: integer('scheduled_lesson_id').references(() => scheduledLesson.id, {
+		onDelete: 'cascade'
+	}),
+	url: text('url').notNull(),
+	label: text('label'),
+	orderIndex: integer('order_index').notNull().default(0)
+});
+
+export const lessonFile = pgTable('lesson_file', {
+	id: serial('id').primaryKey(),
+	userId: text('user_id')
+		.notNull()
+		.references(() => user.id, { onDelete: 'cascade' }),
+	// Exactly one of lessonId / scheduledLessonId is set (enforced in app code).
+	lessonId: integer('lesson_id').references(() => lesson.id, { onDelete: 'cascade' }),
+	scheduledLessonId: integer('scheduled_lesson_id').references(() => scheduledLesson.id, {
+		onDelete: 'cascade'
+	}),
+	blobUrl: text('blob_url').notNull(),
+	pathname: text('pathname').notNull(),
+	filename: text('filename').notNull(),
+	contentType: text('content_type').notNull(),
+	size: integer('size').notNull(),
+	orderIndex: integer('order_index').notNull().default(0)
+});
 
 export * from './auth.schema';

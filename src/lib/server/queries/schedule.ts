@@ -1,6 +1,15 @@
 import { eq, and, sql, lt, gte, or, isNull } from 'drizzle-orm';
 import { db } from '$lib/server/db';
-import { scheduledLesson, klass, course } from '$lib/server/db/schema';
+import {
+	scheduledLesson,
+	klass,
+	course,
+	lesson,
+	lessonLink,
+	lessonFile
+} from '$lib/server/db/schema';
+import { buildCopiedLinkRows, buildCopiedFileRows } from '$lib/lesson-content/copy';
+import { copyBlob } from '$lib/server/blob';
 import { getConfig, getBlocks, getClosures, getSlots } from './timetable';
 import { getModule, listLessons } from './courses';
 import { getClass } from './classes';
@@ -98,6 +107,60 @@ export async function reallocateAllClasses(
 	await Promise.all(classes.map((c) => reallocateClassWith(userId, c.id, inputs, today)));
 }
 
+/**
+ * Copy a template lesson's plan + links + files onto a freshly created scheduled
+ * lesson. Blobs are physically copied so the two are fully independent. Runs once
+ * at schedule time; later edits on either side do not propagate.
+ */
+async function copyLessonContent(
+	userId: string,
+	templateLessonId: number,
+	scheduledLessonId: number
+): Promise<void> {
+	const [tpl] = await db
+		.select({ plan: lesson.plan })
+		.from(lesson)
+		.where(and(eq(lesson.userId, userId), eq(lesson.id, templateLessonId)));
+	if (tpl?.plan) {
+		await db
+			.update(scheduledLesson)
+			.set({ plan: tpl.plan })
+			.where(and(eq(scheduledLesson.userId, userId), eq(scheduledLesson.id, scheduledLessonId)));
+	}
+
+	const links = await db
+		.select({ url: lessonLink.url, label: lessonLink.label, orderIndex: lessonLink.orderIndex })
+		.from(lessonLink)
+		.where(and(eq(lessonLink.userId, userId), eq(lessonLink.lessonId, templateLessonId)))
+		.orderBy(lessonLink.orderIndex);
+	if (links.length > 0) {
+		await db.insert(lessonLink).values(buildCopiedLinkRows(links, userId, scheduledLessonId));
+	}
+
+	const files = await db
+		.select({
+			blobUrl: lessonFile.blobUrl,
+			pathname: lessonFile.pathname,
+			filename: lessonFile.filename,
+			contentType: lessonFile.contentType,
+			size: lessonFile.size,
+			orderIndex: lessonFile.orderIndex
+		})
+		.from(lessonFile)
+		.where(and(eq(lessonFile.userId, userId), eq(lessonFile.lessonId, templateLessonId)))
+		.orderBy(lessonFile.orderIndex);
+	if (files.length > 0) {
+		const copies = await Promise.all(
+			files.map((f) =>
+				copyBlob(f.blobUrl, `lesson-files/${userId}/${crypto.randomUUID()}-${f.filename}`)
+			)
+		);
+		await db
+			.insert(lessonFile)
+			.values(buildCopiedFileRows(files, copies, userId, scheduledLessonId));
+	}
+}
+
 export interface AssignResult {
 	scheduled: number;
 	unscheduled: number;
@@ -125,19 +188,24 @@ export async function assignModule(
 		.from(scheduledLesson)
 		.where(and(eq(scheduledLesson.userId, userId), eq(scheduledLesson.classId, classId)));
 
-	await db.insert(scheduledLesson).values(
-		lessons.map((l, i) => ({
-			userId,
-			classId,
-			lessonId: l.id,
-			moduleId,
-			title: l.title,
-			orderIndex: next + i,
-			date: null,
-			period: null,
-			room: ''
-		}))
-	);
+	for (let i = 0; i < lessons.length; i++) {
+		const l = lessons[i];
+		const [inserted] = await db
+			.insert(scheduledLesson)
+			.values({
+				userId,
+				classId,
+				lessonId: l.id,
+				moduleId,
+				title: l.title,
+				orderIndex: next + i,
+				date: null,
+				period: null,
+				room: ''
+			})
+			.returning({ id: scheduledLesson.id });
+		await copyLessonContent(userId, l.id, inserted.id);
+	}
 
 	await reallocateClass(userId, classId, today);
 
@@ -345,4 +413,22 @@ export async function renameScheduledLesson(userId: string, id: number, title: s
 		.update(scheduledLesson)
 		.set({ title })
 		.where(and(eq(scheduledLesson.userId, userId), eq(scheduledLesson.id, id)));
+}
+
+/** A scheduled lesson with its class + course context for the lesson page. */
+export async function getScheduledLesson(userId: string, id: number) {
+	const [row] = await db
+		.select({
+			id: scheduledLesson.id,
+			title: scheduledLesson.title,
+			plan: scheduledLesson.plan,
+			classId: scheduledLesson.classId,
+			className: klass.name,
+			courseName: course.name
+		})
+		.from(scheduledLesson)
+		.innerJoin(klass, eq(scheduledLesson.classId, klass.id))
+		.innerJoin(course, eq(klass.courseId, course.id))
+		.where(and(eq(scheduledLesson.userId, userId), eq(scheduledLesson.id, id)));
+	return row ?? null;
 }

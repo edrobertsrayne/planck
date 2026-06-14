@@ -43,8 +43,10 @@
 						aria-label="Move down">↓</button
 					>
 				</form>
-				<span class="text-ink"
-					><span class="font-semibold text-muted">{i + 1}.</span> {l.title}</span
+				<a
+					href="/courses/{data.module.courseId}/modules/{data.module.id}/lessons/{l.id}"
+					class="text-ink hover:underline"
+					><span class="font-semibold text-muted">{i + 1}.</span> {l.title}</a
 				>
 				<form method="POST" action="?/delete" class="ml-auto">
 					<input type="hidden" name="id" value={l.id} />
