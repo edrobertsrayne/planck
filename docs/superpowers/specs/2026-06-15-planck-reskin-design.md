@@ -158,7 +158,33 @@ not via push.
 - **Class detail:** inline swatch + name (class); existing rich sequence (DnD
   reorder, inline rename, insert-blank, overflow) restyled; per-row subject pill.
 
-## 6. Testing
+## 6. Responsive behaviour (tablet-down graceful)
+
+Desktop-first (the prototype is a desktop mockup), but nothing should break down
+to ~768px. No dedicated phone layout / mobile nav drawer (that's a follow-up).
+Use Tailwind's default breakpoints; the work concentrates at `md` (≤768px).
+
+- **Page chrome:** sidebar stays visible (it may narrow on smaller widths); main
+  content padding steps down from `40px` to ~`20–24px` below `md`.
+- **Two-column areas** (lesson, course detail, module detail): the resources aside
+  collapses below the main column (the prototype's `flex-wrap` already does this;
+  ensure a clean single column below `md`).
+- **Calendar & Timetable grids:** wrap each grid in an `overflow-x-auto` container
+  with a sensible `min-width` so it scrolls horizontally instead of squashing —
+  no stacked day-view (that's the full-mobile follow-up).
+- **Auth:** the brand panel + form split **stacks** below `md` — the brand panel
+  becomes a slim header (or hides) and the form takes full width, centred.
+- **Touch / hover:** actions that are hover-revealed on desktop (agenda row
+  Move/Delete + postpone, sidebar class-row actions, module/lesson row controls)
+  must also be reachable without hover. Gate the hover-hide behind
+  `@media (hover: hover)` and keep the controls persistently visible on
+  touch/`≤md`; show on `focus-within` too. Tap targets ≥ ~40px.
+- **Overlays:** the assign modal, postpone dropdown and timetable popup reposition
+  / go full-width as needed on small screens and stay within the viewport.
+
+Verify at ~1280px (design width), ~1024px and ~768px during implementation.
+
+## 7. Testing
 
 - Keep existing vitest browser component tests green (`Button`, `Card`-consumers,
   `ResourceLinks`, `ResourceFiles`, `LessonPlanEditor`), updating markup
