@@ -6,7 +6,10 @@ test('selecting an option calls onchange with its value', async () => {
 	const onchange = vi.fn();
 	const screen = render(SegmentedControl, {
 		value: 'A',
-		options: [{ value: 'A', label: 'Week A' }, { value: 'B', label: 'Week B' }],
+		options: [
+			{ value: 'A', label: 'Week A' },
+			{ value: 'B', label: 'Week B' }
+		],
 		onchange
 	});
 	await screen.getByText('Week B').click();

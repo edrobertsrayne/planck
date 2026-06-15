@@ -29,7 +29,7 @@ prototype's structure.
 
 ## 1. Foundations (tokens + colour)
 
-- **Token strategy:** retune existing `@theme` token *values* in place in
+- **Token strategy:** retune existing `@theme` token _values_ in place in
   `src/routes/layout.css` (names stay: `pink`, `pink-hover`, `pink-dk`,
   `pink-50/100/200`, `ink`, `line`, `field`, `success`, radii) so all current
   components inherit the look. Add new tokens: `--color-bg` (`#FBF8F9`) and a grey
@@ -39,8 +39,8 @@ prototype's structure.
   - `darken(hex, amount)` — mixes a hex toward ink `#2B2530` (returns hex);
   - `subjectTint(hex)` → `{ dot: hex, bar: hex, bg: hex@13%, soft: hex@10%, text: darken(hex) }`
     (uses existing `withAlpha`).
-  This reproduces the prototype's per-subject `bg/dot/text/soft` quartets for any
-  colour, with darker text guaranteeing contrast. Unit-tested in `colour.spec.ts`.
+    This reproduces the prototype's per-subject `bg/dot/text/soft` quartets for any
+    colour, with darker text guaranteeing contrast. Unit-tested in `colour.spec.ts`.
 - **Two colour dimensions** (as the prototype distinguishes):
   - **Subject colour** (course): agenda badges/pills, calendar cells, course /
     module / lesson accents.
@@ -79,25 +79,26 @@ is unchanged).
 title + url/size + remove), auth `BrandPanel`.
 
 **Resource typing (render-only, no schema change):**
+
 - Link type from URL (`linkMeta`): youtube / google / onedrive / generic → icon +
   tile colour; title = label ?? host.
 - File kind from filename/contentType (`fileMeta`): PDF / DOC / PPT / XLS / IMG /
   FILE → tile.
-The "Add link" form keeps the optional label field.
+  The "Add link" form keeps the optional label field.
 
 ## 4. Backend additions (approved scope adds)
 
 ### Schema (apply via `bun run db:push`, declining any destructive/truncate prompt; the phantom `scheduled_lesson` unique-constraint diff is expected — see memory)
 
-| Table | Column | Type | Notes |
-|---|---|---|---|
-| `class` | `colour` | `text NOT NULL DEFAULT '#8775C6'` | + one-off backfill `UPDATE class SET colour = course.colour FROM course WHERE class.course_id = course.id` |
-| `lesson` | `note` | `text NOT NULL DEFAULT ''` | objective |
-| `scheduled_lesson` | `note` | `text NOT NULL DEFAULT ''` | objective (copied from template on assign) |
-| `scheduled_lesson` | `done` | `boolean NOT NULL DEFAULT false` | agenda check |
-| `scheduled_lesson` | `postponed` | `boolean NOT NULL DEFAULT false` | agenda badge |
-| `module` | `description` | `text NOT NULL DEFAULT ''` | |
-| `closure_day` | `name` | `text NOT NULL DEFAULT ''` | closure label |
+| Table              | Column        | Type                              | Notes                                                                                                      |
+| ------------------ | ------------- | --------------------------------- | ---------------------------------------------------------------------------------------------------------- |
+| `class`            | `colour`      | `text NOT NULL DEFAULT '#8775C6'` | + one-off backfill `UPDATE class SET colour = course.colour FROM course WHERE class.course_id = course.id` |
+| `lesson`           | `note`        | `text NOT NULL DEFAULT ''`        | objective                                                                                                  |
+| `scheduled_lesson` | `note`        | `text NOT NULL DEFAULT ''`        | objective (copied from template on assign)                                                                 |
+| `scheduled_lesson` | `done`        | `boolean NOT NULL DEFAULT false`  | agenda check                                                                                               |
+| `scheduled_lesson` | `postponed`   | `boolean NOT NULL DEFAULT false`  | agenda badge                                                                                               |
+| `module`           | `description` | `text NOT NULL DEFAULT ''`        |                                                                                                            |
+| `closure_day`      | `name`        | `text NOT NULL DEFAULT ''`        | closure label                                                                                              |
 
 Backfill runs as a one-off SQL statement (db:studio / neon query / tiny script),
 not via push.

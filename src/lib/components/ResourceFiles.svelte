@@ -1,5 +1,4 @@
 <script lang="ts">
-	import { enhance } from '$app/forms';
 	import { invalidateAll } from '$app/navigation';
 	import EmptyState from './EmptyState.svelte';
 	import ResourceRow from './ResourceRow.svelte';

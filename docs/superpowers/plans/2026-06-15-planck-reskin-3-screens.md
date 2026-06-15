@@ -13,6 +13,7 @@
 **Reference:** `docs/design-reference/Planck.dc.html` — cited line ranges below give exact static markup (paddings, font sizes, SVG paths). Reproduce those visuals; wire interactivity as specified here.
 
 **Conventions**
+
 - After each task: `bun run check` PASS; visually verify the page at ~1280/1024/768px via `bun run dev`.
 - Hover-only actions must also show on `focus-within` and on touch — gate the hide with `@media (hover: hover)` (Tailwind: keep controls visible, add `[@media(hover:hover)]:opacity-0 group-hover:opacity-100 group-focus-within:opacity-100`).
 - Run `mcp__svelte__svelte-autofixer` on each new/edited `.svelte` file until clean before committing.
@@ -22,27 +23,28 @@
 
 ## File structure (all MODIFY unless noted)
 
-| Route file | Screen |
-|---|---|
-| `src/routes/login/+page.svelte`, `src/routes/signup/+page.svelte` | Auth |
-| `src/routes/(app)/agenda/+page.svelte` | Agenda |
-| `src/routes/(app)/calendar/+page.svelte` | Calendar |
-| `src/routes/(app)/timetable/+page.svelte` | Timetable |
-| `src/routes/(app)/courses/+page.svelte` | Courses list |
-| `src/routes/(app)/courses/[courseId]/+page.svelte` | Course detail |
-| `src/routes/(app)/courses/[courseId]/modules/[moduleId]/+page.svelte` | Module detail |
-| `src/routes/(app)/courses/[courseId]/modules/[moduleId]/lessons/[lessonId]/+page.svelte` | Lesson (template) |
-| `src/routes/(app)/classes/[classId]/lessons/[scheduledLessonId]/+page.svelte` | Lesson (scheduled) |
-| `src/routes/(app)/settings/+page.svelte` | Settings |
-| `src/routes/(app)/classes/+page.svelte` | Classes list |
-| `src/routes/(app)/classes/[classId]/+page.svelte` | Class detail |
-| `src/routes/(app)/courses/[courseId]/+page.server.ts` | add `rename`/`recolour` already via `updateCourse` (`update` action exists on list; add a detail `save` action) |
+| Route file                                                                               | Screen                                                                                                          |
+| ---------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------- |
+| `src/routes/login/+page.svelte`, `src/routes/signup/+page.svelte`                        | Auth                                                                                                            |
+| `src/routes/(app)/agenda/+page.svelte`                                                   | Agenda                                                                                                          |
+| `src/routes/(app)/calendar/+page.svelte`                                                 | Calendar                                                                                                        |
+| `src/routes/(app)/timetable/+page.svelte`                                                | Timetable                                                                                                       |
+| `src/routes/(app)/courses/+page.svelte`                                                  | Courses list                                                                                                    |
+| `src/routes/(app)/courses/[courseId]/+page.svelte`                                       | Course detail                                                                                                   |
+| `src/routes/(app)/courses/[courseId]/modules/[moduleId]/+page.svelte`                    | Module detail                                                                                                   |
+| `src/routes/(app)/courses/[courseId]/modules/[moduleId]/lessons/[lessonId]/+page.svelte` | Lesson (template)                                                                                               |
+| `src/routes/(app)/classes/[classId]/lessons/[scheduledLessonId]/+page.svelte`            | Lesson (scheduled)                                                                                              |
+| `src/routes/(app)/settings/+page.svelte`                                                 | Settings                                                                                                        |
+| `src/routes/(app)/classes/+page.svelte`                                                  | Classes list                                                                                                    |
+| `src/routes/(app)/classes/[classId]/+page.svelte`                                        | Class detail                                                                                                    |
+| `src/routes/(app)/courses/[courseId]/+page.server.ts`                                    | add `rename`/`recolour` already via `updateCourse` (`update` action exists on list; add a detail `save` action) |
 
 ---
 
 ## Task 1: Auth screens (login + signup)
 
 **Files:**
+
 - Modify: `src/routes/login/+page.svelte`, `src/routes/signup/+page.svelte`
 
 Reference: lines 41-141 (split), 46-78 (brand panel → use `BrandPanel`), 80-140 (form: tabs, fields, CTA). Omit social buttons and forgot-password.
@@ -65,7 +67,8 @@ Reference: lines 41-141 (split), 46-78 (brand panel → use `BrandPanel`), 80-14
 		if (res.error) error = res.error.message ?? 'Sign in failed';
 		else await goto('/agenda');
 	}
-	const input = 'h-[46px] w-full rounded-[11px] border border-line bg-white px-3.5 text-[15px] focus:border-pink-200 focus:outline-none';
+	const input =
+		'h-[46px] w-full rounded-[11px] border border-line bg-white px-3.5 text-[15px] focus:border-pink-200 focus:outline-none';
 	const tab = 'flex-1 h-[38px] rounded-[9px] text-sm font-semibold transition';
 </script>
 
@@ -73,21 +76,50 @@ Reference: lines 41-141 (split), 46-78 (brand panel → use `BrandPanel`), 80-14
 	<BrandPanel />
 	<div class="flex flex-1 items-center justify-center p-10">
 		<div class="w-full max-w-[392px]">
-			<h2 class="m-0 mb-1.5 font-display text-[30px] font-medium tracking-[-0.015em]">Welcome back</h2>
+			<h2 class="m-0 mb-1.5 font-display text-[30px] font-medium tracking-[-0.015em]">
+				Welcome back
+			</h2>
 			<p class="m-0 mb-6 text-[15px] text-grey-2">Sign in to pick up where you left off.</p>
 			<div class="mb-6 flex gap-1 rounded-[12px] bg-tray p-1">
-				<a href="/login" class={`${tab} flex items-center justify-center bg-white text-ink shadow-[0_1px_3px_rgba(43,37,48,0.08)]`}>Sign in</a>
-				<a href="/signup" class={`${tab} flex items-center justify-center text-grey-2`}>Create account</a>
+				<a
+					href="/login"
+					class={`${tab} flex items-center justify-center bg-white text-ink shadow-[0_1px_3px_rgba(43,37,48,0.08)]`}
+					>Sign in</a
+				>
+				<a href="/signup" class={`${tab} flex items-center justify-center text-grey-2`}
+					>Create account</a
+				>
 			</div>
 			<form class="flex flex-col gap-3.5" onsubmit={submit}>
-				<label class="block"><span class="mb-1.5 block text-[13px] font-semibold text-grey-1">Email address</span>
-					<input class={input} type="email" placeholder="you@email.com" bind:value={email} required /></label>
-				<label class="block"><span class="mb-1.5 block text-[13px] font-semibold text-grey-1">Password</span>
-					<input class={input} type="password" placeholder="••••••••" bind:value={password} required /></label>
+				<label class="block"
+					><span class="mb-1.5 block text-[13px] font-semibold text-grey-1">Email address</span>
+					<input
+						class={input}
+						type="email"
+						placeholder="you@email.com"
+						bind:value={email}
+						required
+					/></label
+				>
+				<label class="block"
+					><span class="mb-1.5 block text-[13px] font-semibold text-grey-1">Password</span>
+					<input
+						class={input}
+						type="password"
+						placeholder="••••••••"
+						bind:value={password}
+						required
+					/></label
+				>
 				<label class="my-1.5 flex items-center gap-2 text-sm text-grey-1">
-					<input type="checkbox" bind:checked={rememberMe} /> Keep me signed in</label>
+					<input type="checkbox" bind:checked={rememberMe} /> Keep me signed in</label
+				>
 				{#if error}<p class="text-sm text-danger">{error}</p>{/if}
-				<button type="submit" class="flex h-12 w-full items-center justify-center gap-2 rounded-[12px] bg-pink text-[15.5px] font-semibold text-white shadow-[0_8px_20px_-8px_rgba(201,86,128,0.65)] hover:bg-pink-hover">Sign in</button>
+				<button
+					type="submit"
+					class="flex h-12 w-full items-center justify-center gap-2 rounded-[12px] bg-pink text-[15.5px] font-semibold text-white shadow-[0_8px_20px_-8px_rgba(201,86,128,0.65)] hover:bg-pink-hover"
+					>Sign in</button
+				>
 			</form>
 		</div>
 	</div>
@@ -110,11 +142,12 @@ git commit -m "feat(auth): split brand+form reskin with remember-me"
 ## Task 2: Agenda
 
 **Files:**
+
 - Modify: `src/routes/(app)/agenda/+page.svelte`
 
 Reference: 227-310 (cards, badge, pill, room, postpone menu). Data now includes `term`, and each item has `done`, `note`, `postponed`, `courseId`, `colour`, `postponeSlots`.
 
-- [ ] **Step 1: Header** — `PageHeader` with `eyebrow={data.term ? \`This week · ${data.term}\` : 'This week'}` and `title="Agenda"`.
+- [ ] **Step 1: Header** — `PageHeader` with `eyebrow={data.term ? \`This week · ${data.term}\` : 'This week'}`and`title="Agenda"`.
 
 - [ ] **Step 2: Group sections** — for each group show label/date and a `count` = `${done}/${total} done` (compute `done = g.items.filter(i => i.done).length`). Use `dayFmt` (existing) for the date.
 
@@ -127,6 +160,7 @@ Reference: 227-310 (cards, badge, pill, room, postpone menu). Data now includes 
   - Whole card is a link to the lesson: wrap title area in `<a href="/classes/{item.classId}/lessons/{item.id}">` (open the scheduled lesson) — or keep the existing open behaviour; ensure the toggle/postpone buttons `stopPropagation`/are outside the link.
 
 Local state pattern:
+
 ```svelte
 <script lang="ts">
 	import { enhance } from '$app/forms';
@@ -137,7 +171,10 @@ Local state pattern:
 	import { subjectTint } from '$lib/colour';
 	let { data, form } = $props();
 	let openId = $state<number | null>(null);
-	const fmtSlot = (d: string) => new Intl.DateTimeFormat('en-GB',{weekday:'short',day:'numeric',month:'short'}).format(new Date(`${d}T00:00:00Z`));
+	const fmtSlot = (d: string) =>
+		new Intl.DateTimeFormat('en-GB', { weekday: 'short', day: 'numeric', month: 'short' }).format(
+			new Date(`${d}T00:00:00Z`)
+		);
 	// ...dayFmt + label() as before
 </script>
 ```
@@ -160,6 +197,7 @@ git commit -m "feat(agenda): card reskin with done + postpone dropdown"
 ## Task 3: Calendar
 
 **Files:**
+
 - Modify: `src/routes/(app)/calendar/+page.svelte`
 
 Reference: 313-379. Keep `?start=` nav + `weekLetter`.
@@ -186,6 +224,7 @@ git commit -m "feat(calendar): handoff grid, today highlight, scroll-x"
 ## Task 4: Timetable
 
 **Files:**
+
 - Modify: `src/routes/(app)/timetable/+page.svelte`
 
 Reference: 1007-1077, cell menu 1044-1061. Backend `setSlot`/`clearSlot` unchanged; cells tinted by **class** colour (`data.classes[].colour` is now per-class).
@@ -219,6 +258,7 @@ git commit -m "feat(timetable): popup cell editor with room, class-colour tints"
 ## Task 5: Courses list
 
 **Files:**
+
 - Modify: `src/routes/(app)/courses/+page.svelte`
 
 Reference: 797-833 (subject list rows + add row).
@@ -241,6 +281,7 @@ git commit -m "feat(courses): list reskin"
 ## Task 6: Course detail
 
 **Files:**
+
 - Modify: `src/routes/(app)/courses/[courseId]/+page.svelte`
 - Modify: `src/routes/(app)/courses/[courseId]/+page.server.ts` (add a `save` action using `updateCourse`)
 
@@ -255,6 +296,7 @@ Reference: 899-1005 (breadcrumb, inline name+swatch, modules DnD list, resources
 		await updateCourse(userId, Number(event.params.courseId), String(form.get('name')), String(form.get('colour')));
 	},
 ```
+
 (Import `updateCourse`.)
 
 - [ ] **Step 2: Header** — breadcrumb ("Courses › name"), an editable colour swatch button + name input. The swatch is a `<label>` wrapping a hidden `<input type="color" name="colour">`; both swatch-change and name-blur submit the `?/save` form (`use:enhance`). Meta line: `{modules.length} modules · {resCount} resources`.
@@ -279,6 +321,7 @@ git commit -m "feat(course): detail reskin, inline edit, dnd modules"
 ## Task 7: Module detail
 
 **Files:**
+
 - Modify: `src/routes/(app)/courses/[courseId]/modules/[moduleId]/+page.svelte`
 
 Reference: 382-537 (header w/ Edit + Assign, lesson sequence, resources aside) + assign modal 1082-1121. Backend (Plan 2) provides `saveDescription`, `saveLessonNote`, lesson `attachmentCount`, multi-class assign via looping `?/assign`.
@@ -299,6 +342,7 @@ Reference: 382-537 (header w/ Edit + Assign, lesson sequence, resources aside) +
 		await invalidateAll();
 	}
 ```
+
 (Keep the server `?/assign` action as-is — single class per call.)
 
 - [ ] **Step 3: Lesson sequence with DnD** — `dndzone` over `data.lessons` (same pattern as class detail), POST `?/reorder`. Each lesson row (reference 428-471): grip, number badge (`subjectTint(course.colour)` — note: module page has `data.module` but needs course colour; the load returns `module` only. Add `courseColour` to the module load select or fetch course; simplest: include `course.colour` via `getModule` join or add to load. **Add** `courseColour` to the load by fetching `getCourse(userId, mod.courseId)` and passing `courseColour: course.colour`). Title input (`?/rename`), objective/note input (`?/saveLessonNote`), an attachment-count chip (`📎 {l.attachmentCount}` when > 0), open + delete buttons (hover-revealed, focus/touch accessible), and ↑/↓ forms. Dashed "Add a lesson" row → `?/create`.
@@ -321,6 +365,7 @@ git commit -m "feat(module): detail reskin, inline edit, dnd, assign modal"
 ## Task 8: Lesson pages (template + scheduled)
 
 **Files:**
+
 - Modify: `src/routes/(app)/courses/[courseId]/modules/[moduleId]/lessons/[lessonId]/+page.svelte`
 - Modify: `src/routes/(app)/classes/[classId]/lessons/[scheduledLessonId]/+page.svelte`
 - Modify the two `+page.server.ts` to add a `saveNote` action and a `rename` action if missing (template uses `updateLessonNote`/`renameLesson`; scheduled uses `updateScheduledLessonNote`/`renameScheduledLesson`). `note` must be in each load select (template `getLesson` already updated in Plan 2; for scheduled add `note: scheduledLesson.note` to `getScheduledLesson`).
@@ -333,6 +378,7 @@ Reference: 539-640 (back button, pill + position, inline title/objective, editor
 	rename: async (event) => { const u=requireUserId(event); const f=await event.request.formData(); await renameLesson(u, Number(event.params.lessonId), String(f.get('title'))); },
 	saveNote: async (event) => { const u=requireUserId(event); const f=await event.request.formData(); await updateLessonNote(u, Number(event.params.lessonId), String(f.get('note'))); },
 ```
+
 Scheduled page equivalents use `renameScheduledLesson` / `updateScheduledLessonNote` with `event.params.scheduledLessonId`. (`savePlan` already exists.)
 
 - [ ] **Step 2: Rebuild both `+page.svelte`** with the shared structure:
@@ -357,6 +403,7 @@ git commit -m "feat(lesson): two-column reskin, inline title+objective"
 ## Task 9: Settings (incl. Account card)
 
 **Files:**
+
 - Modify: `src/routes/(app)/settings/+page.svelte`
 
 Reference: 642-795 (Account, Timetable, Terms, Closures, Log out cards).
@@ -379,6 +426,7 @@ Reference: 642-795 (Account, Timetable, Terms, Closures, Log out cards).
 		currentPassword = ''; newPassword = '';
 	}
 ```
+
 (`data.user` comes from the `(app)` layout load. If `changeEmail`/`changePassword` aren't on the client type, cast via `authClient as any` and note it — they're standard better-auth methods. Show `acctMsg` under the card.)
 
 Render the card (reference 653-680): email input + "Update" button (`onclick={saveEmail}`); current + new password inputs + "Change" button (`onclick={changePassword}`).
@@ -405,6 +453,7 @@ git commit -m "feat(settings): reskin + Account card + weekend days + named clos
 ## Task 10: Classes list
 
 **Files:**
+
 - Modify: `src/routes/(app)/classes/+page.svelte`
 
 - [ ] **Step 1:** `PageHeader` eyebrow "Your teaching groups", title "Classes". Each class as a `Card hover` row: colour dot (`c.colour`), name link `/classes/{id}`, `c.courseName` meta, hover delete (`?/delete`), chevron.
@@ -425,6 +474,7 @@ git commit -m "feat(classes): list reskin with colour"
 ## Task 11: Class detail
 
 **Files:**
+
 - Modify: `src/routes/(app)/classes/[classId]/+page.svelte`
 - Modify: `src/routes/(app)/classes/[classId]/+page.server.ts` (add a `save` action for class name+colour via `updateClass`; load already uses `getClassWithCourse` → now returns `colour` + `courseColour`)
 
@@ -485,8 +535,9 @@ Expected: PASS (Button, PeriodBadge, SegmentedControl, ResourceLinks, ResourceFi
 ---
 
 ## Self-review notes
+
 - Spec §5 every screen → Tasks 1-11. ✓ (Auth, Agenda, Calendar, Timetable, Courses, Course detail, Module detail, Lesson ×2, Settings, Classes, Class detail.)
 - Spec §6 responsive → per-screen responsive steps + Task 12 Step 4. ✓
 - Spec interactions: done/postpone (T2), assign modal (T7), dnd modules/lessons (T6/T7), popup timetable (T4), inline edits (T6/T7/T8/T11), Account card (T9), weekend/closures (T9). ✓
-- Type consistency: `subjectTint(...).{bg,soft,text,dot,bar}` used uniformly; `data.klass.colour` (class) vs `courseColour` (subject pills) on class detail (T11) matches Plan 2 `getClassWithCourse`; module page needs `courseColour` added to its load (noted T7). 
+- Type consistency: `subjectTint(...).{bg,soft,text,dot,bar}` used uniformly; `data.klass.colour` (class) vs `courseColour` (subject pills) on class detail (T11) matches Plan 2 `getClassWithCourse`; module page needs `courseColour` added to its load (noted T7).
 - Placeholder scan: no TBD/TODO; the one conditional (`courseColour` on module load) is spelled out in the T7 note. better-auth `changeEmail/changePassword` flagged as possibly needing an `as any` cast.

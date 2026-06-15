@@ -4,13 +4,14 @@
 
 **Goal:** Establish the handoff's visual language — fonts, `@theme` tokens, colour helpers, the sidebar shell, and restyled/new shared components — so every screen reskin in Plan 3 has the building blocks it needs.
 
-**Architecture:** Retune Tailwind v4 `@theme` token *values* in place (names unchanged) so existing components inherit the look; add a `subjectTint()` colour helper; replace the top-header shell with a 256px sidebar; restyle existing shared components and add new ones (PeriodBadge, SegmentedControl, Modal, Menu, ResourceRow, BrandPanel, Sidebar).
+**Architecture:** Retune Tailwind v4 `@theme` token _values_ in place (names unchanged) so existing components inherit the look; add a `subjectTint()` colour helper; replace the top-header shell with a 256px sidebar; restyle existing shared components and add new ones (PeriodBadge, SegmentedControl, Modal, Menu, ResourceRow, BrandPanel, Sidebar).
 
 **Tech Stack:** SvelteKit 2 / Svelte 5 (runes), Tailwind CSS v4 (`@theme`), `@fontsource-variable/*`, vitest (node `server` + browser `client` projects).
 
 **Reference:** the prototype lives (gitignored) at `docs/design-reference/Planck.dc.html` — consult it for exact SVG icon `path` data, pixel values, and the per-subject palette quartets (`SUBJ` map, ~line 1253).
 
 **Conventions for this plan**
+
 - Run node specs: `bunx vitest run <file>` (project `server`).
 - Run a component spec: `bunx vitest run --project client <file>` (chromium; if it errors with "Route is already handled" retry the single file, or `bunx playwright install chromium` first).
 - After each task: `bun run check` must pass (svelte-check). Lint at end of plan: `bun run lint`.
@@ -20,54 +21,58 @@
 
 ## File structure
 
-| File | Responsibility |
-|---|---|
-| `package.json` | add `@fontsource-variable/hanken-grotesk` |
-| `src/routes/+layout.svelte` | import Hanken Grotesk font |
-| `src/routes/layout.css` | retuned `@theme` tokens (the single source of palette truth) |
-| `src/lib/colour.ts` | `withAlpha` (existing) + new `darken`, `subjectTint` |
-| `src/lib/colour.spec.ts` | tests for `darken`, `subjectTint` |
-| `src/lib/components/Button.svelte` | restyle (rose, radius, shadow) |
-| `src/lib/components/Card.svelte` | restyle (radius-card 18px, line border) |
-| `src/lib/components/Chip.svelte` | restyle; add `style`-driven subject tone |
-| `src/lib/components/Field.svelte` | restyle label/spacing |
-| `src/lib/components/EmptyState.svelte` | restyle (dashed card + icon tile) |
-| `src/lib/components/PageHeader.svelte` | add optional `eyebrow` prop |
-| `src/lib/components/PeriodBadge.svelte` | NEW — coloured P + number badge |
-| `src/lib/components/SegmentedControl.svelte` | NEW — pill tab group |
-| `src/lib/components/Modal.svelte` | NEW — overlay + panel + close |
-| `src/lib/components/Menu.svelte` | NEW — anchored popover w/ outside-click |
-| `src/lib/components/ResourceRow.svelte` | NEW — typed icon tile + title + meta + remove |
-| `src/lib/components/BrandPanel.svelte` | NEW — auth left brand panel |
-| `src/lib/components/Sidebar.svelte` | NEW — app sidebar (nav + classes + footer) |
-| `src/lib/components/icons.ts` | NEW — shared inline SVG path snippets used across components |
-| `src/routes/(app)/+layout.svelte` | replace shell with `<Sidebar>` + main |
-| `src/routes/(app)/+layout.server.ts` | also load classes for the sidebar |
-| `src/lib/components/*.svelte.test.ts` | new/updated browser tests where noted |
+| File                                         | Responsibility                                               |
+| -------------------------------------------- | ------------------------------------------------------------ |
+| `package.json`                               | add `@fontsource-variable/hanken-grotesk`                    |
+| `src/routes/+layout.svelte`                  | import Hanken Grotesk font                                   |
+| `src/routes/layout.css`                      | retuned `@theme` tokens (the single source of palette truth) |
+| `src/lib/colour.ts`                          | `withAlpha` (existing) + new `darken`, `subjectTint`         |
+| `src/lib/colour.spec.ts`                     | tests for `darken`, `subjectTint`                            |
+| `src/lib/components/Button.svelte`           | restyle (rose, radius, shadow)                               |
+| `src/lib/components/Card.svelte`             | restyle (radius-card 18px, line border)                      |
+| `src/lib/components/Chip.svelte`             | restyle; add `style`-driven subject tone                     |
+| `src/lib/components/Field.svelte`            | restyle label/spacing                                        |
+| `src/lib/components/EmptyState.svelte`       | restyle (dashed card + icon tile)                            |
+| `src/lib/components/PageHeader.svelte`       | add optional `eyebrow` prop                                  |
+| `src/lib/components/PeriodBadge.svelte`      | NEW — coloured P + number badge                              |
+| `src/lib/components/SegmentedControl.svelte` | NEW — pill tab group                                         |
+| `src/lib/components/Modal.svelte`            | NEW — overlay + panel + close                                |
+| `src/lib/components/Menu.svelte`             | NEW — anchored popover w/ outside-click                      |
+| `src/lib/components/ResourceRow.svelte`      | NEW — typed icon tile + title + meta + remove                |
+| `src/lib/components/BrandPanel.svelte`       | NEW — auth left brand panel                                  |
+| `src/lib/components/Sidebar.svelte`          | NEW — app sidebar (nav + classes + footer)                   |
+| `src/lib/components/icons.ts`                | NEW — shared inline SVG path snippets used across components |
+| `src/routes/(app)/+layout.svelte`            | replace shell with `<Sidebar>` + main                        |
+| `src/routes/(app)/+layout.server.ts`         | also load classes for the sidebar                            |
+| `src/lib/components/*.svelte.test.ts`        | new/updated browser tests where noted                        |
 
 ---
 
 ## Task 1: Add Hanken Grotesk font
 
 **Files:**
+
 - Modify: `package.json` (dependencies)
 - Modify: `src/routes/+layout.svelte`
 
 - [ ] **Step 1: Install the font package**
 
 Run:
+
 ```bash
 bun add -D @fontsource-variable/hanken-grotesk
 ```
+
 Expected: package added under devDependencies (matches how `inter`/`fraunces` are listed).
 
 - [ ] **Step 2: Import it in the root layout**
 
 In `src/routes/+layout.svelte`, replace the inter import line with hanken (keep fraunces):
+
 ```svelte
-	import '@fontsource-variable/hanken-grotesk';
-	import '@fontsource-variable/fraunces';
+import '@fontsource-variable/hanken-grotesk'; import '@fontsource-variable/fraunces';
 ```
+
 (Remove the `@fontsource-variable/inter` import.)
 
 - [ ] **Step 3: Verify**
@@ -87,6 +92,7 @@ git commit -m "build: switch body font to Hanken Grotesk"
 ## Task 2: Retune @theme tokens
 
 **Files:**
+
 - Modify: `src/routes/layout.css`
 
 - [ ] **Step 1: Replace the `@theme` block** with the handoff palette (keep token names; add `bg`, grey scale, `tray`, `field-2`):
@@ -156,6 +162,7 @@ git commit -m "style: retune theme tokens to the rose handoff palette"
 ## Task 3: Colour helpers — `darken` + `subjectTint` (TDD)
 
 **Files:**
+
 - Modify: `src/lib/colour.ts`
 - Test: `src/lib/colour.spec.ts`
 
@@ -248,6 +255,7 @@ git commit -m "feat(colour): add darken and subjectTint helpers"
 ## Task 4: Shared inline-icon snippets
 
 **Files:**
+
 - Create: `src/lib/components/icons.ts`
 
 Centralises the SVG `path`/`rect` markup used across components so they aren't copy-pasted. Copy the exact `path` data from `docs/design-reference/Planck.dc.html`.
@@ -268,7 +276,8 @@ export const ICON = {
 	pin: '<path d="M12 21s-7-5.2-7-11a7 7 0 0 1 14 0c0 5.8-7 11-7 11Z"/><circle cx="12" cy="10" r="2.4"/>',
 	link: '<path d="M10 13a5 5 0 0 0 7 0l3-3a5 5 0 0 0-7-7l-1.5 1.5"/><path d="M14 11a5 5 0 0 0-7 0l-3 3a5 5 0 0 0 7 7l1.5-1.5"/>',
 	file: '<path d="M14 3v5h5"/><path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8Z"/>',
-	trash: '<path d="M3 6h18"/><path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6"/>',
+	trash:
+		'<path d="M3 6h18"/><path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6"/>',
 	pencil: '<path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4Z"/>',
 	grip: '<circle cx="9" cy="6" r="1.6"/><circle cx="15" cy="6" r="1.6"/><circle cx="9" cy="12" r="1.6"/><circle cx="15" cy="12" r="1.6"/><circle cx="9" cy="18" r="1.6"/><circle cx="15" cy="18" r="1.6"/>'
 };
@@ -293,31 +302,32 @@ git commit -m "feat(components): add shared inline icon snippets"
 ## Task 5: Restyle Button
 
 **Files:**
+
 - Modify: `src/lib/components/Button.svelte`
 - Test: `src/lib/components/Button.svelte.test.ts` (exists)
 
 - [ ] **Step 1: Check the existing test still describes desired behaviour**
 
 Run: `bunx vitest run --project client src/lib/components/Button.svelte.test.ts`
-Expected: PASS (current). Read it; it likely asserts variant classes/rendering. Keep its assertions about *which* variant prop renders, updating any hard-coded class names you change below.
+Expected: PASS (current). Read it; it likely asserts variant classes/rendering. Keep its assertions about _which_ variant prop renders, updating any hard-coded class names you change below.
 
 - [ ] **Step 2: Update variant/size class maps** in `Button.svelte` to the handoff look (primary = rose with shadow + rounded-control 12px):
 
 ```ts
-	const base =
-		'inline-flex items-center justify-center gap-2 rounded-control font-semibold transition cursor-pointer disabled:cursor-not-allowed disabled:opacity-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pink-100';
-	const sizes: Record<Size, string> = {
-		md: 'h-11 px-4 text-sm',
-		sm: 'h-9 px-3.5 text-xs'
-	};
-	const variants: Record<Variant, string> = {
-		primary:
-			'bg-pink text-white shadow-[0_8px_20px_-8px_rgba(201,86,128,0.55)] hover:bg-pink-hover',
-		secondary: 'border border-line bg-white text-grey-1 hover:border-pink-200',
-		ghost: 'bg-transparent text-grey-1 hover:bg-tray',
-		danger: 'bg-pink-50 text-pink-dk hover:bg-pink-100'
-	};
+const base =
+	'inline-flex items-center justify-center gap-2 rounded-control font-semibold transition cursor-pointer disabled:cursor-not-allowed disabled:opacity-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pink-100';
+const sizes: Record<Size, string> = {
+	md: 'h-11 px-4 text-sm',
+	sm: 'h-9 px-3.5 text-xs'
+};
+const variants: Record<Variant, string> = {
+	primary: 'bg-pink text-white shadow-[0_8px_20px_-8px_rgba(201,86,128,0.55)] hover:bg-pink-hover',
+	secondary: 'border border-line bg-white text-grey-1 hover:border-pink-200',
+	ghost: 'bg-transparent text-grey-1 hover:bg-tray',
+	danger: 'bg-pink-50 text-pink-dk hover:bg-pink-100'
+};
 ```
+
 (Remove the `border` from `base` since variants now set their own borders.)
 
 - [ ] **Step 3: Run the test**
@@ -337,6 +347,7 @@ git commit -m "style(button): rose handoff styling"
 ## Task 6: Restyle Card, Field, EmptyState
 
 **Files:**
+
 - Modify: `src/lib/components/Card.svelte`, `Field.svelte`, `EmptyState.svelte`
 
 - [ ] **Step 1: Card** — radius-card (18px) + soft shadow:
@@ -367,8 +378,19 @@ git commit -m "style(button): rose handoff styling"
 	<span
 		class="mb-3.5 flex h-12 w-12 items-center justify-center rounded-[14px] bg-pink-100 text-pink-200"
 	>
-		<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">
-			<rect x="3" y="4.5" width="18" height="16.5" rx="3" /><path d="M3 9h18" /><path d="M8 2.5v4" /><path d="M16 2.5v4" />
+		<svg
+			width="24"
+			height="24"
+			viewBox="0 0 24 24"
+			fill="none"
+			stroke="currentColor"
+			stroke-width="1.7"
+			stroke-linecap="round"
+			stroke-linejoin="round"
+		>
+			<rect x="3" y="4.5" width="18" height="16.5" rx="3" /><path d="M3 9h18" /><path
+				d="M8 2.5v4"
+			/><path d="M16 2.5v4" />
 		</svg>
 	</span>
 	<p class="text-sm text-grey-3">{message}</p>
@@ -392,6 +414,7 @@ git commit -m "style: restyle Card, Field, EmptyState"
 ## Task 7: PageHeader — add `eyebrow`
 
 **Files:**
+
 - Modify: `src/lib/components/PageHeader.svelte`
 
 - [ ] **Step 1: Add the prop and render a pink eyebrow above the title:**
@@ -439,6 +462,7 @@ git commit -m "feat(page-header): optional eyebrow line"
 ## Task 8: PeriodBadge (NEW, TDD)
 
 **Files:**
+
 - Create: `src/lib/components/PeriodBadge.svelte`
 - Test: `src/lib/components/PeriodBadge.svelte.test.ts`
 
@@ -496,6 +520,7 @@ git commit -m "feat(components): PeriodBadge"
 ## Task 9: SegmentedControl (NEW, TDD)
 
 **Files:**
+
 - Create: `src/lib/components/SegmentedControl.svelte`
 - Test: `src/lib/components/SegmentedControl.svelte.test.ts`
 
@@ -510,7 +535,10 @@ test('selecting an option calls onchange with its value', async () => {
 	const onchange = vi.fn();
 	const screen = render(SegmentedControl, {
 		value: 'A',
-		options: [{ value: 'A', label: 'Week A' }, { value: 'B', label: 'Week B' }],
+		options: [
+			{ value: 'A', label: 'Week A' },
+			{ value: 'B', label: 'Week B' }
+		],
 		onchange
 	});
 	await screen.getByText('Week B').click();
@@ -569,6 +597,7 @@ git commit -m "feat(components): SegmentedControl"
 ## Task 10: Modal (NEW)
 
 **Files:**
+
 - Create: `src/lib/components/Modal.svelte`
 
 - [ ] **Step 1: Implement** an overlay + centered panel; `onclose` fires on backdrop click, the close button, and Escape:
@@ -617,6 +646,7 @@ git commit -m "feat(components): Modal"
 ## Task 11: Menu (NEW — anchored popover)
 
 **Files:**
+
 - Create: `src/lib/components/Menu.svelte`
 
 Used by the agenda postpone dropdown and the timetable cell popup. Renders a positioned panel with a full-screen click-catcher behind it that closes on outside click.
@@ -668,6 +698,7 @@ git commit -m "feat(components): Menu popover"
 ## Task 12: ResourceRow + restyle ResourceLinks/ResourceFiles
 
 **Files:**
+
 - Create: `src/lib/components/ResourceRow.svelte`
 - Create: `src/lib/resources/meta.ts` (link/file type derivation)
 - Test: `src/lib/resources/meta.spec.ts`
@@ -709,7 +740,10 @@ export type LinkType = 'youtube' | 'onedrive' | 'google' | 'link';
 
 export function linkMeta(url: string): { type: LinkType; host: string } {
 	const low = url.toLowerCase();
-	const host = url.replace(/^https?:\/\//, '').replace(/^www\./, '').split('/')[0];
+	const host = url
+		.replace(/^https?:\/\//, '')
+		.replace(/^www\./, '')
+		.split('/')[0];
 	let type: LinkType = 'link';
 	if (low.includes('youtube') || low.includes('youtu.be')) type = 'youtube';
 	else if (low.includes('onedrive') || low.includes('1drv') || low.includes('sharepoint'))
@@ -778,11 +812,25 @@ Expected: PASS.
 		class="flex h-[34px] w-[34px] shrink-0 items-center justify-center rounded-[10px] text-[10.5px] font-extrabold"
 		style="background:{tileBg};color:{tileFg}"
 	>
-		{#if iconSvg}<svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">{@html iconSvg}</svg>{:else}{tileText}{/if}
+		{#if iconSvg}<svg
+				width="17"
+				height="17"
+				viewBox="0 0 24 24"
+				fill="none"
+				stroke="currentColor"
+				stroke-width="1.8"
+				stroke-linecap="round"
+				stroke-linejoin="round">{@html iconSvg}</svg
+			>{:else}{tileText}{/if}
 	</span>
 	<div class="min-w-0 flex-1">
 		{#if href}
-			<a {href} target="_blank" rel="noopener noreferrer" class="block truncate text-[13.5px] font-semibold text-ink hover:underline">{title}</a>
+			<a
+				{href}
+				target="_blank"
+				rel="noopener noreferrer"
+				class="block truncate text-[13.5px] font-semibold text-ink hover:underline">{title}</a
+			>
 		{:else}
 			<div class="truncate text-[13.5px] font-semibold text-ink">{title}</div>
 		{/if}
@@ -791,8 +839,20 @@ Expected: PASS.
 	{#if deleteAction}
 		<form method="POST" action={deleteAction} use:enhance class="shrink-0">
 			<input type="hidden" name="id" value={id} />
-			<button class="flex rounded p-1 text-grey-4 hover:bg-pink-50 hover:text-pink" aria-label="Remove">
-				<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
+			<button
+				class="flex rounded p-1 text-grey-4 hover:bg-pink-50 hover:text-pink"
+				aria-label="Remove"
+			>
+				<svg
+					width="14"
+					height="14"
+					viewBox="0 0 24 24"
+					fill="none"
+					stroke="currentColor"
+					stroke-width="2.2"
+					stroke-linecap="round"
+					stroke-linejoin="round"><path d="M18 6 6 18" /><path d="m6 6 12 12" /></svg
+				>
 			</button>
 		</form>
 	{/if}
@@ -821,6 +881,7 @@ git commit -m "feat(resources): typed ResourceRow + restyled link/file lists"
 ## Task 13: BrandPanel (NEW)
 
 **Files:**
+
 - Create: `src/lib/components/BrandPanel.svelte`
 
 - [ ] **Step 1: Implement** the auth brand panel (gradient, logo, headline, ticks) — copy the exact gradient + copy from reference lines ~46-78. Make it `hidden md:flex` so it collapses below `md` (responsive spec):
@@ -831,20 +892,33 @@ git commit -m "feat(resources): typed ResourceRow + restyled link/file lists"
 	style="background:linear-gradient(160deg,#FBE7EF 0%,#F8DCE6 48%,#F3CFDD 100%)"
 >
 	<div class="flex items-center gap-3">
-		<div class="flex h-[38px] w-[38px] items-center justify-center rounded-[11px] bg-pink shadow-[0_6px_16px_-6px_rgba(201,86,128,0.6)]">
+		<div
+			class="flex h-[38px] w-[38px] items-center justify-center rounded-[11px] bg-pink shadow-[0_6px_16px_-6px_rgba(201,86,128,0.6)]"
+		>
 			<span class="mt-0.5 font-display text-[23px] font-semibold leading-none text-white">P</span>
 		</div>
-		<span class="font-display text-[25px] font-semibold tracking-[-0.01em] text-pink-dk">Planck</span>
+		<span class="font-display text-[25px] font-semibold tracking-[-0.01em] text-pink-dk"
+			>Planck</span
+		>
 	</div>
 	<div class="max-w-[440px]">
-		<h1 class="m-0 mb-5 font-display text-[52px] font-medium leading-[1.05] tracking-[-0.02em] text-[#7E2F4E]">Plan your week.<br />Teach with calm.</h1>
-		<p class="m-0 max-w-[380px] text-[17px] leading-[1.55] text-[#A05E76]">A quiet, tidy home for your lessons, timetable and resources — built for the classroom, not the boardroom.</p>
+		<h1
+			class="m-0 mb-5 font-display text-[52px] font-medium leading-[1.05] tracking-[-0.02em] text-[#7E2F4E]"
+		>
+			Plan your week.<br />Teach with calm.
+		</h1>
+		<p class="m-0 max-w-[380px] text-[17px] leading-[1.55] text-[#A05E76]">
+			A quiet, tidy home for your lessons, timetable and resources — built for the classroom, not
+			the boardroom.
+		</p>
 	</div>
 	<div class="flex items-center gap-2.5 text-[13px] text-[#B07189]">
 		<span class="h-[7px] w-[7px] rounded-full" style="background:#6FB287"></span>
 		Synced across your devices
 	</div>
-	<div class="absolute -right-[70px] -bottom-[70px] h-[240px] w-[240px] rounded-full bg-white/30"></div>
+	<div
+		class="absolute -right-[70px] -bottom-[70px] h-[240px] w-[240px] rounded-full bg-white/30"
+	></div>
 </div>
 ```
 
@@ -865,6 +939,7 @@ git commit -m "feat(components): auth BrandPanel"
 ## Task 14: Sidebar + app shell
 
 **Files:**
+
 - Create: `src/lib/components/Sidebar.svelte`
 - Modify: `src/routes/(app)/+layout.server.ts` (load classes)
 - Modify: `src/routes/(app)/+layout.svelte` (use Sidebar)
@@ -896,7 +971,10 @@ export const load: LayoutServerLoad = async (event) => {
 ```svelte
 <script lang="ts">
 	import { page } from '$app/state';
-	let { classes, onsignout }: { classes: { id: number; name: string; colour: string }[]; onsignout: () => void } = $props();
+	let {
+		classes,
+		onsignout
+	}: { classes: { id: number; name: string; colour: string }[]; onsignout: () => void } = $props();
 	const nav = [
 		{ href: '/agenda', label: 'Agenda' },
 		{ href: '/calendar', label: 'Calendar' },
@@ -906,21 +984,32 @@ export const load: LayoutServerLoad = async (event) => {
 	function active(href: string) {
 		return page.url.pathname === href || page.url.pathname.startsWith(href + '/');
 	}
-	const item = 'flex items-center gap-[11px] rounded-[10px] px-[11px] py-[9px] text-[14.5px] transition';
+	const item =
+		'flex items-center gap-[11px] rounded-[10px] px-[11px] py-[9px] text-[14.5px] transition';
 </script>
 
 <aside class="flex w-64 shrink-0 flex-col border-r border-line bg-[#FAF6F7] p-4 max-md:w-[200px]">
 	<a href="/agenda" class="flex items-center gap-[11px] px-2 pt-1 pb-[22px]">
-		<span class="flex h-[34px] w-[34px] items-center justify-center rounded-[10px] bg-pink shadow-[0_5px_14px_-6px_rgba(201,86,128,0.6)]">
+		<span
+			class="flex h-[34px] w-[34px] items-center justify-center rounded-[10px] bg-pink shadow-[0_5px_14px_-6px_rgba(201,86,128,0.6)]"
+		>
 			<span class="mt-0.5 font-display text-[20px] font-semibold leading-none text-white">P</span>
 		</span>
 		<span class="font-display text-[22px] font-semibold tracking-[-0.01em] text-ink">Planck</span>
 	</a>
 
 	<nav class="flex flex-col gap-[3px]">
-		<span class="px-2.5 pt-1.5 pb-1 text-[11px] font-bold tracking-[0.06em] text-grey-4 uppercase">Planner</span>
+		<span class="px-2.5 pt-1.5 pb-1 text-[11px] font-bold tracking-[0.06em] text-grey-4 uppercase"
+			>Planner</span
+		>
 		{#each nav as n (n.href)}
-			<a href={n.href} class={item} class:bg-pink-100={active(n.href)} class:font-bold={active(n.href)} style:color={active(n.href) ? 'var(--color-pink-dk)' : 'var(--color-grey-1)'}>
+			<a
+				href={n.href}
+				class={item}
+				class:bg-pink-100={active(n.href)}
+				class:font-bold={active(n.href)}
+				style:color={active(n.href) ? 'var(--color-pink-dk)' : 'var(--color-grey-1)'}
+			>
 				<!-- paste matching icon svg from reference per n.href -->
 				{n.label}
 			</a>
@@ -930,13 +1019,30 @@ export const load: LayoutServerLoad = async (event) => {
 	<div class="mt-[22px]">
 		<div class="flex items-center justify-between px-2.5 pt-1.5 pb-1">
 			<span class="text-[11px] font-bold tracking-[0.06em] text-grey-4 uppercase">My classes</span>
-			<a href="/classes" title="Manage classes" class="flex h-[22px] w-[22px] items-center justify-center rounded-[7px] bg-tray text-pink-dk">
-				<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14"/><path d="M5 12h14"/></svg>
+			<a
+				href="/classes"
+				title="Manage classes"
+				class="flex h-[22px] w-[22px] items-center justify-center rounded-[7px] bg-tray text-pink-dk"
+			>
+				<svg
+					width="13"
+					height="13"
+					viewBox="0 0 24 24"
+					fill="none"
+					stroke="currentColor"
+					stroke-width="2.4"
+					stroke-linecap="round"
+					stroke-linejoin="round"><path d="M12 5v14" /><path d="M5 12h14" /></svg
+				>
 			</a>
 		</div>
 		<div class="mt-1 flex flex-col gap-px">
 			{#each classes as c (c.id)}
-				<a href="/classes/{c.id}" class="flex items-center gap-2.5 rounded-[9px] px-2.5 py-[7px] text-sm text-grey-1 transition hover:bg-tray" class:bg-pink-100={active('/classes/' + c.id)}>
+				<a
+					href="/classes/{c.id}"
+					class="flex items-center gap-2.5 rounded-[9px] px-2.5 py-[7px] text-sm text-grey-1 transition hover:bg-tray"
+					class:bg-pink-100={active('/classes/' + c.id)}
+				>
 					<span class="h-[9px] w-[9px] shrink-0 rounded-[3px]" style="background:{c.colour}"></span>
 					<span class="truncate">{c.name}</span>
 				</a>
@@ -945,8 +1051,17 @@ export const load: LayoutServerLoad = async (event) => {
 	</div>
 
 	<div class="mt-auto flex flex-col gap-0.5 border-t border-line pt-3">
-		<a href="/settings" class={item} class:bg-pink-100={active('/settings')} style:color={active('/settings') ? 'var(--color-pink-dk)' : 'var(--color-grey-1)'}>Settings</a>
-		<button type="button" onclick={onsignout} class={`${item} text-grey-3 hover:bg-pink-50 hover:text-pink`}>Log out</button>
+		<a
+			href="/settings"
+			class={item}
+			class:bg-pink-100={active('/settings')}
+			style:color={active('/settings') ? 'var(--color-pink-dk)' : 'var(--color-grey-1)'}>Settings</a
+		>
+		<button
+			type="button"
+			onclick={onsignout}
+			class={`${item} text-grey-3 hover:bg-pink-50 hover:text-pink`}>Log out</button
+		>
 	</div>
 </aside>
 ```
@@ -1013,6 +1128,7 @@ Run: `bun run dev`, open `/agenda` (or any app page). Confirm the sidebar render
 ---
 
 ## Self-review notes (verify before finishing)
+
 - Spec §1 (tokens/fonts/subjectTint) → Tasks 1-3. ✓
 - Spec §2 (sidebar shell, drop header/search) → Task 14. ✓
 - Spec §3 (shared restyle + new components, resource typing) → Tasks 5-13. ✓

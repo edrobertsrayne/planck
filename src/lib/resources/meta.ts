@@ -2,16 +2,15 @@ export type LinkType = 'youtube' | 'onedrive' | 'google' | 'link';
 
 export function linkMeta(url: string): { type: LinkType; host: string } {
 	const low = url.toLowerCase();
-	const host = url.replace(/^https?:\/\//, '').replace(/^www\./, '').split('/')[0];
+	const host = url
+		.replace(/^https?:\/\//, '')
+		.replace(/^www\./, '')
+		.split('/')[0];
 	let type: LinkType = 'link';
 	if (low.includes('youtube') || low.includes('youtu.be')) type = 'youtube';
 	else if (low.includes('onedrive') || low.includes('1drv') || low.includes('sharepoint'))
 		type = 'onedrive';
-	else if (
-		low.includes('docs.google') ||
-		low.includes('drive.google') ||
-		low.includes('google.')
-	)
+	else if (low.includes('docs.google') || low.includes('drive.google') || low.includes('google.'))
 		type = 'google';
 	return { type, host: host || url };
 }

@@ -9,6 +9,7 @@
 **Tech Stack:** Drizzle ORM (Postgres, `neon-http` — **no transactions**, use `db.batch()`), drizzle-kit `db:push`, vitest (node `server` project).
 
 **DB notes (from project memory):**
+
 - `db:push` never prints "No changes" and always shows a phantom `scheduled_lesson` unique-constraint diff — **do not** accept any truncate/data-loss prompt; proceed only with the additive `ADD COLUMN` statements.
 - New columns have defaults, so adds are safe.
 
@@ -18,24 +19,25 @@
 
 ## File structure
 
-| File | Responsibility |
-|---|---|
-| `src/lib/server/db/schema.ts` | + `class.colour`, `lesson.note`, `scheduled_lesson.note/done/postponed`, `module.description`, `closure_day.name` |
-| `src/lib/server/queries/classes.ts` | colour in create/update + select `klass.colour`; `courseColour` in `getClassWithCourse` |
-| `src/lib/server/queries/courses.ts` | `updateModuleDescription`, `updateLessonNote` |
-| `src/lib/server/queries/schedule.ts` | `setScheduledLessonDone`, `updateScheduledLessonNote`, `postponeScheduledLesson`, `nextFreeSlots` (DB wrapper); copy `note` on assign |
-| `src/lib/server/queries/timetable.ts` | `addClosure(name, date)` |
-| `src/lib/scheduling/free-slots.ts` | pure `pickFreeSlots(stream, occupied, n)` |
-| `src/lib/scheduling/free-slots.spec.ts` | tests |
-| `src/lib/scheduling/teaching-days.spec.ts` | + weekend case |
-| `src/routes/(app)/settings/+page.server.ts` | relax day filter to 1..7; pass closure name |
-| `src/routes/(app)/agenda/+page.server.ts` | select done/note/postponed; `toggleDone`, `postpone`, `nextSlots` |
+| File                                        | Responsibility                                                                                                                        |
+| ------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------- |
+| `src/lib/server/db/schema.ts`               | + `class.colour`, `lesson.note`, `scheduled_lesson.note/done/postponed`, `module.description`, `closure_day.name`                     |
+| `src/lib/server/queries/classes.ts`         | colour in create/update + select `klass.colour`; `courseColour` in `getClassWithCourse`                                               |
+| `src/lib/server/queries/courses.ts`         | `updateModuleDescription`, `updateLessonNote`                                                                                         |
+| `src/lib/server/queries/schedule.ts`        | `setScheduledLessonDone`, `updateScheduledLessonNote`, `postponeScheduledLesson`, `nextFreeSlots` (DB wrapper); copy `note` on assign |
+| `src/lib/server/queries/timetable.ts`       | `addClosure(name, date)`                                                                                                              |
+| `src/lib/scheduling/free-slots.ts`          | pure `pickFreeSlots(stream, occupied, n)`                                                                                             |
+| `src/lib/scheduling/free-slots.spec.ts`     | tests                                                                                                                                 |
+| `src/lib/scheduling/teaching-days.spec.ts`  | + weekend case                                                                                                                        |
+| `src/routes/(app)/settings/+page.server.ts` | relax day filter to 1..7; pass closure name                                                                                           |
+| `src/routes/(app)/agenda/+page.server.ts`   | select done/note/postponed; `toggleDone`, `postpone`, `nextSlots`                                                                     |
 
 ---
 
 ## Task 1: Schema columns + push + backfill
 
 **Files:**
+
 - Modify: `src/lib/server/db/schema.ts`
 
 - [ ] **Step 1: Add columns** to `schema.ts`:
@@ -58,6 +60,7 @@ In `course`/`klass`/`module`/`lesson`/`scheduledLesson`/`closureDay` add:
 ```
 
 Add `boolean` to the drizzle import:
+
 ```ts
 import { pgTable, serial, integer, text, date, unique, boolean } from 'drizzle-orm/pg-core';
 ```
@@ -70,11 +73,13 @@ Expected: drizzle shows ADD COLUMN statements for the six new columns (plus the 
 - [ ] **Step 3: Backfill `class.colour` from each class's course**
 
 Run (via studio SQL console or a one-off query — `bun run db:studio`, open the SQL tab):
+
 ```sql
 UPDATE class SET colour = course.colour
 FROM course
 WHERE class.course_id = course.id;
 ```
+
 Expected: existing classes now carry their course's colour (visual continuity).
 
 - [ ] **Step 4: Verify types**
@@ -94,6 +99,7 @@ git commit -m "feat(db): add class.colour, notes, agenda flags, closure name"
 ## Task 2: Class colour in queries
 
 **Files:**
+
 - Modify: `src/lib/server/queries/classes.ts`
 
 - [ ] **Step 1: `listClasses`** — select `klass.colour` (not `course.colour`):
@@ -198,6 +204,7 @@ git commit -m "feat(classes): per-class colour in queries + actions"
 ## Task 3: Module description + lesson note queries/actions
 
 **Files:**
+
 - Modify: `src/lib/server/queries/courses.ts`
 - Modify: `src/routes/(app)/courses/[courseId]/modules/[moduleId]/+page.server.ts`
 
@@ -241,13 +248,16 @@ Also include `note` in `getLesson`'s select (add `note: lesson.note,`) and `desc
 ```ts
 import { lessonAttachmentCounts } from '$lib/server/queries/resources';
 // ...
-	const lessons = await listLessons(userId, moduleId);
-	const counts = await lessonAttachmentCounts(userId, lessons.map((l) => l.id));
-	return {
-		module: mod,
-		lessons: lessons.map((l) => ({ ...l, attachmentCount: counts[l.id] ?? 0 })),
-		// ...rest unchanged
-	};
+const lessons = await listLessons(userId, moduleId);
+const counts = await lessonAttachmentCounts(
+	userId,
+	lessons.map((l) => l.id)
+);
+return {
+	module: mod,
+	lessons: lessons.map((l) => ({ ...l, attachmentCount: counts[l.id] ?? 0 }))
+	// ...rest unchanged
+};
 ```
 
 - [ ] **Step 4: Implement `lessonAttachmentCounts`** in `src/lib/server/queries/resources.ts` (grouped count of links+files per lessonId):
@@ -271,10 +281,12 @@ export async function lessonAttachmentCounts(
 		.where(and(eq(resourceFile.userId, userId), inArray(resourceFile.lessonId, lessonIds)))
 		.groupBy(resourceFile.lessonId);
 	const out: Record<number, number> = {};
-	for (const r of [...links, ...files]) if (r.id != null) out[r.id] = (out[r.id] ?? 0) + Number(r.n);
+	for (const r of [...links, ...files])
+		if (r.id != null) out[r.id] = (out[r.id] ?? 0) + Number(r.n);
 	return out;
 }
 ```
+
 (Check the existing imports/exports in `resources.ts`; reuse its `db`, `resourceLink`, `resourceFile`, `and`, `eq`.)
 
 - [ ] **Step 5: Verify**
@@ -294,6 +306,7 @@ git commit -m "feat(modules): description + lesson note + attachment counts"
 ## Task 4: Pure free-slot picker (TDD)
 
 **Files:**
+
 - Create: `src/lib/scheduling/free-slots.ts`
 - Test: `src/lib/scheduling/free-slots.spec.ts`
 
@@ -373,6 +386,7 @@ git commit -m "feat(scheduling): pure pickFreeSlots helper"
 ## Task 5: Agenda done / note / postpone queries
 
 **Files:**
+
 - Modify: `src/lib/server/queries/schedule.ts`
 
 - [ ] **Step 1: Add queries** to `schedule.ts`:
@@ -420,7 +434,11 @@ export async function nextFreeSlots(
 	today: string = todayIso()
 ): Promise<SlotOccurrence[]> {
 	const [row] = await db
-		.select({ classId: scheduledLesson.classId, date: scheduledLesson.date, period: scheduledLesson.period })
+		.select({
+			classId: scheduledLesson.classId,
+			date: scheduledLesson.date,
+			period: scheduledLesson.period
+		})
 		.from(scheduledLesson)
 		.where(and(eq(scheduledLesson.userId, userId), eq(scheduledLesson.id, scheduledLessonId)));
 	if (!row) return [];
@@ -439,14 +457,13 @@ export async function nextFreeSlots(
 		.from(scheduledLesson)
 		.where(and(eq(scheduledLesson.userId, userId), eq(scheduledLesson.classId, row.classId)));
 	const occupied = new Set(
-		taken
-			.filter((t) => t.date !== null && t.period !== null)
-			.map((t) => `${t.date}|${t.period}`)
+		taken.filter((t) => t.date !== null && t.period !== null).map((t) => `${t.date}|${t.period}`)
 	);
 	// allow the lesson's own current slot to be excluded too (it's "taken" by itself)
 	return pickFreeSlots(stream, occupied, n);
 }
 ```
+
 (`loadTimetableInputs`, `classPeriodStream`, `SlotData` are already imported/defined in this file.)
 
 - [ ] **Step 3: Copy `note` on assign** — in `copyLessonContent` (or `assignModule`'s insert), carry the template lesson's note. Simplest: in `assignModule`, change the insert `title: l.title` block to also set `note: l.note` (and select `note` in `listLessons` — it uses `select()` so note is already returned). Add `note: l.note` to the `.values({...})`.
@@ -468,6 +485,7 @@ git commit -m "feat(schedule): done/note/postpone queries + nextFreeSlots"
 ## Task 6: Agenda load + actions
 
 **Files:**
+
 - Modify: `src/routes/(app)/agenda/+page.server.ts`
 
 - [ ] **Step 1: Add `done`, `note`, `postponed`, `courseId` to the load select** (so cards can render them and link to the course/subject):
@@ -493,21 +511,22 @@ git commit -m "feat(schedule): done/note/postpone queries + nextFreeSlots"
 - [ ] **Step 2: Current-term eyebrow + precomputed postpone candidates.** After loading `blocks`, find the block containing today; and attach each dated item's next free slots so the postpone dropdown needs no extra round-trip:
 
 ```ts
-	const term = blocks.find((b) => b.startDate <= today && today <= b.endDate)?.name ?? null;
-	// after groups are built (each item has an id):
-	const groupsWithSlots = await Promise.all(
-		groups.map(async (g) => ({
-			...g,
-			items: await Promise.all(
-				g.items.map(async (it) => ({
-					...it,
-					postponeSlots: await nextFreeSlots(userId, it.id, 4)
-				}))
-			)
-		}))
-	);
-	return { groups: groupsWithSlots, term };
+const term = blocks.find((b) => b.startDate <= today && today <= b.endDate)?.name ?? null;
+// after groups are built (each item has an id):
+const groupsWithSlots = await Promise.all(
+	groups.map(async (g) => ({
+		...g,
+		items: await Promise.all(
+			g.items.map(async (it) => ({
+				...it,
+				postponeSlots: await nextFreeSlots(userId, it.id, 4)
+			}))
+		)
+	}))
+);
+return { groups: groupsWithSlots, term };
 ```
+
 (Import `nextFreeSlots`. Agenda upcoming lists are small, so per-item computation is fine.)
 
 - [ ] **Step 3: Add actions** `toggleDone` and `postpone`. Import `setScheduledLessonDone`, `postponeScheduledLesson`, `nextFreeSlots`:
@@ -552,6 +571,7 @@ git commit -m "feat(agenda): done/postpone/nextSlots actions + term eyebrow"
 ## Task 7: Settings — weekend days + closure names
 
 **Files:**
+
 - Modify: `src/lib/server/queries/timetable.ts`
 - Modify: `src/routes/(app)/settings/+page.server.ts`
 - Test: `src/lib/scheduling/teaching-days.spec.ts`
@@ -577,10 +597,10 @@ Expected: PASS already (the lib's `DayOfWeek` is `1..7` and `listTeachingDays` i
 - [ ] **Step 3: Relax the settings day filter** — in `settings/+page.server.ts` `saveConfig`, change the filter from `n >= 1 && n <= 5` to `n >= 1 && n <= 7`:
 
 ```ts
-		const teachingDays = form
-			.getAll('teachingDays')
-			.map((d) => Number(d))
-			.filter((n) => n >= 1 && n <= 7);
+const teachingDays = form
+	.getAll('teachingDays')
+	.map((d) => Number(d))
+	.filter((n) => n >= 1 && n <= 7);
 ```
 
 - [ ] **Step 4: Closure name** — update `addClosure` in `timetable.ts`:
@@ -625,6 +645,7 @@ git commit -m "feat(settings): weekend teaching days + named closures (backend)"
 ---
 
 ## Self-review notes
+
 - Spec §4 schema table → Task 1 (all 7 columns). ✓
 - class colour queries/actions → Task 2. ✓
 - module description + lesson note + attachment counts → Task 3. ✓
