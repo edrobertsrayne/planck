@@ -3,33 +3,43 @@
 @plugin '@tailwindcss/typography';
 
 @theme {
-	--font-sans: 'Inter Variable', ui-sans-serif, system-ui, sans-serif;
+	--font-sans: 'Hanken Grotesk Variable', ui-sans-serif, system-ui, sans-serif;
 	--font-display: 'Fraunces Variable', ui-serif, Georgia, serif;
 
-	--color-pink: #e8488b;
-	--color-pink-hover: #d83d80;
-	--color-pink-dk: #a21d6b;
-	--color-pink-50: #fdf2f8;
-	--color-pink-100: #fce7f3;
-	--color-pink-200: #fbcfe8;
+	--color-bg: #fbf8f9;
 
-	--color-ink: #3a2f35;
-	--color-muted: #a89aa1;
-	--color-line: #f1e8ec;
-	--color-field: #f7f4f6;
-	--color-danger: #c2476b;
-	--color-success: #2f7d56;
-	--color-success-bg: #e8f5ee;
+	--color-pink: #d96e92;
+	--color-pink-hover: #cd5f86;
+	--color-pink-dk: #a8456a;
+	--color-pink-50: #fbeaf0;
+	--color-pink-100: #fbe7ef;
+	--color-pink-200: #e9b7c8;
 
-	--radius-control: 0.625rem; /* 10px */
-	--radius-card: 0.875rem; /* 14px */
+	--color-ink: #2b2530;
+	--color-grey-1: #6a636f;
+	--color-grey-2: #8a8290;
+	--color-grey-3: #9a929e;
+	--color-grey-4: #b0a8b4;
+	--color-muted: #8a8290;
+
+	--color-line: #f0e9ed;
+	--color-field: #fbf9fa;
+	--color-tray: #f4eef1;
+
+	--color-danger: #c24b6e;
+	--color-success: #6fb287;
+	--color-success-bg: #eaf5ee;
+
+	--radius-control: 0.75rem;
+	--radius-card: 1.125rem;
 }
 
 @layer base {
 	html {
-		background: #fff;
+		background: var(--color-bg);
 		color: var(--color-ink);
 		font-family: var(--font-sans);
 		font-variant-numeric: tabular-nums;
+		-webkit-font-smoothing: antialiased;
 	}
 }
