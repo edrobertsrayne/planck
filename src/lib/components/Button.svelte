@@ -20,16 +20,17 @@
 	} & HTMLButtonAttributes = $props();
 
 	const base =
-		'inline-flex items-center justify-center gap-2 rounded-control border font-semibold transition cursor-pointer disabled:cursor-not-allowed disabled:opacity-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pink-100';
+		'inline-flex items-center justify-center gap-2 rounded-control font-semibold transition cursor-pointer disabled:cursor-not-allowed disabled:opacity-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pink-100';
 	const sizes: Record<Size, string> = {
-		md: 'px-4 py-2 text-sm',
-		sm: 'px-3 py-1.5 text-xs'
+		md: 'h-11 px-4 text-sm',
+		sm: 'h-9 px-3.5 text-xs'
 	};
 	const variants: Record<Variant, string> = {
-		primary: 'border-transparent bg-pink text-white hover:bg-pink-hover',
-		secondary: 'border-pink-200 bg-white text-pink-dk hover:bg-pink-50',
-		ghost: 'border-transparent bg-transparent text-ink/70 hover:bg-field',
-		danger: 'border-pink-200/60 bg-transparent text-danger hover:bg-pink-50'
+		primary:
+			'bg-pink text-white shadow-[0_8px_20px_-8px_rgba(201,86,128,0.55)] hover:bg-pink-hover',
+		secondary: 'border border-line bg-white text-grey-1 hover:border-pink-200',
+		ghost: 'bg-transparent text-grey-1 hover:bg-tray',
+		danger: 'bg-pink-50 text-pink-dk hover:bg-pink-100'
 	};
 </script>
 
