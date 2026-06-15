@@ -3,7 +3,7 @@
 	import { invalidateAll } from '$app/navigation';
 	import Button from './Button.svelte';
 	import EmptyState from './EmptyState.svelte';
-	import { validateFile } from '$lib/lesson-content/files';
+	import { validateFile } from '$lib/resources/files';
 
 	type FileRow = {
 		id: number;
@@ -16,7 +16,11 @@
 		files,
 		ownerType,
 		ownerId
-	}: { files: FileRow[]; ownerType: 'lesson' | 'scheduled'; ownerId: number } = $props();
+	}: {
+		files: FileRow[];
+		ownerType: 'lesson' | 'scheduled' | 'course' | 'module';
+		ownerId: number;
+	} = $props();
 
 	let uploading = $state(false);
 	let errorMsg = $state('');
@@ -39,7 +43,7 @@
 			const { upload } = await import('@vercel/blob/client');
 			const blob = await upload(file.name, file, {
 				access: 'public',
-				handleUploadUrl: '/api/lesson-files/upload',
+				handleUploadUrl: '/api/resource-files/upload',
 				clientPayload: JSON.stringify({ ownerType, ownerId })
 			});
 

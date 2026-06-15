@@ -104,27 +104,32 @@ export const scheduledLesson = pgTable(
 	(t) => [unique().on(t.userId, t.classId, t.date, t.period)]
 );
 
-export const lessonLink = pgTable('lesson_link', {
+export const resourceLink = pgTable('resource_link', {
 	id: serial('id').primaryKey(),
 	userId: text('user_id').notNull(),
-	// Exactly one of lessonId / scheduledLessonId is set (enforced in app code).
+	// Exactly one of lessonId / scheduledLessonId / courseId / moduleId is set
+	// (enforced in app code via ownerColumns()).
 	lessonId: integer('lesson_id').references(() => lesson.id, { onDelete: 'cascade' }),
 	scheduledLessonId: integer('scheduled_lesson_id').references(() => scheduledLesson.id, {
 		onDelete: 'cascade'
 	}),
+	courseId: integer('course_id').references(() => course.id, { onDelete: 'cascade' }),
+	moduleId: integer('module_id').references(() => module.id, { onDelete: 'cascade' }),
 	url: text('url').notNull(),
 	label: text('label'),
 	orderIndex: integer('order_index').notNull().default(0)
 });
 
-export const lessonFile = pgTable('lesson_file', {
+export const resourceFile = pgTable('resource_file', {
 	id: serial('id').primaryKey(),
 	userId: text('user_id').notNull(),
-	// Exactly one of lessonId / scheduledLessonId is set (enforced in app code).
+	// Exactly one of lessonId / scheduledLessonId / courseId / moduleId is set.
 	lessonId: integer('lesson_id').references(() => lesson.id, { onDelete: 'cascade' }),
 	scheduledLessonId: integer('scheduled_lesson_id').references(() => scheduledLesson.id, {
 		onDelete: 'cascade'
 	}),
+	courseId: integer('course_id').references(() => course.id, { onDelete: 'cascade' }),
+	moduleId: integer('module_id').references(() => module.id, { onDelete: 'cascade' }),
 	blobUrl: text('blob_url').notNull(),
 	pathname: text('pathname').notNull(),
 	filename: text('filename').notNull(),

@@ -5,8 +5,8 @@ import type { RequestHandler } from './$types';
 import { requireUserId } from '$lib/server/session';
 import { env } from '$env/dynamic/private';
 import { db } from '$lib/server/db';
-import { lesson, scheduledLesson } from '$lib/server/db/schema';
-import { ALLOWED_CONTENT_TYPES, MAX_FILE_BYTES } from '$lib/lesson-content/files';
+import { lesson, scheduledLesson, course, module } from '$lib/server/db/schema';
+import { ALLOWED_CONTENT_TYPES, MAX_FILE_BYTES } from '$lib/resources/files';
 
 async function userOwnsTarget(
 	userId: string,
@@ -25,6 +25,20 @@ async function userOwnsTarget(
 			.select({ id: scheduledLesson.id })
 			.from(scheduledLesson)
 			.where(and(eq(scheduledLesson.userId, userId), eq(scheduledLesson.id, ownerId)));
+		return !!row;
+	}
+	if (ownerType === 'course') {
+		const [row] = await db
+			.select({ id: course.id })
+			.from(course)
+			.where(and(eq(course.userId, userId), eq(course.id, ownerId)));
+		return !!row;
+	}
+	if (ownerType === 'module') {
+		const [row] = await db
+			.select({ id: module.id })
+			.from(module)
+			.where(and(eq(module.userId, userId), eq(module.id, ownerId)));
 		return !!row;
 	}
 	return false;
@@ -46,7 +60,7 @@ export const POST: RequestHandler = async (event) => {
 			}
 			if (!payload.ownerType || !payload.ownerId) throw error(400, 'Missing owner');
 			const owns = await userOwnsTarget(userId, payload.ownerType, payload.ownerId);
-			if (!owns) throw error(403, 'Not your lesson');
+			if (!owns) throw error(403, 'Not your resource');
 			return {
 				allowedContentTypes: [...ALLOWED_CONTENT_TYPES],
 				maximumSizeInBytes: MAX_FILE_BYTES,

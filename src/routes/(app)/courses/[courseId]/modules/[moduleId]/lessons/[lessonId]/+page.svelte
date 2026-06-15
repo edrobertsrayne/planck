@@ -2,8 +2,8 @@
 	import PageHeader from '$lib/components/PageHeader.svelte';
 	import Card from '$lib/components/Card.svelte';
 	import LessonPlanEditor from '$lib/components/LessonPlanEditor.svelte';
-	import LessonLinks from '$lib/components/LessonLinks.svelte';
-	import LessonFiles from '$lib/components/LessonFiles.svelte';
+	import ResourceLinks from '$lib/components/ResourceLinks.svelte';
+	import ResourceFiles from '$lib/components/ResourceFiles.svelte';
 	import type { PageData } from './$types';
 
 	let { data }: { data: PageData } = $props();
@@ -21,10 +21,10 @@
 
 <Card class="mb-6">
 	<h2 class="mb-3 font-display text-lg font-semibold">Links</h2>
-	<LessonLinks links={data.links} />
+	<ResourceLinks links={data.links} />
 </Card>
 
 <Card>
 	<h2 class="mb-3 font-display text-lg font-semibold">Files</h2>
-	<LessonFiles files={data.files} ownerType="lesson" ownerId={data.lesson.id} />
+	<ResourceFiles files={data.files} ownerType="lesson" ownerId={data.lesson.id} />
 </Card>

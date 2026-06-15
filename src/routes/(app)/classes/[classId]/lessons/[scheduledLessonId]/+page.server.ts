@@ -2,15 +2,15 @@ import { error } from '@sveltejs/kit';
 import type { Actions, PageServerLoad } from './$types';
 import { requireUserId } from '$lib/server/session';
 import { getScheduledLesson } from '$lib/server/queries/schedule';
+import { saveLessonPlan } from '$lib/server/queries/lesson-content';
 import {
-	saveLessonPlan,
 	listLinks,
 	addLink,
 	deleteLink,
 	listFiles,
 	addFile,
 	deleteFile
-} from '$lib/server/queries/lesson-content';
+} from '$lib/server/queries/resources';
 
 export const load: PageServerLoad = async (event) => {
 	const userId = requireUserId(event);

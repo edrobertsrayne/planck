@@ -5,10 +5,10 @@ import {
 	klass,
 	course,
 	lesson,
-	lessonLink,
-	lessonFile
+	resourceLink,
+	resourceFile
 } from '$lib/server/db/schema';
-import { buildCopiedLinkRows, buildCopiedFileRows } from '$lib/lesson-content/copy';
+import { buildCopiedLinkRows, buildCopiedFileRows } from '$lib/resources/copy';
 import { copyBlob } from '$lib/server/blob';
 import { getConfig, getBlocks, getClosures, getSlots } from './timetable';
 import { getModule, listLessons } from './courses';
@@ -129,26 +129,30 @@ async function copyLessonContent(
 	}
 
 	const links = await db
-		.select({ url: lessonLink.url, label: lessonLink.label, orderIndex: lessonLink.orderIndex })
-		.from(lessonLink)
-		.where(and(eq(lessonLink.userId, userId), eq(lessonLink.lessonId, templateLessonId)))
-		.orderBy(lessonLink.orderIndex);
+		.select({
+			url: resourceLink.url,
+			label: resourceLink.label,
+			orderIndex: resourceLink.orderIndex
+		})
+		.from(resourceLink)
+		.where(and(eq(resourceLink.userId, userId), eq(resourceLink.lessonId, templateLessonId)))
+		.orderBy(resourceLink.orderIndex);
 	if (links.length > 0) {
-		await db.insert(lessonLink).values(buildCopiedLinkRows(links, userId, scheduledLessonId));
+		await db.insert(resourceLink).values(buildCopiedLinkRows(links, userId, scheduledLessonId));
 	}
 
 	const files = await db
 		.select({
-			blobUrl: lessonFile.blobUrl,
-			pathname: lessonFile.pathname,
-			filename: lessonFile.filename,
-			contentType: lessonFile.contentType,
-			size: lessonFile.size,
-			orderIndex: lessonFile.orderIndex
+			blobUrl: resourceFile.blobUrl,
+			pathname: resourceFile.pathname,
+			filename: resourceFile.filename,
+			contentType: resourceFile.contentType,
+			size: resourceFile.size,
+			orderIndex: resourceFile.orderIndex
 		})
-		.from(lessonFile)
-		.where(and(eq(lessonFile.userId, userId), eq(lessonFile.lessonId, templateLessonId)))
-		.orderBy(lessonFile.orderIndex);
+		.from(resourceFile)
+		.where(and(eq(resourceFile.userId, userId), eq(resourceFile.lessonId, templateLessonId)))
+		.orderBy(resourceFile.orderIndex);
 	if (files.length > 0) {
 		const copies = await Promise.all(
 			files.map((f) =>
@@ -156,7 +160,7 @@ async function copyLessonContent(
 			)
 		);
 		await db
-			.insert(lessonFile)
+			.insert(resourceFile)
 			.values(buildCopiedFileRows(files, copies, userId, scheduledLessonId));
 	}
 }
