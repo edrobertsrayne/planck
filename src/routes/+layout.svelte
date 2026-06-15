@@ -1,5 +1,5 @@
 <script lang="ts">
-	import '@fontsource-variable/inter';
+	import '@fontsource-variable/hanken-grotesk';
 	import '@fontsource-variable/fraunces';
 	import './layout.css';
 	import favicon from '$lib/assets/favicon.svg';
