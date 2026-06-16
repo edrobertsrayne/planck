@@ -116,6 +116,7 @@ export async function lessonAttachmentCounts(
 		.where(and(eq(resourceFile.userId, userId), inArray(resourceFile.lessonId, lessonIds)))
 		.groupBy(resourceFile.lessonId);
 	const out: Record<number, number> = {};
-	for (const r of [...links, ...files]) if (r.id != null) out[r.id] = (out[r.id] ?? 0) + Number(r.n);
+	for (const r of [...links, ...files])
+		if (r.id != null) out[r.id] = (out[r.id] ?? 0) + Number(r.n);
 	return out;
 }
