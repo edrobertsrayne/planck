@@ -27,9 +27,7 @@
 			</h2>
 			<p class="m-0 mb-6 text-[15px] text-grey-2">Start planning your term in minutes.</p>
 			<div class="mb-6 flex gap-1 rounded-[12px] bg-tray p-1">
-				<a href="/login" class={`${tab} flex items-center justify-center text-grey-2`}
-					>Sign in</a
-				>
+				<a href="/login" class={`${tab} flex items-center justify-center text-grey-2`}>Sign in</a>
 				<a
 					href="/signup"
 					class={`${tab} flex items-center justify-center bg-white text-ink shadow-[0_1px_3px_rgba(43,37,48,0.08)]`}
@@ -39,7 +37,12 @@
 			<form class="flex flex-col gap-3.5" onsubmit={submit}>
 				<label class="block"
 					><span class="mb-1.5 block text-[13px] font-semibold text-grey-1">Full name</span>
-					<input class={input} type="text" placeholder="Sofia Marsh" bind:value={name} required
+					<input
+						class={input}
+						type="text"
+						placeholder="Sofia Marsh"
+						bind:value={name}
+						required
 					/></label
 				>
 				<label class="block"
