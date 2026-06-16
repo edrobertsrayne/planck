@@ -15,6 +15,7 @@ import { getModule, listLessons } from './courses';
 import { getClass } from './classes';
 import { classPeriodStream } from '$lib/scheduling/periods';
 import { allocateSequence } from '$lib/scheduling/allocate';
+import { pickFreeSlots, type SlotOccurrence } from '$lib/scheduling/free-slots';
 import type { SlotData } from '$lib/scheduling/types';
 
 export function todayIso(): string {
@@ -202,6 +203,7 @@ export async function assignModule(
 				lessonId: l.id,
 				moduleId,
 				title: l.title,
+				note: l.note,
 				orderIndex: next + i,
 				date: null,
 				period: null,
@@ -417,6 +419,67 @@ export async function renameScheduledLesson(userId: string, id: number, title: s
 		.update(scheduledLesson)
 		.set({ title })
 		.where(and(eq(scheduledLesson.userId, userId), eq(scheduledLesson.id, id)));
+}
+
+export function setScheduledLessonDone(userId: string, id: number, done: boolean) {
+	return db
+		.update(scheduledLesson)
+		.set({ done })
+		.where(and(eq(scheduledLesson.userId, userId), eq(scheduledLesson.id, id)));
+}
+
+export function updateScheduledLessonNote(userId: string, id: number, note: string) {
+	return db
+		.update(scheduledLesson)
+		.set({ note })
+		.where(and(eq(scheduledLesson.userId, userId), eq(scheduledLesson.id, id)));
+}
+
+/** Manual move to a chosen free slot; flags the row postponed. Not reflowed
+ *  (a later reallocate may overwrite — accepted, same as moveScheduledLesson). */
+export function postponeScheduledLesson(
+	userId: string,
+	id: number,
+	date: string,
+	period: number,
+	room: string
+) {
+	return db
+		.update(scheduledLesson)
+		.set({ date, period, room, postponed: true })
+		.where(and(eq(scheduledLesson.userId, userId), eq(scheduledLesson.id, id)));
+}
+
+/** Next `n` free slots for the lesson's class, on/after `today`, excluding already-taken (date, period) pairs. */
+export async function nextFreeSlots(
+	userId: string,
+	scheduledLessonId: number,
+	n = 4,
+	today: string = todayIso()
+): Promise<SlotOccurrence[]> {
+	const [row] = await db
+		.select({ classId: scheduledLesson.classId })
+		.from(scheduledLesson)
+		.where(and(eq(scheduledLesson.userId, userId), eq(scheduledLesson.id, scheduledLessonId)));
+	if (!row) return [];
+
+	const inputs = await loadTimetableInputs(userId);
+	const stream = classPeriodStream(
+		inputs.config,
+		inputs.blocks.map((b) => ({ startDate: b.startDate, endDate: b.endDate })),
+		inputs.closures.map((c) => c.date),
+		inputs.slots as SlotData[],
+		row.classId
+	).filter((o) => o.date >= today);
+
+	const taken = await db
+		.select({ date: scheduledLesson.date, period: scheduledLesson.period })
+		.from(scheduledLesson)
+		.where(and(eq(scheduledLesson.userId, userId), eq(scheduledLesson.classId, row.classId)));
+	const occupied = new Set(
+		taken.filter((t) => t.date !== null && t.period !== null).map((t) => `${t.date}|${t.period}`)
+	);
+	return pickFreeSlots(stream, occupied, n);
 }
 
 /** A scheduled lesson with its class + course context for the lesson page. */
