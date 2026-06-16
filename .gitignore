@@ -31,3 +31,6 @@ test-results
 # brainstorming visual companion
 .superpowers/
 .env*
+
+# Design handoff prototype (reference only, not app source)
+docs/design-reference/

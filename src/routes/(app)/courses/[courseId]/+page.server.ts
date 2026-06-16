@@ -7,7 +7,8 @@ import {
 	createModule,
 	renameModule,
 	deleteModule,
-	reorderModules
+	reorderModules,
+	updateCourse
 } from '$lib/server/queries/courses';
 import {
 	listLinks,
@@ -32,6 +33,16 @@ export const load: PageServerLoad = async (event) => {
 };
 
 export const actions: Actions = {
+	save: async (event) => {
+		const userId = requireUserId(event);
+		const form = await event.request.formData();
+		await updateCourse(
+			userId,
+			Number(event.params.courseId),
+			String(form.get('name')),
+			String(form.get('colour'))
+		);
+	},
 	create: async (event) => {
 		const userId = requireUserId(event);
 		const form = await event.request.formData();

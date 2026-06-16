@@ -1,9 +1,9 @@
 <script lang="ts">
-	import { enhance } from '$app/forms';
 	import { invalidateAll } from '$app/navigation';
-	import Button from './Button.svelte';
 	import EmptyState from './EmptyState.svelte';
+	import ResourceRow from './ResourceRow.svelte';
 	import { validateFile } from '$lib/resources/files';
+	import { fileMeta } from '$lib/resources/meta';
 
 	type FileRow = {
 		id: number;
@@ -70,20 +70,18 @@
 {:else}
 	<ul class="mb-4 flex flex-col gap-1.5">
 		{#each files as file (file.id)}
-			<li class="flex items-center gap-2 rounded-card border border-line bg-white px-4 py-2.5">
-				<a
+			{@const fm = fileMeta(file.filename)}
+			<li>
+				<ResourceRow
+					tileBg={fm.bg}
+					tileFg={fm.fg}
+					tileText={fm.kind}
+					title={file.filename}
+					meta={Math.round(file.size / 1024) + ' KB'}
 					href={file.blobUrl}
-					target="_blank"
-					rel="noopener noreferrer"
-					class="flex-1 truncate text-pink-dk hover:underline"
-				>
-					{file.filename}
-				</a>
-				<span class="text-xs text-muted">{Math.round(file.size / 1024)} KB</span>
-				<form method="POST" action="?/deleteFile" use:enhance>
-					<input type="hidden" name="id" value={file.id} />
-					<Button type="submit" variant="danger" size="sm">Remove</Button>
-				</form>
+					deleteAction="?/deleteFile"
+					id={file.id}
+				/>
 			</li>
 		{/each}
 	</ul>

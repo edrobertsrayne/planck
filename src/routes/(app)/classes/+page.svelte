@@ -1,39 +1,87 @@
 <script lang="ts">
+	import { enhance } from '$app/forms';
 	import PageHeader from '$lib/components/PageHeader.svelte';
 	import Card from '$lib/components/Card.svelte';
 	import Button from '$lib/components/Button.svelte';
 	import EmptyState from '$lib/components/EmptyState.svelte';
-	import SubjectDot from '$lib/components/SubjectDot.svelte';
 	let { data } = $props();
 </script>
 
-<PageHeader title="Classes" subtitle="Teaching groups, each linked to a course." />
+<PageHeader eyebrow="Your teaching groups" title="Classes" />
 
 {#if data.classes.length === 0}
 	<EmptyState message="No classes yet." />
 {:else}
-	<ul class="mb-6 flex flex-col gap-2">
+	<div class="mb-6 flex flex-col gap-2.5">
 		{#each data.classes as c (c.id)}
-			<li class="flex items-center gap-3 rounded-card border border-line bg-white px-4 py-3">
-				<SubjectDot colour={c.colour} />
-				<a href="/classes/{c.id}" class="font-semibold text-ink hover:text-pink-dk hover:underline"
-					>{c.name}</a
+			<div class="group relative">
+				<a
+					href="/classes/{c.id}"
+					class="flex items-center gap-[15px] rounded-card border border-line bg-white px-[18px] py-4 shadow-[0_1px_2px_rgba(43,37,48,0.03)] transition hover:border-pink-200 hover:shadow-[0_4px_14px_-6px_rgba(43,37,48,0.10)]"
 				>
-				<span class="text-sm text-muted">{c.courseName}</span>
-				<form method="POST" action="?/delete" class="ml-auto">
-					<input type="hidden" name="id" value={c.id} />
-					<Button type="submit" variant="danger" size="sm">Delete</Button>
-				</form>
-			</li>
+					<span
+						class="h-3.5 w-3.5 shrink-0 rounded"
+						style="background:{c.colour}"
+						aria-hidden="true"
+					></span>
+					<div class="min-w-0 flex-1">
+						<div class="truncate text-[17px] font-bold text-ink">{c.name}</div>
+						<div class="truncate text-sm text-muted">{c.courseName}</div>
+					</div>
+				</a>
+				<div
+					class="absolute inset-y-0 right-12 flex items-center gap-1 opacity-100 transition [@media(hover:hover)]:opacity-0 group-hover:opacity-100 group-focus-within:opacity-100"
+				>
+					<form method="POST" action="?/delete" use:enhance>
+						<input type="hidden" name="id" value={c.id} />
+						<button
+							type="submit"
+							title="Delete class"
+							class="flex h-[34px] w-[34px] items-center justify-center rounded-[9px] text-grey-3 transition hover:bg-pink-50 hover:text-pink-dk"
+						>
+							<svg
+								width="17"
+								height="17"
+								viewBox="0 0 24 24"
+								fill="none"
+								stroke="currentColor"
+								stroke-width="1.9"
+								stroke-linecap="round"
+								stroke-linejoin="round"
+							>
+								<path d="M3 6h18"></path>
+								<path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+								<path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6"></path>
+							</svg>
+						</button>
+					</form>
+				</div>
+				<span
+					class="pointer-events-none absolute inset-y-0 right-[18px] flex items-center text-grey-3"
+				>
+					<svg
+						width="18"
+						height="18"
+						viewBox="0 0 24 24"
+						fill="none"
+						stroke="currentColor"
+						stroke-width="2"
+						stroke-linecap="round"
+						stroke-linejoin="round"
+					>
+						<path d="m9 18 6-6-6-6"></path>
+					</svg>
+				</span>
+			</div>
 		{/each}
-	</ul>
+	</div>
 {/if}
 
 {#if data.courses.length === 0}
 	<p class="text-sm text-muted">Create a course first.</p>
 {:else}
 	<Card>
-		<form method="POST" action="?/create" class="flex flex-wrap items-end gap-3">
+		<form method="POST" action="?/create" use:enhance class="flex flex-wrap items-end gap-3">
 			<input
 				name="name"
 				placeholder="10Phy1"
@@ -45,6 +93,12 @@
 					<option value={course.id}>{course.name}</option>
 				{/each}
 			</select>
+			<input
+				name="colour"
+				type="color"
+				value="#8775c6"
+				class="h-9 w-12 rounded-control border border-line"
+			/>
 			<Button type="submit">Add class</Button>
 		</form>
 	</Card>

@@ -1,7 +1,7 @@
 import { error } from '@sveltejs/kit';
 import type { Actions, PageServerLoad } from './$types';
 import { requireUserId } from '$lib/server/session';
-import { getClassWithCourse } from '$lib/server/queries/classes';
+import { getClassWithCourse, updateClass } from '$lib/server/queries/classes';
 import {
 	todayIso,
 	listClassSequence,
@@ -46,6 +46,17 @@ export const load: PageServerLoad = async (event) => {
 };
 
 export const actions: Actions = {
+	save: async (event) => {
+		const userId = requireUserId(event);
+		const form = await event.request.formData();
+		await updateClass(
+			userId,
+			Number(event.params.classId),
+			String(form.get('name')),
+			Number(form.get('courseId')),
+			String(form.get('colour'))
+		);
+	},
 	reorder: async (event) => {
 		const userId = requireUserId(event);
 		const classId = Number(event.params.classId);

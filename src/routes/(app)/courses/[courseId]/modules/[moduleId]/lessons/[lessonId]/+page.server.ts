@@ -1,7 +1,7 @@
 import { error } from '@sveltejs/kit';
 import type { Actions, PageServerLoad } from './$types';
 import { requireUserId } from '$lib/server/session';
-import { getLesson } from '$lib/server/queries/courses';
+import { getLesson, renameLesson, updateLessonNote } from '$lib/server/queries/courses';
 import { saveLessonPlan } from '$lib/server/queries/lesson-content';
 import {
 	listLinks,
@@ -33,6 +33,16 @@ export const actions: Actions = {
 			{ lessonId: Number(event.params.lessonId) },
 			String(form.get('plan'))
 		);
+	},
+	rename: async (event) => {
+		const userId = requireUserId(event);
+		const form = await event.request.formData();
+		await renameLesson(userId, Number(event.params.lessonId), String(form.get('title')));
+	},
+	saveNote: async (event) => {
+		const userId = requireUserId(event);
+		const form = await event.request.formData();
+		await updateLessonNote(userId, Number(event.params.lessonId), String(form.get('note')));
 	},
 	addLink: async (event) => {
 		const userId = requireUserId(event);

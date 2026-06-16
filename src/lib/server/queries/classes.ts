@@ -9,7 +9,7 @@ export function listClasses(userId: string) {
 			name: klass.name,
 			courseId: klass.courseId,
 			courseName: course.name,
-			colour: course.colour
+			colour: klass.colour
 		})
 		.from(klass)
 		.innerJoin(course, eq(klass.courseId, course.id))
@@ -17,14 +17,20 @@ export function listClasses(userId: string) {
 		.orderBy(klass.name);
 }
 
-export function createClass(userId: string, name: string, courseId: number) {
-	return db.insert(klass).values({ userId, name, courseId });
+export function createClass(userId: string, name: string, courseId: number, colour: string) {
+	return db.insert(klass).values({ userId, name, courseId, colour });
 }
 
-export function updateClass(userId: string, id: number, name: string, courseId: number) {
+export function updateClass(
+	userId: string,
+	id: number,
+	name: string,
+	courseId: number,
+	colour: string
+) {
 	return db
 		.update(klass)
-		.set({ name, courseId })
+		.set({ name, courseId, colour })
 		.where(and(eq(klass.userId, userId), eq(klass.id, id)));
 }
 
@@ -47,7 +53,8 @@ export async function getClassWithCourse(userId: string, id: number) {
 			name: klass.name,
 			courseId: klass.courseId,
 			courseName: course.name,
-			colour: course.colour
+			colour: klass.colour,
+			courseColour: course.colour
 		})
 		.from(klass)
 		.innerJoin(course, eq(klass.courseId, course.id))

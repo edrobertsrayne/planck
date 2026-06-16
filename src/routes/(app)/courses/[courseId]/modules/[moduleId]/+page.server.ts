@@ -2,12 +2,15 @@ import { error, fail } from '@sveltejs/kit';
 import type { Actions, PageServerLoad } from './$types';
 import { requireUserId } from '$lib/server/session';
 import {
+	getCourse,
 	getModule,
 	listLessons,
 	createLesson,
 	renameLesson,
 	deleteLesson,
-	reorderLessons
+	reorderLessons,
+	updateModuleDescription,
+	updateLessonNote
 } from '$lib/server/queries/courses';
 import { listClasses } from '$lib/server/queries/classes';
 import { assignModule } from '$lib/server/queries/schedule';
@@ -17,7 +20,8 @@ import {
 	deleteLink,
 	listFiles,
 	addFile,
-	deleteFile
+	deleteFile,
+	lessonAttachmentCounts
 } from '$lib/server/queries/resources';
 
 export const load: PageServerLoad = async (event) => {
@@ -25,10 +29,18 @@ export const load: PageServerLoad = async (event) => {
 	const moduleId = Number(event.params.moduleId);
 	const mod = await getModule(userId, moduleId);
 	if (!mod) throw error(404, 'Module not found');
+	const course = await getCourse(userId, mod.courseId);
 	const allClasses = await listClasses(userId);
+	const lessons = await listLessons(userId, moduleId);
+	const counts = await lessonAttachmentCounts(
+		userId,
+		lessons.map((l) => l.id)
+	);
+	const lessonsWithCounts = lessons.map((l) => ({ ...l, attachmentCount: counts[l.id] ?? 0 }));
 	return {
 		module: mod,
-		lessons: await listLessons(userId, moduleId),
+		courseColour: course?.colour ?? '#8775c6',
+		lessons: lessonsWithCounts,
 		classes: allClasses.filter((c) => c.courseId === mod.courseId),
 		links: await listLinks(userId, { moduleId }),
 		files: await listFiles(userId, { moduleId })
@@ -101,5 +113,19 @@ export const actions: Actions = {
 		const userId = requireUserId(event);
 		const form = await event.request.formData();
 		await deleteFile(userId, Number(form.get('id')));
+	},
+	saveDescription: async (event) => {
+		const userId = requireUserId(event);
+		const form = await event.request.formData();
+		await updateModuleDescription(
+			userId,
+			Number(event.params.moduleId),
+			String(form.get('description'))
+		);
+	},
+	saveLessonNote: async (event) => {
+		const userId = requireUserId(event);
+		const form = await event.request.formData();
+		await updateLessonNote(userId, Number(form.get('id')), String(form.get('note')));
 	}
 };

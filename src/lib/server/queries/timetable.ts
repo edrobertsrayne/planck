@@ -59,8 +59,8 @@ export function getClosures(userId: string) {
 	return db.select().from(closureDay).where(eq(closureDay.userId, userId)).orderBy(closureDay.date);
 }
 
-export function addClosure(userId: string, date: string) {
-	return db.insert(closureDay).values({ userId, date });
+export function addClosure(userId: string, name: string, date: string) {
+	return db.insert(closureDay).values({ userId, name, date });
 }
 
 export function deleteClosure(userId: string, id: number) {

@@ -44,4 +44,13 @@ describe('listTeachingDays', () => {
 		);
 		expect(result).toEqual(['2026-09-14', '2026-09-16', '2026-09-18']);
 	});
+
+	it('includes weekend days when configured', () => {
+		const days = listTeachingDays(
+			[{ startDate: '2026-09-14', endDate: '2026-09-20' }], // Mon..Sun
+			[],
+			[6, 7] // Sat, Sun
+		);
+		expect(days).toEqual(['2026-09-19', '2026-09-20']);
+	});
 });

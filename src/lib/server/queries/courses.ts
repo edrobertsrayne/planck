@@ -52,6 +52,13 @@ export function renameModule(userId: string, id: number, name: string) {
 		.where(and(eq(module.userId, userId), eq(module.id, id)));
 }
 
+export function updateModuleDescription(userId: string, id: number, description: string) {
+	return db
+		.update(module)
+		.set({ description })
+		.where(and(eq(module.userId, userId), eq(module.id, id)));
+}
+
 export function deleteModule(userId: string, id: number) {
 	return db.delete(module).where(and(eq(module.userId, userId), eq(module.id, id)));
 }
@@ -99,6 +106,13 @@ export function renameLesson(userId: string, id: number, title: string) {
 		.where(and(eq(lesson.userId, userId), eq(lesson.id, id)));
 }
 
+export function updateLessonNote(userId: string, id: number, note: string) {
+	return db
+		.update(lesson)
+		.set({ note })
+		.where(and(eq(lesson.userId, userId), eq(lesson.id, id)));
+}
+
 export function deleteLesson(userId: string, id: number) {
 	return db.delete(lesson).where(and(eq(lesson.userId, userId), eq(lesson.id, id)));
 }
@@ -122,10 +136,12 @@ export async function getLesson(userId: string, id: number) {
 			id: lesson.id,
 			title: lesson.title,
 			plan: lesson.plan,
+			note: lesson.note,
 			moduleId: lesson.moduleId,
 			moduleName: module.name,
 			courseId: module.courseId,
-			courseName: course.name
+			courseName: course.name,
+			colour: course.colour
 		})
 		.from(lesson)
 		.innerJoin(module, eq(lesson.moduleId, module.id))
