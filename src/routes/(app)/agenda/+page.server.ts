@@ -4,7 +4,14 @@ import { fail } from '@sveltejs/kit';
 import { requireUserId } from '$lib/server/session';
 import { db } from '$lib/server/db';
 import { scheduledLesson, klass, course } from '$lib/server/db/schema';
-import { todayIso, deleteFromSequence, moveScheduledLesson } from '$lib/server/queries/schedule';
+import {
+	todayIso,
+	deleteFromSequence,
+	moveScheduledLesson,
+	nextFreeSlots,
+	setScheduledLessonDone,
+	postponeScheduledLesson
+} from '$lib/server/queries/schedule';
 import { getConfig, getBlocks, getClosures, getSlots } from '$lib/server/queries/timetable';
 import { dayOfWeekIso } from '$lib/scheduling/dates';
 import { listTeachingDays } from '$lib/scheduling/teaching-days';
@@ -25,7 +32,11 @@ export const load: PageServerLoad = async (event) => {
 			room: scheduledLesson.room,
 			className: klass.name,
 			courseName: course.name,
-			colour: course.colour
+			colour: course.colour,
+			courseId: klass.courseId,
+			note: scheduledLesson.note,
+			done: scheduledLesson.done,
+			postponed: scheduledLesson.postponed
 		})
 		.from(scheduledLesson)
 		.innerJoin(klass, eq(scheduledLesson.classId, klass.id))
@@ -55,7 +66,17 @@ export const load: PageServerLoad = async (event) => {
 		...g,
 		weekLetter: weekLetterForDate(g.date, weekMap)
 	}));
-	return { groups };
+
+	const term = blocks.find((b) => b.startDate <= today && today <= b.endDate)?.name ?? null;
+	const groupsWithSlots = await Promise.all(
+		groups.map(async (g) => ({
+			...g,
+			items: await Promise.all(
+				g.items.map(async (it) => ({ ...it, postponeSlots: await nextFreeSlots(userId, it.id, 4) }))
+			)
+		}))
+	);
+	return { groups: groupsWithSlots, term };
 };
 
 export const actions: Actions = {
@@ -102,5 +123,23 @@ export const actions: Actions = {
 		if (clash && clash.id !== id) return fail(400, { moveError: 'That period is already taken' });
 
 		await moveScheduledLesson(userId, id, date, period, target.room);
+	},
+
+	toggleDone: async (event) => {
+		const userId = requireUserId(event);
+		const form = await event.request.formData();
+		await setScheduledLessonDone(userId, Number(form.get('id')), form.get('done') === 'true');
+	},
+	postpone: async (event) => {
+		const userId = requireUserId(event);
+		const form = await event.request.formData();
+		const id = Number(form.get('id'));
+		const date = String(form.get('date'));
+		const period = Number(form.get('period'));
+		const room = String(form.get('room') ?? '');
+		const candidates = await nextFreeSlots(userId, id, 50);
+		if (!candidates.some((c) => c.date === date && c.period === period))
+			return fail(400, { moveError: 'That slot is no longer available' });
+		await postponeScheduledLesson(userId, id, date, period, room);
 	}
 };
