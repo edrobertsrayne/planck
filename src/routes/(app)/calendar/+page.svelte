@@ -28,7 +28,7 @@
 		const date = dateFor(dayN);
 		return data.lessons.find((l) => l.date === date && l.period === period);
 	}
-	const dayFmt = new Intl.DateTimeFormat('en-GB', { day: 'numeric', month: 'short' });
+	const dayFmt = new Intl.DateTimeFormat('en-GB', { day: 'numeric' });
 	function fmt(d: string) {
 		return dayFmt.format(new Date(`${d}T00:00:00Z`));
 	}
