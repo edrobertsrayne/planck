@@ -11,7 +11,7 @@
 
 <div class="flex h-screen overflow-hidden">
 	<Sidebar classes={data.classes} onsignout={signOut} />
-	<main class="min-w-0 flex-1 overflow-y-auto">
+	<main class="min-w-0 flex-1 overflow-y-auto px-10 pt-8 pb-12">
 		{@render children()}
 	</main>
 </div>
