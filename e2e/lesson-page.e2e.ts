@@ -5,10 +5,10 @@ test('edit a lesson plan and attach a link from the lesson page', async ({ page 
 
 	// Sign up.
 	await page.goto('/signup');
-	await page.getByPlaceholder('Name').fill('Test Teacher');
-	await page.getByPlaceholder('Email').fill(email);
-	await page.getByPlaceholder('Password').fill('password123');
-	await page.getByRole('button', { name: 'Sign up' }).click();
+	await page.getByPlaceholder('Sofia Marsh').fill('Test Teacher');
+	await page.getByPlaceholder('you@email.com').fill(email);
+	await page.locator('input[type="password"]').fill('password123');
+	await page.getByRole('button', { name: 'Create account' }).click();
 	await expect(page).toHaveURL(/\/agenda/);
 
 	// Course → module → lesson.
@@ -16,15 +16,16 @@ test('edit a lesson plan and attach a link from the lesson page', async ({ page 
 	await page.getByPlaceholder('GCSE Chemistry').fill('GCSE Physics');
 	await page.getByRole('button', { name: 'Add course' }).click();
 	await page.getByRole('link', { name: 'GCSE Physics' }).click();
-	await page.getByPlaceholder('Forces').fill('Forces');
+	await page.getByPlaceholder('Add module').fill('Forces');
 	await page.getByRole('button', { name: 'Add module' }).click();
 	await page.getByRole('link', { name: 'Forces' }).click();
-	await page.getByPlaceholder('L1: Intro to forces').fill('L1 Intro');
+	await page.getByPlaceholder('Add a lesson to this module').fill('L1 Intro');
 	await page.getByRole('button', { name: 'Add lesson' }).click();
 
-	// Open the lesson page via its title link (added in Task 15).
-	await page.getByRole('link', { name: /L1 Intro/ }).click();
-	await expect(page.getByRole('heading', { name: 'L1 Intro' })).toBeVisible();
+	// Open the lesson page via its open-lesson link. The lesson title is an
+	// inline-editable input on the lesson page, so assert on its value.
+	await page.getByRole('link', { name: 'Open lesson' }).first().click();
+	await expect(page.getByLabel('Lesson title')).toHaveValue('L1 Intro');
 
 	// Type into the Milkdown editor (mounts client-side). It autosaves (debounced);
 	// wait for the savePlan POST to confirm the write landed.
@@ -36,16 +37,19 @@ test('edit a lesson plan and attach a link from the lesson page', async ({ page 
 		(resp) => resp.url().includes('savePlan') && resp.request().method() === 'POST',
 		{ timeout: 10000 }
 	);
-	await expect(page.getByText('Saved')).toBeVisible();
+	// The editor's status label reads "Saved" once persisted (exact match avoids
+	// colliding with the static "Saved automatically" header text).
+	await expect(page.getByText('Saved', { exact: true })).toBeVisible();
 
-	// Add a link.
+	// Add a link. Unlabelled links render with the host as their text, so assert
+	// on the row's href rather than the visible label.
 	await page.getByPlaceholder('https://…').fill('https://youtube.com/watch?v=abc');
 	await page.getByRole('button', { name: 'Add link' }).click();
-	await expect(page.getByRole('link', { name: 'https://youtube.com/watch?v=abc' })).toBeVisible();
+	await expect(page.locator('a[href="https://youtube.com/watch?v=abc"]')).toBeVisible();
 
 	// Reload and assert persistence.
 	await page.reload();
-	await expect(page.getByRole('link', { name: 'https://youtube.com/watch?v=abc' })).toBeVisible();
+	await expect(page.locator('a[href="https://youtube.com/watch?v=abc"]')).toBeVisible();
 	await expect(page.locator('.milkdown [contenteditable="true"]')).toBeVisible({ timeout: 10000 });
 	await expect(page.locator('.milkdown')).toContainText('understand forces', { timeout: 10000 });
 });
