@@ -1,4 +1,4 @@
-import { eq, and, sql } from 'drizzle-orm';
+import { eq, and, sql, inArray } from 'drizzle-orm';
 import { db } from '$lib/server/db';
 import { resourceLink, resourceFile } from '$lib/server/db/schema';
 import { ownerColumns, type OwnerRef } from '$lib/resources/owner';
@@ -98,4 +98,24 @@ export async function deleteFile(userId: string, id: number): Promise<void> {
 		.delete(resourceFile)
 		.where(and(eq(resourceFile.userId, userId), eq(resourceFile.id, id)));
 	await deleteBlob(row.pathname);
+}
+
+export async function lessonAttachmentCounts(
+	userId: string,
+	lessonIds: number[]
+): Promise<Record<number, number>> {
+	if (lessonIds.length === 0) return {};
+	const links = await db
+		.select({ id: resourceLink.lessonId, n: sql<number>`count(*)` })
+		.from(resourceLink)
+		.where(and(eq(resourceLink.userId, userId), inArray(resourceLink.lessonId, lessonIds)))
+		.groupBy(resourceLink.lessonId);
+	const files = await db
+		.select({ id: resourceFile.lessonId, n: sql<number>`count(*)` })
+		.from(resourceFile)
+		.where(and(eq(resourceFile.userId, userId), inArray(resourceFile.lessonId, lessonIds)))
+		.groupBy(resourceFile.lessonId);
+	const out: Record<number, number> = {};
+	for (const r of [...links, ...files]) if (r.id != null) out[r.id] = (out[r.id] ?? 0) + Number(r.n);
+	return out;
 }
