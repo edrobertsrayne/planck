@@ -1,4 +1,4 @@
-import { pgTable, serial, integer, text, date, unique } from 'drizzle-orm/pg-core';
+import { pgTable, serial, integer, text, date, unique, boolean } from 'drizzle-orm/pg-core';
 
 // One row per teacher.
 export const timetableConfig = pgTable('timetable_config', {
@@ -23,7 +23,8 @@ export const closureDay = pgTable(
 	{
 		id: serial('id').primaryKey(),
 		userId: text('user_id').notNull(),
-		date: date('date', { mode: 'string' }).notNull()
+		date: date('date', { mode: 'string' }).notNull(),
+		name: text('name').notNull().default('')
 	},
 	(t) => [unique().on(t.userId, t.date)]
 );
@@ -42,7 +43,8 @@ export const module = pgTable('module', {
 		.notNull()
 		.references(() => course.id, { onDelete: 'cascade' }),
 	name: text('name').notNull(),
-	orderIndex: integer('order_index').notNull().default(0)
+	orderIndex: integer('order_index').notNull().default(0),
+	description: text('description').notNull().default('')
 });
 
 export const lesson = pgTable('lesson', {
@@ -53,7 +55,8 @@ export const lesson = pgTable('lesson', {
 		.references(() => module.id, { onDelete: 'cascade' }),
 	title: text('title').notNull(),
 	orderIndex: integer('order_index').notNull().default(0),
-	plan: text('plan').notNull().default('')
+	plan: text('plan').notNull().default(''),
+	note: text('note').notNull().default('')
 });
 
 export const klass = pgTable('class', {
@@ -62,7 +65,8 @@ export const klass = pgTable('class', {
 	name: text('name').notNull(),
 	courseId: integer('course_id')
 		.notNull()
-		.references(() => course.id, { onDelete: 'cascade' })
+		.references(() => course.id, { onDelete: 'cascade' }),
+	colour: text('colour').notNull().default('#8775c6')
 });
 
 export const timetableSlot = pgTable(
@@ -99,7 +103,10 @@ export const scheduledLesson = pgTable(
 		period: integer('period'),
 		title: text('title').notNull(),
 		room: text('room').notNull().default(''),
-		plan: text('plan').notNull().default('')
+		plan: text('plan').notNull().default(''),
+		note: text('note').notNull().default(''),
+		done: boolean('done').notNull().default(false),
+		postponed: boolean('postponed').notNull().default(false)
 	},
 	(t) => [unique().on(t.userId, t.classId, t.date, t.period)]
 );
