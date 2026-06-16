@@ -16,8 +16,9 @@ export const actions: Actions = {
 		const form = await event.request.formData();
 		const name = String(form.get('name')).trim();
 		const courseId = Number(form.get('courseId'));
+		const colour = String(form.get('colour') || '#8775c6');
 		if (!name || !courseId) throw error(400, 'Name and course required');
-		await createClass(userId, name, courseId);
+		await createClass(userId, name, courseId, colour);
 	},
 	update: async (event) => {
 		const userId = requireUserId(event);
@@ -26,7 +27,8 @@ export const actions: Actions = {
 			userId,
 			Number(form.get('id')),
 			String(form.get('name')),
-			Number(form.get('courseId'))
+			Number(form.get('courseId')),
+			String(form.get('colour') || '#8775c6')
 		);
 	},
 	delete: async (event) => {
