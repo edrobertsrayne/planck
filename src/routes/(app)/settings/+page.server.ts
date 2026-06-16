@@ -29,7 +29,7 @@ export const actions: Actions = {
 		const teachingDays = form
 			.getAll('teachingDays')
 			.map((d) => Number(d))
-			.filter((n) => n >= 1 && n <= 5);
+			.filter((n) => n >= 1 && n <= 7);
 		await upsertConfig(userId, {
 			cycleWeeks: Number(form.get('cycleWeeks')),
 			teachingDays,
@@ -58,7 +58,7 @@ export const actions: Actions = {
 	addClosure: async (event) => {
 		const userId = requireUserId(event);
 		const form = await event.request.formData();
-		await addClosure(userId, String(form.get('date')));
+		await addClosure(userId, String(form.get('name') ?? ''), String(form.get('date')));
 		await reallocateAllClasses(userId);
 	},
 	deleteClosure: async (event) => {
