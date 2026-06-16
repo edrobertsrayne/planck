@@ -12,11 +12,9 @@ node_modules
 .DS_Store
 Thumbs.db
 
-# Env
+# Env (real env files are ignored; *.example templates are whitelisted below)
 .env
 .env.*
-!.env.example
-!.env.test
 
 # Vite
 vite.config.js.timestamp-*
@@ -31,6 +29,9 @@ test-results
 # brainstorming visual companion
 .superpowers/
 .env*
+# …but keep the committed example templates visible.
+!.env.example
+!.env.test.example
 
 # Design handoff prototype (reference only, not app source)
 docs/design-reference/
