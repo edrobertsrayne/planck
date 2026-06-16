@@ -489,9 +489,11 @@ export async function getScheduledLesson(userId: string, id: number) {
 			id: scheduledLesson.id,
 			title: scheduledLesson.title,
 			plan: scheduledLesson.plan,
+			note: scheduledLesson.note,
 			classId: scheduledLesson.classId,
 			className: klass.name,
-			courseName: course.name
+			courseName: course.name,
+			colour: course.colour
 		})
 		.from(scheduledLesson)
 		.innerJoin(klass, eq(scheduledLesson.classId, klass.id))

@@ -140,7 +140,8 @@ export async function getLesson(userId: string, id: number) {
 			moduleId: lesson.moduleId,
 			moduleName: module.name,
 			courseId: module.courseId,
-			courseName: course.name
+			courseName: course.name,
+			colour: course.colour
 		})
 		.from(lesson)
 		.innerJoin(module, eq(lesson.moduleId, module.id))
