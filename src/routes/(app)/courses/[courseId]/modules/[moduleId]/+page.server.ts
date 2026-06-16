@@ -2,6 +2,7 @@ import { error, fail } from '@sveltejs/kit';
 import type { Actions, PageServerLoad } from './$types';
 import { requireUserId } from '$lib/server/session';
 import {
+	getCourse,
 	getModule,
 	listLessons,
 	createLesson,
@@ -28,6 +29,7 @@ export const load: PageServerLoad = async (event) => {
 	const moduleId = Number(event.params.moduleId);
 	const mod = await getModule(userId, moduleId);
 	if (!mod) throw error(404, 'Module not found');
+	const course = await getCourse(userId, mod.courseId);
 	const allClasses = await listClasses(userId);
 	const lessons = await listLessons(userId, moduleId);
 	const counts = await lessonAttachmentCounts(
@@ -37,6 +39,7 @@ export const load: PageServerLoad = async (event) => {
 	const lessonsWithCounts = lessons.map((l) => ({ ...l, attachmentCount: counts[l.id] ?? 0 }));
 	return {
 		module: mod,
+		courseColour: course?.colour ?? '#8775c6',
 		lessons: lessonsWithCounts,
 		classes: allClasses.filter((c) => c.courseId === mod.courseId),
 		links: await listLinks(userId, { moduleId }),
