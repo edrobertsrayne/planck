@@ -36,6 +36,7 @@
 ## Task 1: Add unpooled fallback + explicit out to drizzle.config.ts
 
 **Files:**
+
 - Modify: `drizzle.config.ts`
 
 - [ ] **Step 1: Rewrite the config**
@@ -78,6 +79,7 @@ git commit -m "chore(db): drizzle.config falls back to DATABASE_URL_UNPOOLED, se
 ## Task 2: Generate and commit the baseline migration
 
 **Files:**
+
 - Create: `drizzle/0000_baseline.sql` (generated)
 - Create: `drizzle/meta/_journal.json`, `drizzle/meta/0000_snapshot.json` (generated)
 
@@ -111,6 +113,7 @@ git commit -m "feat(db): commit baseline migration generated from schema.ts"
 ## Task 3: Create the clean-cutover reset script
 
 **Files:**
+
 - Create: `scripts/reset-branch-to-migrations.ts`
 
 - [ ] **Step 1: Write the script**
@@ -185,11 +188,13 @@ console.log('\nBranch rebuilt from committed migrations.');
 - [ ] **Step 2: Get the disposable test branch's connection string**
 
 Run:
+
 ```bash
 PID=$(grep -E '^NEON_PROJECT_ID' .env.local | cut -d= -f2- | tr -d '"')
 export NEON_API_KEY=$(grep -E '^NEON_API_KEY' .env.local | cut -d= -f2- | tr -d '"')
 bunx neonctl connection-string test --project-id "$PID" --database-name neondb --no-analytics
 ```
+
 Expected: a `postgresql://…neon.tech/neondb?…` URL. Copy it for the next steps (referred to below as `<TEST_CS>`).
 
 - [ ] **Step 3: Run the reset against the test branch**
@@ -204,8 +209,12 @@ Create a throwaway `scripts/verify-branch.ts`:
 ```typescript
 import { neon } from '@neondatabase/serverless';
 const sql = neon(process.argv[2]);
-const pub = (await sql`SELECT count(*)::int AS n FROM pg_tables WHERE schemaname = 'public'`) as { n: number }[];
-const jrn = (await sql`SELECT count(*)::int AS n FROM drizzle.__drizzle_migrations`) as { n: number }[];
+const pub = (await sql`SELECT count(*)::int AS n FROM pg_tables WHERE schemaname = 'public'`) as {
+	n: number;
+}[];
+const jrn = (await sql`SELECT count(*)::int AS n FROM drizzle.__drizzle_migrations`) as {
+	n: number;
+}[];
 console.log('public tables:', pub[0].n);
 console.log('journal rows:', jrn[0].n);
 ```
@@ -233,6 +242,7 @@ git commit -m "feat(db): add one-time reset-branch-to-migrations cutover script"
 ## Task 4: Add deploy-time auto-migrate via vercel.json
 
 **Files:**
+
 - Create: `vercel.json`
 
 - [ ] **Step 1: Write vercel.json**
@@ -265,6 +275,7 @@ git commit -m "feat(deploy): run drizzle-kit migrate before build on Vercel"
 ## Task 5: Migrate the test branch in setup-test-branch.ts
 
 **Files:**
+
 - Modify: `scripts/setup-test-branch.ts`
 
 - [ ] **Step 1: Add a migrate step after writing .env.test, before emptying**
@@ -318,6 +329,7 @@ git commit -m "feat(db): apply migrations in setup-test-branch so the test branc
 ## Task 6: Delete the superseded sync script
 
 **Files:**
+
 - Delete: `scripts/sync-production-schema.ts`
 
 - [ ] **Step 1: Confirm nothing references it**
@@ -337,6 +349,7 @@ git commit -m "chore(db): retire sync-production-schema (superseded by committed
 ## Task 7: Update CLAUDE.md to document the migration workflow
 
 **Files:**
+
 - Modify: `CLAUDE.md`
 
 - [ ] **Step 1: Replace the "Deployment & environment (Neon + Vercel)" section**
@@ -398,6 +411,7 @@ git commit -m "docs: document committed-migration workflow in CLAUDE.md"
 ## Task 8: Retire superseded memory notes
 
 **Files:**
+
 - Modify: `/home/ed/.claude/projects/-home-ed-Projects-planck/memory/db-push-scheduled-lesson-drift.md`
 - Modify: `/home/ed/.claude/projects/-home-ed-Projects-planck/memory/additive-column-migration.md`
 - Modify: `/home/ed/.claude/projects/-home-ed-Projects-planck/memory/neon-branch-topology-drift.md`
@@ -410,7 +424,6 @@ git commit -m "docs: document committed-migration workflow in CLAUDE.md"
 Append a clearly-marked superseded note to the body (keep the history, flag it as stale):
 
 ```markdown
-
 ---
 
 **SUPERSEDED (2026-06-17):** As of the committed-migrations cutover (#14), all
@@ -425,7 +438,6 @@ phantom-diff caveat no longer applies.
 Append:
 
 ```markdown
-
 ---
 
 **SUPERSEDED (2026-06-17):** Do not add columns via ad-hoc `ALTER` neon scripts
@@ -438,7 +450,6 @@ deploy auto-applies it (#14).
 Append:
 
 ```markdown
-
 ---
 
 **UPDATED (2026-06-17):** Branch drift is now prevented by committed Drizzle
@@ -530,6 +541,7 @@ bun scripts/reset-branch-to-migrations.ts "$DEV_CS"
 PROD_CS=$(bunx neonctl connection-string production --project-id "$PID" --database-name neondb --no-analytics)
 bun scripts/reset-branch-to-migrations.ts "$PROD_CS"
 ```
+
 Expected for each: `dropped schema: drizzle`, `dropped N public table(s)`,
 `migrations applied successfully!`, `Branch rebuilt from committed migrations.`
 
@@ -538,6 +550,7 @@ Expected for each: `dropped schema: drizzle`, `dropped N public table(s)`,
 ```bash
 bunx neonctl branches delete preview/fix/database-url-unpooled-fallback --project-id "$PID"
 ```
+
 Expected: branch deleted (it re-forks clean from the now-migrated production on
 the next preview deploy).
 
@@ -552,6 +565,7 @@ page — expect no 500.
 
 Open a throwaway PR (e.g. a no-op README change) to trigger a Preview deploy.
 In that preview's **build log**, confirm:
+
 - `bun run db:migrate` ran during the build (not only at runtime), and
 - it connected to the **preview's own** Neon branch (the integration injects the
   preview branch `DATABASE_URL_UNPOOLED` at build time), not Production, and did

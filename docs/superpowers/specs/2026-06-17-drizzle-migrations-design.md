@@ -35,7 +35,7 @@ Queried all four live branches (`vercel-dev`, `production`, `test`,
 
 - **Clean cutover, not stamping.** Because there are no real users, reset every
   branch and rebuild it from the committed `0000` baseline via `drizzle-kit
-  migrate`. (`neon_auth.*` identities are left untouched.)
+migrate`. (`neon_auth.*` identities are left untouched.)
 - **Deploy-time migrate via `vercel.json` `buildCommand`** (not the local
   `build` script), so local builds don't migrate the dev branch.
 - **Reset script drops the `public` schema's tables AND the `drizzle` schema**
@@ -50,7 +50,7 @@ Ran the full cutover flow end-to-end before finalizing this spec:
 
 - **`drizzle-kit migrate` connects via the `@neondatabase/serverless` websocket
   driver automatically** — no `pg`/`postgres` dependency is needed or installed,
-  and it reaches Neon fine. (The websocket driver *is* transactional, unlike the
+  and it reaches Neon fine. (The websocket driver _is_ transactional, unlike the
   `neon-http` runtime driver, so each migration file applies atomically.)
 - **The migration journal lives in schema `drizzle`** (`drizzle.__drizzle_migrations`),
   **not `public`.** Consequence: dropping only `public` and re-running migrate is
@@ -110,8 +110,8 @@ fails**. Execute in this order:
 1. Land the migration files (`drizzle/`) and config changes, **and** run
    `reset-branch-to-migrations.ts` against **`production`** and **`vercel-dev`**
    (creates the `drizzle` journal; rebuilds tables from `0000`) — the resets run
-   against the live branches *before* the new build command executes.
-2. *Then* ship the deploy carrying `vercel.json`; its build-time migrate now
+   against the live branches _before_ the new build command executes.
+2. _Then_ ship the deploy carrying `vercel.json`; its build-time migrate now
    sees the journal and no-ops.
 
 The user runs the destructive resets (against `production` + `vercel-dev`)
@@ -123,7 +123,7 @@ Add `vercel.json`:
 
 ```json
 {
-  "buildCommand": "bun run db:migrate && bun run build"
+	"buildCommand": "bun run db:migrate && bun run build"
 }
 ```
 
@@ -131,7 +131,7 @@ Add `vercel.json`:
   migration **fails the deploy** rather than shipping code against a stale
   schema. This stays fatal — never `|| true`.
 - Preview branches fork from the migrated production, inherit the journal, and
-  apply only *new* migrations.
+  apply only _new_ migrations.
 - `drizzle-kit migrate` connects via the `@neondatabase/serverless` websocket
   driver (validated above), which is transactional, so the `neon-http`
   no-interactive-transactions limitation does **not** apply here. Each migration
@@ -141,10 +141,10 @@ Add `vercel.json`:
 
 **Preview build-time env is gated on verification (not assumed).** The design
 assumes the Neon–Vercel integration injects the per-preview branch's
-`DATABASE_URL_UNPOOLED` at *build* time (not only runtime). This is external
+`DATABASE_URL_UNPOOLED` at _build_ time (not only runtime). This is external
 Vercel/Neon behavior that can't be verified from the repo. Acceptance therefore
 includes a one-time check: after cutover, open a throwaway preview PR and
-confirm its **build log** shows migrate connecting to the *preview* branch (not
+confirm its **build log** shows migrate connecting to the _preview_ branch (not
 Production, not a failure). Only if that check fails do we consider a runtime/
 once fallback — we do **not** build one pre-emptively (YAGNI).
 
@@ -174,7 +174,7 @@ than relying solely on the fork inheriting them.
     migration.
   - Keeps the env-var guidance (`NEON_AUTH_BASE_URL`, `DATABASE_URL_UNPOOLED`)
     and notes that `drizzle.config.ts` shares the same `DATABASE_URL ??
-    DATABASE_URL_UNPOOLED` fallback so deploy-time migrate works on Production.
+DATABASE_URL_UNPOOLED` fallback so deploy-time migrate works on Production.
   - Points at `scripts/reset-branch-to-migrations.ts` as the one-time / fresh
     cutover tool, not a routine schema-change mechanism.
 - Update memories: mark the phantom-diff note (`db-push-scheduled-lesson-drift`)
@@ -206,5 +206,5 @@ auto-applies pending migrations. No hand-run ALTERs; no per-branch divergence.
   `migrate-resource-rename.ts`) — already applied; left as historical artifacts.
 - **CI guard that fails when committed migrations don't match `schema.ts`** —
   split out to **issue #15** (no CI workflow exists in this repo yet; standing
-  one up is its own piece of work). Committed migrations stop *branch* drift;
-  the CI check is the additive guard against *schema-vs-migrations* drift.
+  one up is its own piece of work). Committed migrations stop _branch_ drift;
+  the CI check is the additive guard against _schema-vs-migrations_ drift.
