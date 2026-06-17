@@ -6,12 +6,21 @@
 	let password = $state('');
 	let rememberMe = $state(true);
 	let error = $state('');
+	let isSubmitting = $state(false);
+	const fallback = 'Unable to sign in. Please try again.';
 	async function submit(e: SubmitEvent) {
 		e.preventDefault();
 		error = '';
-		const res = await authClient.signIn.email({ email, password, rememberMe });
-		if (res.error) error = res.error.message ?? 'Sign in failed';
-		else await goto('/agenda');
+		isSubmitting = true;
+		try {
+			const res = await authClient.signIn.email({ email, password, rememberMe });
+			if (res.error) error = res.error.message ?? fallback;
+			else await goto('/agenda');
+		} catch (err) {
+			error = (err as { message?: string })?.message ?? fallback;
+		} finally {
+			isSubmitting = false;
+		}
 	}
 	const input =
 		'h-[46px] w-full rounded-[11px] border border-line bg-white px-3.5 text-[15px] focus:border-pink-200 focus:outline-none';
@@ -60,11 +69,12 @@
 				<label class="my-1.5 flex items-center gap-2 text-sm text-grey-1">
 					<input type="checkbox" bind:checked={rememberMe} /> Keep me signed in</label
 				>
-				{#if error}<p class="text-sm text-danger">{error}</p>{/if}
+				{#if error}<p role="alert" class="text-sm text-danger">{error}</p>{/if}
 				<button
 					type="submit"
-					class="flex h-12 w-full items-center justify-center gap-2 rounded-[12px] bg-pink text-[15.5px] font-semibold text-white shadow-[0_8px_20px_-8px_rgba(201,86,128,0.65)] hover:bg-pink-hover"
-					>Sign in</button
+					disabled={isSubmitting}
+					class="flex h-12 w-full items-center justify-center gap-2 rounded-[12px] bg-pink text-[15.5px] font-semibold text-white shadow-[0_8px_20px_-8px_rgba(201,86,128,0.65)] hover:bg-pink-hover disabled:cursor-not-allowed disabled:opacity-60"
+					>{isSubmitting ? 'Signing in…' : 'Sign in'}</button
 				>
 			</form>
 		</div>
