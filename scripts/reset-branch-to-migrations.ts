@@ -34,7 +34,8 @@ if (!url || !url.startsWith('postgres')) {
 const sql = neon(url);
 
 // 1. Drop the migration journal first. It lives in the `drizzle` schema, NOT
-//    `public`; without this, the migrate below is a no-op against an empty DB.
+//    `public`; if the journal already records 0000 as applied, the migrate below
+//    is a no-op even against the public schema we are about to empty.
 await sql.query('DROP SCHEMA IF EXISTS drizzle CASCADE');
 console.log('dropped schema: drizzle (migration journal)');
 
@@ -53,8 +54,8 @@ if (rows.length === 0) {
 }
 
 // 3. Rebuild from committed migrations. drizzle-kit reads drizzle.config.ts,
-//    which takes the URL from DATABASE_URL — set it to the explicit target only
-//    for this child process.
+//    which resolves DATABASE_URL ?? DATABASE_URL_UNPOOLED — we inject the explicit
+//    target as DATABASE_URL here, so the unpooled fallback only matters on Vercel.
 console.log('applying migrations…');
 execFileSync('bunx', ['drizzle-kit', 'migrate'], {
 	stdio: 'inherit',
