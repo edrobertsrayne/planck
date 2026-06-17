@@ -2,6 +2,7 @@
 	import { goto } from '$app/navigation';
 	import { authClient } from '$lib/auth-client';
 	import BrandPanel from '$lib/components/BrandPanel.svelte';
+	import OAuthButtons from '$lib/components/OAuthButtons.svelte';
 	let name = $state('');
 	let email = $state('');
 	let password = $state('');
@@ -85,6 +86,10 @@
 					>{isSubmitting ? 'Creating account…' : 'Create account'}</button
 				>
 			</form>
+			<div class="my-5 flex items-center gap-3 text-[13px] text-grey-2">
+				<span class="h-px flex-1 bg-line"></span>or<span class="h-px flex-1 bg-line"></span>
+			</div>
+			<OAuthButtons />
 		</div>
 	</div>
 </div>
