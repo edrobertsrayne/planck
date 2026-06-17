@@ -4,6 +4,23 @@
 - **Package Manager**: bun
 - **Add-ons**: prettier, eslint, vitest, playwright, tailwindcss, sveltekit-adapter, drizzle, better-auth, mcp
 
+## Deployment & environment (Neon + Vercel)
+
+Production runs on Vercel with a Neon Postgres + Neon Auth integration. The
+integration's provisioned env-var names differ from local conventions, and have
+caused production-only 500s. If prod 500s but local works, check these first:
+
+- **Env var names.** Vercel Production provides `NEON_AUTH_BASE_URL` (not
+  `NEON_AUTH_URL`) and `DATABASE_URL_UNPOOLED` (not always `DATABASE_URL`). The
+  code reads the integration's names / falls back to them. `.env.local` is
+  local-only and gitignored — it cannot reveal or prevent a Production env
+  mismatch. Audit Production env vars against `.env.example`.
+- **Neon branch schema drift.** Schema is applied via ad-hoc `ALTER … IF NOT
+  EXISTS` scripts, not committed migrations. The Neon `production` (default)
+  branch can lag the `vercel-dev` branch that `.env.local` uses; preview
+  branches fork from `production` and inherit any staleness. Sync a branch with
+  `scripts/sync-production-schema.ts`.
+
 ---
 
 You are able to use the Svelte MCP server, where you have access to comprehensive Svelte 5 and SvelteKit documentation. Here's how to use the available tools effectively:
