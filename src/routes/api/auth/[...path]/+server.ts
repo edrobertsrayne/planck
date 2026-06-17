@@ -4,8 +4,8 @@ import { toNeonCookie, toFirstPartySetCookie } from '$lib/server/neon-auth-cooki
 
 async function proxy(event: Parameters<RequestHandler>[0]): Promise<Response> {
 	const { request, params, url } = event;
-	const baseUrl = env.NEON_AUTH_URL;
-	if (!baseUrl) return new Response('NEON_AUTH_URL not set', { status: 500 });
+	const baseUrl = env.NEON_AUTH_BASE_URL;
+	if (!baseUrl) return new Response('NEON_AUTH_BASE_URL not set', { status: 500 });
 
 	const target = `${baseUrl}/${params.path}${url.search}`;
 
