@@ -52,6 +52,9 @@
 	{/snippet}
 	{#snippet actions()}
 		<a class={navLink} href="?start={data.prevStart}">← Prev</a>
+		{#if data.weekStart !== data.thisWeekStart}
+			<a class={navLink} href="?start={data.thisWeekStart}">This week</a>
+		{/if}
 		<a class={navLink} href="?start={data.nextStart}">Next →</a>
 	{/snippet}
 </PageHeader>
