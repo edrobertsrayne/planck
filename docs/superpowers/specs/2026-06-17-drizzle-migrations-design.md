@@ -104,9 +104,24 @@ than relying solely on the fork inheriting them.
 ### 5. Retire ad-hoc scripts & update docs
 
 - Delete `scripts/sync-production-schema.ts` (superseded by `0000` + migrate).
-- Update `CLAUDE.md` "Deployment & environment" → describe the
-  `db:generate` → commit SQL → deploy auto-migrates workflow; drop the
-  "ad-hoc `ALTER … IF NOT EXISTS` scripts" framing.
+- **Update `CLAUDE.md` to make committed migrations the documented, mandatory
+  way to change the schema going forward.** This is a required deliverable, not
+  optional polish. Rewrite the "Deployment & environment (Neon + Vercel)"
+  section so it:
+  - States the workflow plainly: edit `schema.ts` → `bun run db:generate` →
+    commit the generated SQL in `drizzle/` → deploy auto-applies pending
+    migrations via the `vercel.json` `buildCommand`.
+  - Removes the "Schema is applied via ad-hoc `ALTER … IF NOT EXISTS` scripts,
+    not committed migrations" framing and the instruction to sync a branch with
+    `scripts/sync-production-schema.ts` (that script is deleted).
+  - Explicitly says **not** to hand-run `ALTER`/`db:push` against branches to
+    change schema; all schema change goes through `db:generate` + a committed
+    migration.
+  - Keeps the env-var guidance (`NEON_AUTH_BASE_URL`, `DATABASE_URL_UNPOOLED`)
+    and notes that `drizzle.config.ts` shares the same `DATABASE_URL ??
+    DATABASE_URL_UNPOOLED` fallback so deploy-time migrate works on Production.
+  - Points at `scripts/reset-branch-to-migrations.ts` as the one-time / fresh
+    cutover tool, not a routine schema-change mechanism.
 - Update memories: mark the phantom-diff note (`db-push-scheduled-lesson-drift`)
   as resolved/stale, and revise the branch-drift note
   (`neon-branch-topology-drift`) to point at the migration workflow.
