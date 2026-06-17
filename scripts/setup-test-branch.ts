@@ -158,7 +158,20 @@ writeFileSync(
 );
 console.log('Wrote .env.test pointing at the test branch.');
 
-// 5. Empty the branch (it inherits the parent branch's data on creation).
+// 5. Apply committed migrations so the test branch can't drift. It forks from
+//    the branch .env.local points at, so this is usually a no-op — but if a
+//    migration was committed after that branch was last migrated, this brings
+//    the test branch to head deterministically rather than relying on the fork.
+//    Use the direct (unpooled) endpoint for DDL — the pooled endpoint exists for
+//    the app's runtime queries, not schema migration.
+console.log('Applying committed migrations to the test branch…');
+const directConnection = connectionString(TEST_BRANCH, projectId, false);
+execFileSync('bunx', ['drizzle-kit', 'migrate'], {
+	stdio: 'inherit',
+	env: { ...process.env, DATABASE_URL: directConnection }
+});
+
+// 6. Empty the branch (it inherits the parent branch's data on creation).
 console.log('Emptying the test branch…');
 execFileSync('node', ['--env-file=.env.test', 'scripts/reset-test-db.ts'], { stdio: 'inherit' });
 
