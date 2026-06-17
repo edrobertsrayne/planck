@@ -6,12 +6,21 @@
 	let email = $state('');
 	let password = $state('');
 	let error = $state('');
+	let isSubmitting = $state(false);
+	const fallback = 'Unable to create account. Please try again.';
 	async function submit(e: SubmitEvent) {
 		e.preventDefault();
 		error = '';
-		const res = await authClient.signUp.email({ name, email, password });
-		if (res.error) error = res.error.message ?? 'Sign up failed';
-		else await goto('/agenda');
+		isSubmitting = true;
+		try {
+			const res = await authClient.signUp.email({ name, email, password });
+			if (res.error) error = res.error.message ?? fallback;
+			else await goto('/agenda');
+		} catch (err) {
+			error = (err as { message?: string })?.message ?? fallback;
+		} finally {
+			isSubmitting = false;
+		}
 	}
 	const input =
 		'h-[46px] w-full rounded-[11px] border border-line bg-white px-3.5 text-[15px] focus:border-pink-200 focus:outline-none';
@@ -68,11 +77,12 @@
 				<p class="my-1.5 text-[13px] leading-[1.4] text-grey-2">
 					By creating an account you agree to our Terms &amp; Privacy Policy.
 				</p>
-				{#if error}<p class="text-sm text-danger">{error}</p>{/if}
+				{#if error}<p role="alert" class="text-sm text-danger">{error}</p>{/if}
 				<button
 					type="submit"
-					class="flex h-12 w-full items-center justify-center gap-2 rounded-[12px] bg-pink text-[15.5px] font-semibold text-white shadow-[0_8px_20px_-8px_rgba(201,86,128,0.65)] hover:bg-pink-hover"
-					>Create account</button
+					disabled={isSubmitting}
+					class="flex h-12 w-full items-center justify-center gap-2 rounded-[12px] bg-pink text-[15.5px] font-semibold text-white shadow-[0_8px_20px_-8px_rgba(201,86,128,0.65)] hover:bg-pink-hover disabled:cursor-not-allowed disabled:opacity-60"
+					>{isSubmitting ? 'Creating account…' : 'Create account'}</button
 				>
 			</form>
 		</div>
