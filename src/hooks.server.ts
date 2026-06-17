@@ -6,7 +6,7 @@ import { toNeonCookie } from '$lib/server/neon-auth-cookies';
 const SESSION_PATH = '/get-session';
 
 export const handle: Handle = async ({ event, resolve }) => {
-	const baseUrl = env.NEON_AUTH_URL;
+	const baseUrl = env.NEON_AUTH_BASE_URL;
 	if (baseUrl) {
 		const cookie = toNeonCookie(event.request.headers.get('cookie') ?? '');
 		const result = await fetchSession(fetch, baseUrl, SESSION_PATH, cookie);
