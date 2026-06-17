@@ -52,19 +52,19 @@ Behaviour:
 
   ```ts
   async function google() {
-    error = '';
-    isRedirecting = true;
-    try {
-      const res = await authClient.signIn.social({ provider: 'google', callbackURL });
-      if (res?.error) {
-        error = res.error.message ?? fallback;
-        isRedirecting = false;
-      }
-      // success → browser redirects to Google; nothing else runs
-    } catch (err) {
-      error = (err as { message?: string })?.message ?? fallback;
-      isRedirecting = false;
-    }
+  	error = '';
+  	isRedirecting = true;
+  	try {
+  		const res = await authClient.signIn.social({ provider: 'google', callbackURL });
+  		if (res?.error) {
+  			error = res.error.message ?? fallback;
+  			isRedirecting = false;
+  		}
+  		// success → browser redirects to Google; nothing else runs
+  	} catch (err) {
+  		error = (err as { message?: string })?.message ?? fallback;
+  		isRedirecting = false;
+  	}
   }
   ```
 

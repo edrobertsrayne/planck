@@ -24,6 +24,7 @@ No changes to `src/lib/auth-client.ts` or `src/routes/api/auth/[...path]/+server
 ## Task 1: OAuthButtons component
 
 **Files:**
+
 - Create: `src/lib/components/OAuthButtons.svelte`
 - Test: `src/lib/components/OAuthButtons.svelte.test.ts`
 
@@ -197,6 +198,7 @@ git commit -m "feat: add OAuthButtons component for Google sign-in (#5)"
 ## Task 2: Wire OAuthButtons into the login page
 
 **Files:**
+
 - Modify: `src/routes/login/+page.svelte`
 
 - [ ] **Step 1: Import the component**
@@ -204,7 +206,7 @@ git commit -m "feat: add OAuthButtons component for Google sign-in (#5)"
 In `src/routes/login/+page.svelte`, add the import after the existing `BrandPanel` import (line 4):
 
 ```svelte
-	import OAuthButtons from '$lib/components/OAuthButtons.svelte';
+import OAuthButtons from '$lib/components/OAuthButtons.svelte';
 ```
 
 - [ ] **Step 2: Render the divider + button below the form**
@@ -212,10 +214,10 @@ In `src/routes/login/+page.svelte`, add the import after the existing `BrandPane
 In `src/routes/login/+page.svelte`, the form ends with `</form>` (currently line 79). Immediately after `</form>`, inside the same `<div class="w-full max-w-[392px]">` wrapper, add:
 
 ```svelte
-				<div class="my-5 flex items-center gap-3 text-[13px] text-grey-2">
-					<span class="h-px flex-1 bg-line"></span>or<span class="h-px flex-1 bg-line"></span>
-				</div>
-				<OAuthButtons />
+<div class="my-5 flex items-center gap-3 text-[13px] text-grey-2">
+	<span class="h-px flex-1 bg-line"></span>or<span class="h-px flex-1 bg-line"></span>
+</div>
+<OAuthButtons />
 ```
 
 - [ ] **Step 3: Type-check**
@@ -235,6 +237,7 @@ git commit -m "feat: add Google sign-in to login page (#5)"
 ## Task 3: Wire OAuthButtons into the signup page
 
 **Files:**
+
 - Modify: `src/routes/signup/+page.svelte`
 
 - [ ] **Step 1: Import the component**
@@ -242,7 +245,7 @@ git commit -m "feat: add Google sign-in to login page (#5)"
 In `src/routes/signup/+page.svelte`, add the import after the existing `BrandPanel` import (line 4):
 
 ```svelte
-	import OAuthButtons from '$lib/components/OAuthButtons.svelte';
+import OAuthButtons from '$lib/components/OAuthButtons.svelte';
 ```
 
 - [ ] **Step 2: Render the divider + button below the form**
@@ -250,10 +253,10 @@ In `src/routes/signup/+page.svelte`, add the import after the existing `BrandPan
 In `src/routes/signup/+page.svelte`, the form ends with `</form>` (currently line 87). Immediately after `</form>`, inside the same `<div class="w-full max-w-[392px]">` wrapper, add:
 
 ```svelte
-				<div class="my-5 flex items-center gap-3 text-[13px] text-grey-2">
-					<span class="h-px flex-1 bg-line"></span>or<span class="h-px flex-1 bg-line"></span>
-				</div>
-				<OAuthButtons />
+<div class="my-5 flex items-center gap-3 text-[13px] text-grey-2">
+	<span class="h-px flex-1 bg-line"></span>or<span class="h-px flex-1 bg-line"></span>
+</div>
+<OAuthButtons />
 ```
 
 - [ ] **Step 3: Type-check**
@@ -313,6 +316,7 @@ Expected: 0 type errors; prettier and eslint clean. If prettier complains, run `
 - [ ] **Step 1: Verify on a deployed Preview**
 
 The Neon Auth Google provider is enabled per the issue owner. On a deployed Preview build:
+
 1. Open `/login`, click "Continue with Google".
 2. Complete the Google consent screen.
 3. Confirm the callback resolves through `/api/auth` and lands an authenticated session on `/agenda`.
