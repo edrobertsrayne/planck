@@ -313,11 +313,20 @@ Expected: 0 type errors; prettier and eslint clean. If prettier complains, run `
 
 > Cannot be unit-tested — exercises the real Google provider and the `/api/auth` proxy redirect rewriting.
 
-- [ ] **Step 1: Verify on a deployed Preview**
+- [ ] **Step 1: Verify on the production (registered) origin — NOT a Preview**
 
-The Neon Auth Google provider is enabled per the issue owner. On a deployed Preview build:
+The OAuth round-trip cannot be verified on a Vercel Preview deployment. The
+`/api/auth` proxy pins the Origin it sends to Neon to a single registered value
+(`NEON_AUTH_ORIGIN`), and that value is the production URL for every environment
+(preview included). So Neon completes the OAuth redirect against the production
+origin and sets the session cookie first-party on the production host; the
+preview host never receives a session and its auth guard blocks `/agenda`.
+(Email/password works on previews only because it never leaves the origin.)
 
-1. Open `/login`, click "Continue with Google".
+Verify on the production deployment, whose origin is the one registered in Neon's
+trusted origins:
+
+1. Open `/login` on production, click "Continue with Google".
 2. Complete the Google consent screen.
 3. Confirm the callback resolves through `/api/auth` and lands an authenticated session on `/agenda`.
 4. Repeat from `/signup`.

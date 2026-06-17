@@ -116,8 +116,16 @@ Using `vitest-browser-svelte` (the established `*.svelte.test.ts` pattern) with
 ### Manual verification (cannot be unit-tested — real OAuth)
 
 Click "Continue with Google" → Google consent → callback resolves through
-`/api/auth` → authenticated session lands on `/agenda`. Verify on a deployed
-Preview (Neon Auth Google provider is enabled there per the issue owner).
+`/api/auth` → authenticated session lands on `/agenda`.
+
+**Verify on the production origin, not a Vercel Preview.** The `/api/auth` proxy
+pins the Origin sent to Neon to `NEON_AUTH_ORIGIN`, which is the production URL in
+every environment (preview included). The OAuth round-trip therefore always
+completes against the production origin and sets the session cookie first-party
+on the production host — a preview host never receives a session. (Email/password
+works on previews only because it never leaves the origin.) Production is the
+origin registered in Neon's trusted origins, so it is where the round-trip is
+designed to complete.
 
 ## Out of scope / follow-ups
 
