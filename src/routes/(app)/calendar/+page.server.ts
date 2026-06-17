@@ -14,6 +14,7 @@ export const load: PageServerLoad = async (event) => {
 	const startParam = event.url.searchParams.get('start');
 	const weekStart = mondayOf(startParam ?? todayIso());
 	const weekEnd = addDays(weekStart, 6);
+	const thisWeekStart = mondayOf(todayIso());
 
 	const rows = await db
 		.select({
@@ -52,6 +53,7 @@ export const load: PageServerLoad = async (event) => {
 	return {
 		config,
 		weekStart,
+		thisWeekStart,
 		prevStart: addDays(weekStart, -7),
 		nextStart: addDays(weekStart, 7),
 		weekLetter: weekLetterForDate(weekStart, weekMap),
