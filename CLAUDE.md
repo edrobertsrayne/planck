@@ -6,20 +6,39 @@
 
 ## Deployment & environment (Neon + Vercel)
 
-Production runs on Vercel with a Neon Postgres + Neon Auth integration. The
-integration's provisioned env-var names differ from local conventions, and have
-caused production-only 500s. If prod 500s but local works, check these first:
+Production runs on Vercel with a Neon Postgres + Neon Auth integration.
 
-- **Env var names.** Vercel Production provides `NEON_AUTH_BASE_URL` (not
-  `NEON_AUTH_URL`) and `DATABASE_URL_UNPOOLED` (not always `DATABASE_URL`). The
-  code reads the integration's names / falls back to them. `.env.local` is
-  local-only and gitignored — it cannot reveal or prevent a Production env
-  mismatch. Audit Production env vars against `.env.example`.
-- **Neon branch schema drift.** Schema is applied via ad-hoc `ALTER … IF NOT
-  EXISTS` scripts, not committed migrations. The Neon `production` (default)
-  branch can lag the `vercel-dev` branch that `.env.local` uses; preview
-  branches fork from `production` and inherit any staleness. Sync a branch with
-  `scripts/sync-production-schema.ts`.
+### Schema changes go through committed migrations — never hand-run SQL
+
+The schema lives in `src/lib/server/db/schema.ts`. To change it:
+
+1. Edit `schema.ts`.
+2. Run `bun run db:generate` to record the change as a committed SQL migration
+   under `drizzle/`.
+3. Commit the generated `drizzle/` files alongside your code.
+
+Deploys apply pending migrations automatically: `vercel.json` sets
+`buildCommand` to `bun run db:migrate && bun run build`, so every Production and
+Preview build brings its own Neon branch to the committed schema before the app
+goes live. A failed migration fails the deploy (it never ships code against a
+stale schema).
+
+**Do NOT** hand-run `ALTER`/`CREATE` against branches, and **do NOT** use
+`db:push` to change the schema — both reintroduce drift. All schema change is
+`db:generate` + a committed migration. `scripts/reset-branch-to-migrations.ts`
+is a one-time cutover / fresh-branch tool only, not a routine mechanism.
+
+### Env-var names (cause production-only 500s)
+
+The Neon–Vercel integration provisions different env-var names than local
+conventions:
+
+- Vercel Production provides `NEON_AUTH_BASE_URL` (not `NEON_AUTH_URL`) and
+  `DATABASE_URL_UNPOOLED` (not always `DATABASE_URL`). The runtime client
+  (`src/lib/server/db/index.ts`) and `drizzle.config.ts` both read
+  `DATABASE_URL ?? DATABASE_URL_UNPOOLED`, so build-time migrate works on
+  Production. Audit Production env vars against `.env.example`; `.env.local` is
+  local-only and gitignored — it cannot reveal a Production env mismatch.
 
 ---
 
