@@ -4,6 +4,12 @@
 - **Package Manager**: bun
 - **Add-ons**: prettier, eslint, vitest, playwright, tailwindcss, sveltekit-adapter, drizzle, better-auth, mcp
 
+## Keeping this file current
+
+When something had to be pointed out by the user, or took real effort to
+discover (a non-obvious workflow, tool, env quirk, or gotcha), record it here so
+future sessions don't rediscover it. Keep entries to a line or two.
+
 ## Deployment & environment (Neon + Vercel)
 
 Production runs on Vercel with a Neon Postgres + Neon Auth integration.
@@ -39,6 +45,31 @@ conventions:
   `DATABASE_URL ?? DATABASE_URL_UNPOOLED`, so build-time migrate works on
   Production. Audit Production env vars against `.env.example`; `.env.local` is
   local-only and gitignored — it cannot reveal a Production env mismatch.
+
+### Testing
+
+- Unit tests (vitest): `bun run test:unit`. Pattern: extract pure logic into a
+  module and test that (`src/lib/resources/copy.ts` ↔ `copy.spec.ts`); query
+  functions in `src/lib/server/db` / `src/lib/server/queries` stay thin.
+- **DB-backed behaviour is tested end-to-end against a real forked Neon branch**,
+  not mocks. `bun run db:test:setup` forks a `test` branch from whatever
+  `.env.local` points at, applies committed migrations, truncates it, and writes
+  `.env.test` (gitignored, `TEST_DB=1`). Specs live in `e2e/*.e2e.ts` and run via
+  `bun run test:e2e` (Playwright drives the built app against the test branch).
+  e2e hits real Vercel Blob, so storage side-effects (uploads/deletes) are
+  verifiable there — e.g. assert a deleted blob's URL now returns HTTP 404.
+- Requires `NEON_API_KEY` in `.env.local`. The `TEST_DB=1` guard makes the reset
+  refuse to run against any non-test database.
+- **Two local env files — check both when a var seems "missing".** `.env.local`
+  holds dev secrets like `NEON_API_KEY` and `DATABASE_URL`; **`.env` holds the
+  Vercel-provisioned vars** — `BLOB_READ_WRITE_TOKEN`, `BLOB_STORE_ID`,
+  `NEON_AUTH_BASE_URL`, `NEON_AUTH_ORIGIN`. Grepping only `.env.local` will make
+  the blob token look absent when it is in `.env`.
+- File-upload e2e needs `BLOB_READ_WRITE_TOKEN` (the upload hits real Vercel
+  Blob). `playwright.config.ts` only loads `.env.local` + `.env.test`, but the
+  token is still picked up because `bun run` auto-loads `.env` into the process
+  env the Playwright web server inherits. So blob e2e works wherever `.env`
+  exists; it fails only in an environment that has neither.
 
 ---
 

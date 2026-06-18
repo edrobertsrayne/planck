@@ -1,6 +1,7 @@
 import { eq, and } from 'drizzle-orm';
 import { db } from '$lib/server/db';
 import { klass, course } from '$lib/server/db/schema';
+import { deleteAndReclaim } from './resource-cleanup';
 
 export function listClasses(userId: string) {
 	return db
@@ -35,7 +36,9 @@ export function updateClass(
 }
 
 export function deleteClass(userId: string, id: number) {
-	return db.delete(klass).where(and(eq(klass.userId, userId), eq(klass.id, id)));
+	return deleteAndReclaim(userId, { type: 'class', id }, () =>
+		db.delete(klass).where(and(eq(klass.userId, userId), eq(klass.id, id)))
+	);
 }
 
 export async function getClass(userId: string, id: number) {

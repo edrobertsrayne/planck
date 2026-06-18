@@ -1,4 +1,4 @@
-import { copy, del, head } from '@vercel/blob';
+import { del, head } from '@vercel/blob';
 import { env } from '$env/dynamic/private';
 
 // The SDK reads process.env.BLOB_READ_WRITE_TOKEN on Vercel, but Vite's dev
@@ -6,15 +6,13 @@ import { env } from '$env/dynamic/private';
 // explicitly (sourced from $env, which does see .env) for dev + prod parity.
 const token = env.BLOB_READ_WRITE_TOKEN;
 
-/** Copy an existing blob to a new pathname; returns the new url + pathname. */
-export async function copyBlob(fromUrl: string, toPathname: string) {
-	const result = await copy(fromUrl, toPathname, { access: 'public', token });
-	return { blobUrl: result.url, pathname: result.pathname };
-}
-
-/** Delete a blob by its pathname (or url). */
-export async function deleteBlob(pathname: string): Promise<void> {
-	await del(pathname, { token });
+/** Delete many blobs by pathname, chunked to stay within API/timeout limits. */
+export async function deleteBlobs(pathnames: string[]): Promise<void> {
+	if (pathnames.length === 0) return;
+	const CHUNK = 100;
+	for (let i = 0; i < pathnames.length; i += CHUNK) {
+		await del(pathnames.slice(i, i + CHUNK), { token });
+	}
 }
 
 /** Fetch blob metadata; throws if it does not exist. */

@@ -93,9 +93,10 @@ export const scheduledLesson = pgTable(
 		classId: integer('class_id')
 			.notNull()
 			.references(() => klass.id, { onDelete: 'cascade' }),
-		// Nullable: null = a blank inserted spacer with no underlying lesson template.
-		lessonId: integer('lesson_id').references(() => lesson.id, { onDelete: 'cascade' }),
-		moduleId: integer('module_id').references(() => module.id, { onDelete: 'cascade' }),
+		// Nullable: null = a blank inserted spacer with no underlying lesson template,
+		// or a row detached when its template lesson/module was deleted.
+		lessonId: integer('lesson_id').references(() => lesson.id, { onDelete: 'set null' }),
+		moduleId: integer('module_id').references(() => module.id, { onDelete: 'set null' }),
 		// Sequence position within the class. The class's ordered list is the source of truth.
 		orderIndex: integer('order_index').notNull().default(0),
 		// Nullable: null = overflow (not yet allocated to a timetabled slot).

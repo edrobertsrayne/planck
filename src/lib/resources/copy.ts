@@ -30,15 +30,12 @@ export function buildCopiedLinkRows(
 }
 
 export interface TemplateFile {
+	blobUrl: string;
+	pathname: string;
 	filename: string;
 	contentType: string;
 	size: number;
 	orderIndex: number;
-}
-
-export interface CopiedBlob {
-	blobUrl: string;
-	pathname: string;
 }
 
 export interface NewFileRow {
@@ -54,24 +51,21 @@ export interface NewFileRow {
 }
 
 /**
- * Duplicate a template lesson's files. `copies[i]` is the already-copied blob
- * for `files[i]`; the two arrays are parallel and must be the same length.
+ * Duplicate a template lesson's files onto a scheduled lesson. Blobs are NOT
+ * copied — each new row reuses the source blobUrl/pathname, so one blob is
+ * shared by reference and reclaimed only when the last row referencing it goes.
  */
 export function buildCopiedFileRows(
 	files: TemplateFile[],
-	copies: CopiedBlob[],
 	userId: string,
 	scheduledLessonId: number
 ): NewFileRow[] {
-	if (files.length !== copies.length) {
-		throw new Error('buildCopiedFileRows: files/copies length mismatch');
-	}
-	return files.map((f, i) => ({
+	return files.map((f) => ({
 		userId,
 		lessonId: null,
 		scheduledLessonId,
-		blobUrl: copies[i].blobUrl,
-		pathname: copies[i].pathname,
+		blobUrl: f.blobUrl,
+		pathname: f.pathname,
 		filename: f.filename,
 		contentType: f.contentType,
 		size: f.size,

@@ -1,6 +1,7 @@
 import { eq, and, sql } from 'drizzle-orm';
 import { db } from '$lib/server/db';
 import { course, module, lesson } from '$lib/server/db/schema';
+import { deleteAndReclaim } from './resource-cleanup';
 
 export function listCourses(userId: string) {
 	return db.select().from(course).where(eq(course.userId, userId)).orderBy(course.name);
@@ -18,7 +19,9 @@ export function updateCourse(userId: string, id: number, name: string, colour: s
 }
 
 export function deleteCourse(userId: string, id: number) {
-	return db.delete(course).where(and(eq(course.userId, userId), eq(course.id, id)));
+	return deleteAndReclaim(userId, { type: 'course', id }, () =>
+		db.delete(course).where(and(eq(course.userId, userId), eq(course.id, id)))
+	);
 }
 
 export async function getCourse(userId: string, id: number) {
@@ -60,7 +63,9 @@ export function updateModuleDescription(userId: string, id: number, description:
 }
 
 export function deleteModule(userId: string, id: number) {
-	return db.delete(module).where(and(eq(module.userId, userId), eq(module.id, id)));
+	return deleteAndReclaim(userId, { type: 'module', id }, () =>
+		db.delete(module).where(and(eq(module.userId, userId), eq(module.id, id)))
+	);
 }
 
 export async function reorderModules(userId: string, orderedIds: number[]) {
@@ -114,7 +119,9 @@ export function updateLessonNote(userId: string, id: number, note: string) {
 }
 
 export function deleteLesson(userId: string, id: number) {
-	return db.delete(lesson).where(and(eq(lesson.userId, userId), eq(lesson.id, id)));
+	return deleteAndReclaim(userId, { type: 'lesson', id }, () =>
+		db.delete(lesson).where(and(eq(lesson.userId, userId), eq(lesson.id, id)))
+	);
 }
 
 export async function reorderLessons(userId: string, orderedIds: number[]) {

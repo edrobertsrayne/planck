@@ -1,5 +1,6 @@
 import { eq, and, sql, lt, gte, or, isNull } from 'drizzle-orm';
 import { db } from '$lib/server/db';
+import { deleteAndReclaim } from './resource-cleanup';
 import {
 	scheduledLesson,
 	klass,
@@ -9,7 +10,6 @@ import {
 	resourceFile
 } from '$lib/server/db/schema';
 import { buildCopiedLinkRows, buildCopiedFileRows } from '$lib/resources/copy';
-import { copyBlob } from '$lib/server/blob';
 import { getConfig, getBlocks, getClosures, getSlots } from './timetable';
 import { getModule, listLessons } from './courses';
 import { getClass } from './classes';
@@ -110,8 +110,9 @@ export async function reallocateAllClasses(
 
 /**
  * Copy a template lesson's plan + links + files onto a freshly created scheduled
- * lesson. Blobs are physically copied so the two are fully independent. Runs once
- * at schedule time; later edits on either side do not propagate.
+ * lesson. Files reuse the template's blob by reference (no physical copy); the
+ * blob is reference-counted and reclaimed only when the last row referencing it
+ * is removed. Runs once at schedule time; later edits do not propagate.
  */
 async function copyLessonContent(
 	userId: string,
@@ -155,14 +156,7 @@ async function copyLessonContent(
 		.where(and(eq(resourceFile.userId, userId), eq(resourceFile.lessonId, templateLessonId)))
 		.orderBy(resourceFile.orderIndex);
 	if (files.length > 0) {
-		const copies = await Promise.all(
-			files.map((f) =>
-				copyBlob(f.blobUrl, `lesson-files/${userId}/${crypto.randomUUID()}-${f.filename}`)
-			)
-		);
-		await db
-			.insert(resourceFile)
-			.values(buildCopiedFileRows(files, copies, userId, scheduledLessonId));
+		await db.insert(resourceFile).values(buildCopiedFileRows(files, userId, scheduledLessonId));
 	}
 }
 
@@ -241,8 +235,13 @@ export async function unscheduleModule(
 	classId: number,
 	today: string = todayIso()
 ): Promise<void> {
-	await db
-		.delete(scheduledLesson)
+	// Gather the matching rows' ids only so deleteAndReclaim can reclaim their
+	// file blobs. The DELETE below is intentionally filter-based (the same
+	// moduleId+classId predicate), NOT driven by these ids, so it still removes
+	// every matching row — the two predicates must stay in sync.
+	const rows = await db
+		.select({ id: scheduledLesson.id })
+		.from(scheduledLesson)
 		.where(
 			and(
 				eq(scheduledLesson.userId, userId),
@@ -250,6 +249,17 @@ export async function unscheduleModule(
 				eq(scheduledLesson.classId, classId)
 			)
 		);
+	await deleteAndReclaim(userId, { type: 'scheduledLessons', ids: rows.map((r) => r.id) }, () =>
+		db
+			.delete(scheduledLesson)
+			.where(
+				and(
+					eq(scheduledLesson.userId, userId),
+					eq(scheduledLesson.moduleId, moduleId),
+					eq(scheduledLesson.classId, classId)
+				)
+			)
+	);
 	await reallocateClass(userId, classId, today);
 }
 
@@ -407,9 +417,11 @@ export async function deleteFromSequence(
 		.from(scheduledLesson)
 		.where(and(eq(scheduledLesson.userId, userId), eq(scheduledLesson.id, id)));
 	if (!row) return;
-	await db
-		.delete(scheduledLesson)
-		.where(and(eq(scheduledLesson.userId, userId), eq(scheduledLesson.id, id)));
+	await deleteAndReclaim(userId, { type: 'scheduledLessons', ids: [id] }, () =>
+		db
+			.delete(scheduledLesson)
+			.where(and(eq(scheduledLesson.userId, userId), eq(scheduledLesson.id, id)))
+	);
 	await reallocateClass(userId, row.classId, today);
 }
 
