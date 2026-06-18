@@ -13,12 +13,12 @@ beforeEach(() => {
 	social.mockReset();
 });
 
-test('clicking the Google button starts a google social sign-in to /agenda', async () => {
+test('clicking the Google button starts a google social sign-in to the callback route', async () => {
 	social.mockReturnValue(new Promise(() => {})); // never resolves (redirect in flight)
 	const screen = render(OAuthButtons);
 	await screen.getByRole('button', { name: /continue with google/i }).click();
 	expect(social).toHaveBeenCalledTimes(1);
-	expect(social).toHaveBeenCalledWith({ provider: 'google', callbackURL: '/agenda' });
+	expect(social).toHaveBeenCalledWith({ provider: 'google', callbackURL: '/auth/callback' });
 });
 
 test('surfaces the provider error message in an alert', async () => {

@@ -1,7 +1,9 @@
 <script lang="ts">
 	import { authClient } from '$lib/auth-client';
 
-	let { callbackURL = '/agenda' }: { callbackURL?: string } = $props();
+	// OAuth lands on the unguarded /auth/callback page, which exchanges Neon's
+	// verifier param for a session cookie before continuing into the guarded app.
+	let { callbackURL = '/auth/callback' }: { callbackURL?: string } = $props();
 
 	let isRedirecting = $state(false);
 	let error = $state('');
