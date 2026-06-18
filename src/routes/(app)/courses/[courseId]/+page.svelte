@@ -4,6 +4,7 @@
 	import { dndzone } from 'svelte-dnd-action';
 	import Button from '$lib/components/Button.svelte';
 	import EmptyState from '$lib/components/EmptyState.svelte';
+	import ConfirmDelete from '$lib/components/ConfirmDelete.svelte';
 	import ResourceLinks from '$lib/components/ResourceLinks.svelte';
 	import ResourceFiles from '$lib/components/ResourceFiles.svelte';
 	import { subjectTint } from '$lib/colour';
@@ -182,6 +183,31 @@
 									aria-label="Move down">↓</button
 								>
 							</form>
+							<ConfirmDelete type="module" id={m.id} name={m.name}>
+								{#snippet trigger(open)}
+									<button
+										type="button"
+										onclick={open}
+										title="Delete module"
+										class="px-1 text-grey-3 opacity-100 transition [@media(hover:hover)]:opacity-0 hover:text-pink-dk group-hover:opacity-100 group-focus-within:opacity-100"
+									>
+										<svg
+											width="16"
+											height="16"
+											viewBox="0 0 24 24"
+											fill="none"
+											stroke="currentColor"
+											stroke-width="1.9"
+											stroke-linecap="round"
+											stroke-linejoin="round"
+										>
+											<path d="M3 6h18"></path>
+											<path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+											<path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6"></path>
+										</svg>
+									</button>
+								{/snippet}
+							</ConfirmDelete>
 						</div>
 						<a
 							href="/courses/{data.course.id}/modules/{m.id}"
