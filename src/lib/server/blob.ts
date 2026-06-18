@@ -6,11 +6,6 @@ import { env } from '$env/dynamic/private';
 // explicitly (sourced from $env, which does see .env) for dev + prod parity.
 const token = env.BLOB_READ_WRITE_TOKEN;
 
-/** Delete a blob by its pathname (or url). */
-export async function deleteBlob(pathname: string): Promise<void> {
-	await del(pathname, { token });
-}
-
 /** Delete many blobs by pathname, chunked to stay within API/timeout limits. */
 export async function deleteBlobs(pathnames: string[]): Promise<void> {
 	if (pathnames.length === 0) return;
