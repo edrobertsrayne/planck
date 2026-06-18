@@ -235,6 +235,10 @@ export async function unscheduleModule(
 	classId: number,
 	today: string = todayIso()
 ): Promise<void> {
+	// Gather the matching rows' ids only so deleteAndReclaim can reclaim their
+	// file blobs. The DELETE below is intentionally filter-based (the same
+	// moduleId+classId predicate), NOT driven by these ids, so it still removes
+	// every matching row — the two predicates must stay in sync.
 	const rows = await db
 		.select({ id: scheduledLesson.id })
 		.from(scheduledLesson)
