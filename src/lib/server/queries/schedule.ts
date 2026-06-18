@@ -9,7 +9,6 @@ import {
 	resourceFile
 } from '$lib/server/db/schema';
 import { buildCopiedLinkRows, buildCopiedFileRows } from '$lib/resources/copy';
-import { copyBlob } from '$lib/server/blob';
 import { getConfig, getBlocks, getClosures, getSlots } from './timetable';
 import { getModule, listLessons } from './courses';
 import { getClass } from './classes';
@@ -110,8 +109,9 @@ export async function reallocateAllClasses(
 
 /**
  * Copy a template lesson's plan + links + files onto a freshly created scheduled
- * lesson. Blobs are physically copied so the two are fully independent. Runs once
- * at schedule time; later edits on either side do not propagate.
+ * lesson. Files reuse the template's blob by reference (no physical copy); the
+ * blob is reference-counted and reclaimed only when the last row referencing it
+ * is removed. Runs once at schedule time; later edits do not propagate.
  */
 async function copyLessonContent(
 	userId: string,
@@ -155,14 +155,7 @@ async function copyLessonContent(
 		.where(and(eq(resourceFile.userId, userId), eq(resourceFile.lessonId, templateLessonId)))
 		.orderBy(resourceFile.orderIndex);
 	if (files.length > 0) {
-		const copies = await Promise.all(
-			files.map((f) =>
-				copyBlob(f.blobUrl, `lesson-files/${userId}/${crypto.randomUUID()}-${f.filename}`)
-			)
-		);
-		await db
-			.insert(resourceFile)
-			.values(buildCopiedFileRows(files, copies, userId, scheduledLessonId));
+		await db.insert(resourceFile).values(buildCopiedFileRows(files, userId, scheduledLessonId));
 	}
 }
 

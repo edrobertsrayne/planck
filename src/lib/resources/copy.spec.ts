@@ -33,10 +33,18 @@ describe('buildCopiedLinkRows', () => {
 });
 
 describe('buildCopiedFileRows', () => {
-	it('pairs each template file with its copied blob, preserving metadata', () => {
+	it('reuses the source blob (shared pathname), preserving metadata', () => {
 		const rows = buildCopiedFileRows(
-			[{ filename: 'ws.pdf', contentType: 'application/pdf', size: 1234, orderIndex: 0 }],
-			[{ blobUrl: 'https://blob/new', pathname: 'lesson-files/user-1/new.pdf' }],
+			[
+				{
+					blobUrl: 'https://blob/original',
+					pathname: 'lesson-files/user-1/original.pdf',
+					filename: 'ws.pdf',
+					contentType: 'application/pdf',
+					size: 1234,
+					orderIndex: 0
+				}
+			],
 			'user-1',
 			42
 		);
@@ -45,19 +53,13 @@ describe('buildCopiedFileRows', () => {
 				userId: 'user-1',
 				lessonId: null,
 				scheduledLessonId: 42,
-				blobUrl: 'https://blob/new',
-				pathname: 'lesson-files/user-1/new.pdf',
+				blobUrl: 'https://blob/original',
+				pathname: 'lesson-files/user-1/original.pdf',
 				filename: 'ws.pdf',
 				contentType: 'application/pdf',
 				size: 1234,
 				orderIndex: 0
 			}
 		]);
-	});
-
-	it('throws when files and copies lengths differ', () => {
-		expect(() => buildCopiedFileRows([], [{ blobUrl: 'x', pathname: 'y' }], 'u', 1)).toThrow(
-			/length mismatch/
-		);
 	});
 });
