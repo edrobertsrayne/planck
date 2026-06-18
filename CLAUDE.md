@@ -60,6 +60,9 @@ conventions:
   verifiable there — e.g. assert a deleted blob's URL now returns HTTP 404.
 - Requires `NEON_API_KEY` in `.env.local`. The `TEST_DB=1` guard makes the reset
   refuse to run against any non-test database.
+- e2e that uploads files also needs `BLOB_READ_WRITE_TOKEN` in `.env.local` — the
+  upload step hits real Vercel Blob and fails silently without it. Run blob e2e
+  where that token is set (your machine / CI), not a token-less environment.
 
 ---
 
