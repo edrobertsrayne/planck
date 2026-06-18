@@ -1,6 +1,7 @@
-import { test, expect } from '@playwright/test';
+import { test, expect, type Page } from '@playwright/test';
+import { Buffer } from 'node:buffer';
 
-async function signUp(page) {
+async function signUp(page: Page) {
 	const email = `teacher_${Date.now()}@example.com`;
 	await page.goto('/signup');
 	await page.getByPlaceholder('Sofia Marsh').fill('Test Teacher');
@@ -12,7 +13,7 @@ async function signUp(page) {
 }
 
 /** Create subject → module → lesson, open the lesson. */
-async function createLessonAndOpen(page, subject: string) {
+async function createLessonAndOpen(page: Page, subject: string) {
 	await page.goto('/courses');
 	await page.getByPlaceholder('GCSE Chemistry').fill(subject);
 	await page.getByRole('button', { name: 'Add course' }).click();
@@ -27,7 +28,7 @@ async function createLessonAndOpen(page, subject: string) {
 }
 
 /** Upload a PDF on the current owner page and return its blob URL. */
-async function uploadFile(page, filename: string): Promise<string> {
+async function uploadFile(page: Page, filename: string): Promise<string> {
 	await page.locator('input[type="file"]').setInputFiles({
 		name: filename,
 		mimeType: 'application/pdf',
