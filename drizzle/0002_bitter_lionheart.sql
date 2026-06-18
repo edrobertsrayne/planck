@@ -1,0 +1,2 @@
+ALTER TABLE "timetable_config" ADD COLUMN "academic_year_start_month" integer DEFAULT 9 NOT NULL;--> statement-breakpoint
+ALTER TABLE "timetable_config" ADD COLUMN "academic_year_start_day" integer DEFAULT 1 NOT NULL;
