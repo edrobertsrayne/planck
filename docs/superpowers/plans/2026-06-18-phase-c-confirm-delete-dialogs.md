@@ -20,7 +20,7 @@
 - **Left unguarded (one-click), per the spec:** single scheduled-lesson delete (`src/routes/(app)/classes/[classId]/+page.svelte`, "Delete" button) and template-lesson delete (`src/routes/(app)/courses/[courseId]/modules/[moduleId]/+page.svelte`, "Delete lesson" button). **Do not touch these.**
 - **Adding a dialog to the courses/classes lists BREAKS two existing e2e tests** in `e2e/blob-cleanup.e2e.ts` (they click "Delete subject" / "Delete class" and expect immediate deletion). Tasks 5 and 6 update those clicks to go through the dialog. The "Delete lesson" (line ~104) and scheduled-lesson "Delete" (line ~191) clicks in that file stay as-is.
 - **`Modal.svelte`** takes `{ onclose, children }`. **`Button.svelte`** supports `variant="primary|secondary|danger"`, `size`, `type="submit"`, and `onclick` (verified in `classes/[classId]/+page.svelte` and `courses/[courseId]/modules/[moduleId]/+page.svelte`).
-- **Count idiom:** `sql<number>\`count(*)\`` returns a string from neon-http; existing code wraps with `Number(...)` (`src/lib/server/queries/resources.ts:121`). Do the same so JSON serializes real numbers.
+- **Count idiom:** `sql<number>\`count(\*)\``returns a string from neon-http; existing code wraps with`Number(...)` (`src/lib/server/queries/resources.ts:121`). Do the same so JSON serializes real numbers.
 - **API auth idiom:** `requireUserId(event)` from `$lib/server/session` (throws 401). See `src/routes/api/resource-files/upload/+server.ts`.
 - **Commands:** unit tests `bun run test:unit -- --run <file>`; full e2e `bun run test:e2e` (resets the test DB, then Playwright); single e2e file `bunx playwright test <file>` (after at least one `bun run db:test:reset`). e2e requires `.env.local` (`NEON_API_KEY`) and a one-time `bun run db:test:setup`.
 
@@ -28,24 +28,25 @@
 
 ## File structure
 
-| File | Responsibility |
-|---|---|
-| `src/lib/resources/deletion-message.ts` (new) | Pure: types (`DeletionType`, `DeletionImpact`) + `deletionMessage()` building the blast-radius sentence. |
-| `src/lib/resources/deletion-message.spec.ts` (new) | Unit tests for `deletionMessage()`. |
-| `src/lib/server/queries/deletion-impact.ts` (new) | DB: `courseDeletionImpact` / `classDeletionImpact` / `moduleDeletionImpact` count queries. Thin. |
-| `src/routes/api/deletion-impact/+server.ts` (new) | `GET` endpoint: auth, validate `type`/`id`, dispatch to the impact query, return JSON. |
-| `src/lib/components/ConfirmDelete.svelte` (new) | Reusable trigger + Modal dialog; lazy-fetches impact; Delete submits the page's `?/delete` form. |
-| `src/routes/(app)/courses/+page.svelte` (modify) | Replace inline subject-delete form with `ConfirmDelete type="course"`. |
-| `src/routes/(app)/classes/+page.svelte` (modify) | Replace inline class-delete form with `ConfirmDelete type="class"`. |
-| `src/routes/(app)/courses/[courseId]/+page.svelte` (modify) | Add per-module `ConfirmDelete type="module"` trigger (new delete button). |
-| `e2e/blob-cleanup.e2e.ts` (modify) | Click through the new dialog for the subject and class deletes. |
-| `e2e/confirm-delete.e2e.ts` (new) | e2e: each guarded delete opens a dialog with non-zero counts; Cancel aborts; Delete cascades; scheduled-lesson delete stays one-click. |
+| File                                                        | Responsibility                                                                                                                         |
+| ----------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------- |
+| `src/lib/resources/deletion-message.ts` (new)               | Pure: types (`DeletionType`, `DeletionImpact`) + `deletionMessage()` building the blast-radius sentence.                               |
+| `src/lib/resources/deletion-message.spec.ts` (new)          | Unit tests for `deletionMessage()`.                                                                                                    |
+| `src/lib/server/queries/deletion-impact.ts` (new)           | DB: `courseDeletionImpact` / `classDeletionImpact` / `moduleDeletionImpact` count queries. Thin.                                       |
+| `src/routes/api/deletion-impact/+server.ts` (new)           | `GET` endpoint: auth, validate `type`/`id`, dispatch to the impact query, return JSON.                                                 |
+| `src/lib/components/ConfirmDelete.svelte` (new)             | Reusable trigger + Modal dialog; lazy-fetches impact; Delete submits the page's `?/delete` form.                                       |
+| `src/routes/(app)/courses/+page.svelte` (modify)            | Replace inline subject-delete form with `ConfirmDelete type="course"`.                                                                 |
+| `src/routes/(app)/classes/+page.svelte` (modify)            | Replace inline class-delete form with `ConfirmDelete type="class"`.                                                                    |
+| `src/routes/(app)/courses/[courseId]/+page.svelte` (modify) | Add per-module `ConfirmDelete type="module"` trigger (new delete button).                                                              |
+| `e2e/blob-cleanup.e2e.ts` (modify)                          | Click through the new dialog for the subject and class deletes.                                                                        |
+| `e2e/confirm-delete.e2e.ts` (new)                           | e2e: each guarded delete opens a dialog with non-zero counts; Cancel aborts; Delete cascades; scheduled-lesson delete stays one-click. |
 
 ---
 
 ## Task 1: Blast-radius message (pure)
 
 **Files:**
+
 - Create: `src/lib/resources/deletion-message.ts`
 - Test: `src/lib/resources/deletion-message.spec.ts`
 
@@ -143,6 +144,7 @@ git commit -m "Phase C: pure blast-radius message builder (#23)"
 ## Task 2: Deletion-impact count queries
 
 **Files:**
+
 - Create: `src/lib/server/queries/deletion-impact.ts`
 
 These are thin DB queries (proven end-to-end in Task 8, per the project's convention that DB-backed behaviour is tested via e2e, not mocks). Each is user-scoped and walks the same FK graph as `descendantFilePathnames`, but counts `resource_file` **rows** removed rather than de-duplicating blob pathnames.
@@ -228,7 +230,9 @@ export async function courseDeletionImpact(
 			: await db
 					.select({ id: scheduledLesson.id })
 					.from(scheduledLesson)
-					.where(and(eq(scheduledLesson.userId, userId), inArray(scheduledLesson.classId, classIds)));
+					.where(
+						and(eq(scheduledLesson.userId, userId), inArray(scheduledLesson.classId, classIds))
+					);
 	const files =
 		(await countFilesIn(userId, resourceFile.courseId, [id])) +
 		(await countFilesIn(userId, resourceFile.moduleId, moduleIds)) +
@@ -263,6 +267,7 @@ git commit -m "Phase C: deletion-impact count queries (#23)"
 ## Task 3: `/api/deletion-impact` endpoint
 
 **Files:**
+
 - Create: `src/routes/api/deletion-impact/+server.ts`
 
 - [ ] **Step 1: Write the endpoint**
@@ -309,6 +314,7 @@ git commit -m "Phase C: GET /api/deletion-impact endpoint (#23)"
 ## Task 4: `ConfirmDelete.svelte` component
 
 **Files:**
+
 - Create: `src/lib/components/ConfirmDelete.svelte`
 
 This component renders a caller-supplied `trigger` snippet (passed an `open` callback). On open it lazily fetches impact counts; the dialog shows `deletionMessage(...)` and a Delete button inside a `<form method="POST" action="?/delete">` so deletion uses the page's existing action unchanged. This exact code passed the Svelte autofixer with zero issues — keep it verbatim.
@@ -405,6 +411,7 @@ git commit -m "Phase C: ConfirmDelete dialog component (#23)"
 ## Task 5: Guard subject (course) delete + fix its e2e
 
 **Files:**
+
 - Modify: `src/routes/(app)/courses/+page.svelte` (replace lines 48–70 form; add import)
 - Modify: `e2e/blob-cleanup.e2e.ts` (the "Delete subject" click, ~line 86)
 
@@ -413,7 +420,7 @@ git commit -m "Phase C: ConfirmDelete dialog component (#23)"
 In `src/routes/(app)/courses/+page.svelte`, add to the `<script>` imports (after the `EmptyState` import):
 
 ```svelte
-	import ConfirmDelete from '$lib/components/ConfirmDelete.svelte';
+import ConfirmDelete from '$lib/components/ConfirmDelete.svelte';
 ```
 
 - [ ] **Step 2: Replace the inline delete form with `ConfirmDelete`**
@@ -421,59 +428,59 @@ In `src/routes/(app)/courses/+page.svelte`, add to the `<script>` imports (after
 Replace this block (currently lines 48–70, the `<form method="POST" action="?/delete" ...>…</form>`):
 
 ```svelte
-						<form method="POST" action="?/delete" use:enhance>
-							<input type="hidden" name="id" value={c.id} />
-							<button
-								type="submit"
-								title="Delete subject"
-								class="flex h-[34px] w-[34px] items-center justify-center rounded-[9px] text-grey-3 transition hover:bg-pink-50 hover:text-pink-dk"
-							>
-								<svg
-									width="17"
-									height="17"
-									viewBox="0 0 24 24"
-									fill="none"
-									stroke="currentColor"
-									stroke-width="1.9"
-									stroke-linecap="round"
-									stroke-linejoin="round"
-								>
-									<path d="M3 6h18"></path>
-									<path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
-									<path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6"></path>
-								</svg>
-							</button>
-						</form>
+<form method="POST" action="?/delete" use:enhance>
+	<input type="hidden" name="id" value={c.id} />
+	<button
+		type="submit"
+		title="Delete subject"
+		class="flex h-[34px] w-[34px] items-center justify-center rounded-[9px] text-grey-3 transition hover:bg-pink-50 hover:text-pink-dk"
+	>
+		<svg
+			width="17"
+			height="17"
+			viewBox="0 0 24 24"
+			fill="none"
+			stroke="currentColor"
+			stroke-width="1.9"
+			stroke-linecap="round"
+			stroke-linejoin="round"
+		>
+			<path d="M3 6h18"></path>
+			<path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+			<path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6"></path>
+		</svg>
+	</button>
+</form>
 ```
 
 with:
 
 ```svelte
-						<ConfirmDelete type="course" id={c.id} name={c.name}>
-							{#snippet trigger(open)}
-								<button
-									type="button"
-									onclick={open}
-									title="Delete subject"
-									class="flex h-[34px] w-[34px] items-center justify-center rounded-[9px] text-grey-3 transition hover:bg-pink-50 hover:text-pink-dk"
-								>
-									<svg
-										width="17"
-										height="17"
-										viewBox="0 0 24 24"
-										fill="none"
-										stroke="currentColor"
-										stroke-width="1.9"
-										stroke-linecap="round"
-										stroke-linejoin="round"
-									>
-										<path d="M3 6h18"></path>
-										<path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
-										<path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6"></path>
-									</svg>
-								</button>
-							{/snippet}
-						</ConfirmDelete>
+<ConfirmDelete type="course" id={c.id} name={c.name}>
+	{#snippet trigger(open)}
+		<button
+			type="button"
+			onclick={open}
+			title="Delete subject"
+			class="flex h-[34px] w-[34px] items-center justify-center rounded-[9px] text-grey-3 transition hover:bg-pink-50 hover:text-pink-dk"
+		>
+			<svg
+				width="17"
+				height="17"
+				viewBox="0 0 24 24"
+				fill="none"
+				stroke="currentColor"
+				stroke-width="1.9"
+				stroke-linecap="round"
+				stroke-linejoin="round"
+			>
+				<path d="M3 6h18"></path>
+				<path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+				<path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6"></path>
+			</svg>
+		</button>
+	{/snippet}
+</ConfirmDelete>
 ```
 
 Note: `use:enhance` may now be unused in this file's imports. If `bun run check`/lint flags `enhance` as unused, remove it from the `import { enhance } from '$app/forms';` line (the `?/create` form at the bottom still uses `use:enhance`, so it likely stays — verify before removing).
@@ -483,18 +490,18 @@ Note: `use:enhance` may now be unused in this file's imports. If `bun run check`
 In `e2e/blob-cleanup.e2e.ts`, in the test `deleting a subject reclaims its lesson file blobs`, change:
 
 ```ts
-	await page.goto('/courses');
-	await page.getByRole('button', { name: 'Delete subject' }).first().click();
-	await expect(page.getByRole('link', { name: 'GCSE Physics' })).toHaveCount(0);
+await page.goto('/courses');
+await page.getByRole('button', { name: 'Delete subject' }).first().click();
+await expect(page.getByRole('link', { name: 'GCSE Physics' })).toHaveCount(0);
 ```
 
 to:
 
 ```ts
-	await page.goto('/courses');
-	await page.getByRole('button', { name: 'Delete subject' }).first().click();
-	await page.getByRole('button', { name: 'Delete', exact: true }).click();
-	await expect(page.getByRole('link', { name: 'GCSE Physics' })).toHaveCount(0);
+await page.goto('/courses');
+await page.getByRole('button', { name: 'Delete subject' }).first().click();
+await page.getByRole('button', { name: 'Delete', exact: true }).click();
+await expect(page.getByRole('link', { name: 'GCSE Physics' })).toHaveCount(0);
 ```
 
 - [ ] **Step 4: Verify type-check + lint**
@@ -514,6 +521,7 @@ git commit -m "Phase C: confirm dialog for subject delete (#23)"
 ## Task 6: Guard class delete + fix its e2e
 
 **Files:**
+
 - Modify: `src/routes/(app)/classes/+page.svelte` (replace lines 35–57 form; add import)
 - Modify: `e2e/blob-cleanup.e2e.ts` (the "Delete class" click, ~line 134)
 
@@ -522,7 +530,7 @@ git commit -m "Phase C: confirm dialog for subject delete (#23)"
 In `src/routes/(app)/classes/+page.svelte`, add to the `<script>` imports (after `EmptyState`):
 
 ```svelte
-	import ConfirmDelete from '$lib/components/ConfirmDelete.svelte';
+import ConfirmDelete from '$lib/components/ConfirmDelete.svelte';
 ```
 
 - [ ] **Step 2: Replace the inline delete form with `ConfirmDelete`**
@@ -530,59 +538,59 @@ In `src/routes/(app)/classes/+page.svelte`, add to the `<script>` imports (after
 Replace this block (currently lines 35–57, the `<form method="POST" action="?/delete" ...>…</form>`):
 
 ```svelte
-						<form method="POST" action="?/delete" use:enhance>
-							<input type="hidden" name="id" value={c.id} />
-							<button
-								type="submit"
-								title="Delete class"
-								class="flex h-[34px] w-[34px] items-center justify-center rounded-[9px] text-grey-3 transition hover:bg-pink-50 hover:text-pink-dk"
-							>
-								<svg
-									width="17"
-									height="17"
-									viewBox="0 0 24 24"
-									fill="none"
-									stroke="currentColor"
-									stroke-width="1.9"
-									stroke-linecap="round"
-									stroke-linejoin="round"
-								>
-									<path d="M3 6h18"></path>
-									<path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
-									<path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6"></path>
-								</svg>
-							</button>
-						</form>
+<form method="POST" action="?/delete" use:enhance>
+	<input type="hidden" name="id" value={c.id} />
+	<button
+		type="submit"
+		title="Delete class"
+		class="flex h-[34px] w-[34px] items-center justify-center rounded-[9px] text-grey-3 transition hover:bg-pink-50 hover:text-pink-dk"
+	>
+		<svg
+			width="17"
+			height="17"
+			viewBox="0 0 24 24"
+			fill="none"
+			stroke="currentColor"
+			stroke-width="1.9"
+			stroke-linecap="round"
+			stroke-linejoin="round"
+		>
+			<path d="M3 6h18"></path>
+			<path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+			<path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6"></path>
+		</svg>
+	</button>
+</form>
 ```
 
 with:
 
 ```svelte
-						<ConfirmDelete type="class" id={c.id} name={c.name}>
-							{#snippet trigger(open)}
-								<button
-									type="button"
-									onclick={open}
-									title="Delete class"
-									class="flex h-[34px] w-[34px] items-center justify-center rounded-[9px] text-grey-3 transition hover:bg-pink-50 hover:text-pink-dk"
-								>
-									<svg
-										width="17"
-										height="17"
-										viewBox="0 0 24 24"
-										fill="none"
-										stroke="currentColor"
-										stroke-width="1.9"
-										stroke-linecap="round"
-										stroke-linejoin="round"
-									>
-										<path d="M3 6h18"></path>
-										<path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
-										<path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6"></path>
-									</svg>
-								</button>
-							{/snippet}
-						</ConfirmDelete>
+<ConfirmDelete type="class" id={c.id} name={c.name}>
+	{#snippet trigger(open)}
+		<button
+			type="button"
+			onclick={open}
+			title="Delete class"
+			class="flex h-[34px] w-[34px] items-center justify-center rounded-[9px] text-grey-3 transition hover:bg-pink-50 hover:text-pink-dk"
+		>
+			<svg
+				width="17"
+				height="17"
+				viewBox="0 0 24 24"
+				fill="none"
+				stroke="currentColor"
+				stroke-width="1.9"
+				stroke-linecap="round"
+				stroke-linejoin="round"
+			>
+				<path d="M3 6h18"></path>
+				<path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+				<path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6"></path>
+			</svg>
+		</button>
+	{/snippet}
+</ConfirmDelete>
 ```
 
 Note: the `?/create` form at the bottom still uses `use:enhance`, so the `enhance` import stays. Confirm with `bun run lint`.
@@ -592,18 +600,18 @@ Note: the `?/create` form at the bottom still uses `use:enhance`, so the `enhanc
 In `e2e/blob-cleanup.e2e.ts`, in the test `shared blob survives template-lesson delete, reclaimed when last reference goes`, change the final class delete:
 
 ```ts
-	// Delete the class — removes the last reference; blob is reclaimed.
-	await page.goto('/classes');
-	await page.getByRole('button', { name: 'Delete class' }).first().click();
+// Delete the class — removes the last reference; blob is reclaimed.
+await page.goto('/classes');
+await page.getByRole('button', { name: 'Delete class' }).first().click();
 ```
 
 to:
 
 ```ts
-	// Delete the class — removes the last reference; blob is reclaimed.
-	await page.goto('/classes');
-	await page.getByRole('button', { name: 'Delete class' }).first().click();
-	await page.getByRole('button', { name: 'Delete', exact: true }).click();
+// Delete the class — removes the last reference; blob is reclaimed.
+await page.goto('/classes');
+await page.getByRole('button', { name: 'Delete class' }).first().click();
+await page.getByRole('button', { name: 'Delete', exact: true }).click();
 ```
 
 (Leave the scheduled-lesson "Delete" click in the test `deleting a scheduled lesson reclaims its blob…` — that one is on the class **detail** page and stays one-click.)
@@ -625,6 +633,7 @@ git commit -m "Phase C: confirm dialog for class delete (#23)"
 ## Task 7: Add a guarded module delete on the course detail page
 
 **Files:**
+
 - Modify: `src/routes/(app)/courses/[courseId]/+page.svelte` (add import; add delete trigger to each module row)
 
 The `deleteModule` action already exists as `?/delete` in `src/routes/(app)/courses/[courseId]/+page.server.ts`. There is currently no module-delete button; this task adds one per module row (shown on hover, like the up/down controls).
@@ -634,7 +643,7 @@ The `deleteModule` action already exists as `?/delete` in `src/routes/(app)/cour
 In `src/routes/(app)/courses/[courseId]/+page.svelte`, add to the `<script>` imports (after `EmptyState`):
 
 ```svelte
-	import ConfirmDelete from '$lib/components/ConfirmDelete.svelte';
+import ConfirmDelete from '$lib/components/ConfirmDelete.svelte';
 ```
 
 - [ ] **Step 2: Add the delete trigger to each module row**
@@ -642,31 +651,31 @@ In `src/routes/(app)/courses/[courseId]/+page.svelte`, add to the `<script>` imp
 In the module `<li>`, the controls live in `<div class="flex shrink-0 items-center gap-1">` (currently lines 168–185) holding the two `?/reorder` forms. Immediately **after** the closing `</form>` of the second (move-down) reorder form and **before** that `</div>` closes, add:
 
 ```svelte
-								<ConfirmDelete type="module" id={m.id} name={m.name}>
-									{#snippet trigger(open)}
-										<button
-											type="button"
-											onclick={open}
-											title="Delete module"
-											class="px-1 text-grey-3 opacity-0 transition group-hover:opacity-100 hover:text-pink-dk group-focus-within:opacity-100"
-										>
-											<svg
-												width="16"
-												height="16"
-												viewBox="0 0 24 24"
-												fill="none"
-												stroke="currentColor"
-												stroke-width="1.9"
-												stroke-linecap="round"
-												stroke-linejoin="round"
-											>
-												<path d="M3 6h18"></path>
-												<path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
-												<path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6"></path>
-											</svg>
-										</button>
-									{/snippet}
-								</ConfirmDelete>
+<ConfirmDelete type="module" id={m.id} name={m.name}>
+	{#snippet trigger(open)}
+		<button
+			type="button"
+			onclick={open}
+			title="Delete module"
+			class="px-1 text-grey-3 opacity-0 transition group-hover:opacity-100 hover:text-pink-dk group-focus-within:opacity-100"
+		>
+			<svg
+				width="16"
+				height="16"
+				viewBox="0 0 24 24"
+				fill="none"
+				stroke="currentColor"
+				stroke-width="1.9"
+				stroke-linecap="round"
+				stroke-linejoin="round"
+			>
+				<path d="M3 6h18"></path>
+				<path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+				<path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6"></path>
+			</svg>
+		</button>
+	{/snippet}
+</ConfirmDelete>
 ```
 
 (The row is `class="group ..."`, so `group-hover`/`group-focus-within` reveal the button on hover, matching the existing reorder-control behaviour.)
@@ -688,6 +697,7 @@ git commit -m "Phase C: guarded module delete on course detail page (#23)"
 ## Task 8: End-to-end tests for the confirmation dialogs
 
 **Files:**
+
 - Create: `e2e/confirm-delete.e2e.ts`
 
 Covers the spec's acceptance criteria: each guarded delete opens a dialog with non-zero counts; Cancel aborts; Delete cascades; single scheduled-lesson delete stays one-click. Mirrors the signup/create helpers used in `e2e/blob-cleanup.e2e.ts`.
@@ -856,4 +866,7 @@ Expected: all PASS (includes the updated `blob-cleanup` and new `confirm-delete`
 - **e2e: each guarded delete opens dialog with non-zero counts; Cancel aborts; Delete cascades; single scheduled-lesson stays one-click** → Task 8 (4 tests) + the dialog click-throughs added to `blob-cleanup` in Tasks 5–6. ✅
 - **Type consistency:** `DeletionType`/`DeletionImpact` defined in Task 1, imported by Tasks 3-shape (queries match `DeletionImpact` fields) and Task 4 (`ConfirmDelete`); endpoint `type` values `course|class|module` match `DeletionType`; `deletionMessage(type, impact)` signature is identical in component and tests. ✅
 - **No behaviour change to deletion:** all delete actions still call the existing Phase A cascade; the dialog only gates + displays. ✅
+
+```
+
 ```
