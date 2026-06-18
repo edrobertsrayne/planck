@@ -46,7 +46,7 @@ async function createClass(page: Page, subject: string, className: string) {
 	await page.getByPlaceholder('10Phy1').fill(className);
 	await page.locator('select[name="courseId"]').selectOption({ label: subject });
 	await page.getByRole('button', { name: 'Add class' }).click();
-	await expect(page.getByText(className)).toBeVisible();
+	await expect(page.getByRole('link', { name: className, exact: true })).toBeVisible();
 }
 
 /** Assign `moduleName` (under `subject`) to `className` — schedules its lessons. */
@@ -105,7 +105,7 @@ test('shared blob survives template-lesson delete, reclaimed when last reference
 	await page.getByPlaceholder('10Phy1').fill('10Bio1');
 	await page.locator('select[name="courseId"]').selectOption({ label: 'GCSE Biology' });
 	await page.getByRole('button', { name: 'Add class' }).click();
-	await expect(page.getByText('10Bio1')).toBeVisible();
+	await expect(page.getByRole('link', { name: '10Bio1', exact: true })).toBeVisible();
 
 	// Assign the module to the class — copies the lesson, sharing the blob.
 	await page.goto('/courses');
@@ -126,7 +126,7 @@ test('shared blob survives template-lesson delete, reclaimed when last reference
 
 	// The scheduled lesson survived the template delete (detached).
 	await page.goto('/classes');
-	await page.getByRole('link', { name: '10Bio1' }).click();
+	await page.getByRole('link', { name: '10Bio1', exact: true }).click();
 	await expect(page.locator('input[aria-label="Lesson title"]').first()).toHaveValue('L1 Intro');
 
 	// Delete the class — removes the last reference; blob is reclaimed.
@@ -187,7 +187,7 @@ test('deleting a scheduled lesson reclaims its blob when it is the last referenc
 	// Delete the single scheduled lesson from the class sequence (deleteFromSequence)
 	// — the last reference is gone, so the blob is reclaimed.
 	await page.goto('/classes');
-	await page.getByRole('link', { name: '10His1' }).click();
+	await page.getByRole('link', { name: '10His1', exact: true }).click();
 	await page.getByRole('button', { name: 'Delete' }).first().click();
 	await expect
 		.poll(async () => (await request.get(blobUrl)).status(), { timeout: 15000 })

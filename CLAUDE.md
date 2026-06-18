@@ -60,9 +60,16 @@ conventions:
   verifiable there — e.g. assert a deleted blob's URL now returns HTTP 404.
 - Requires `NEON_API_KEY` in `.env.local`. The `TEST_DB=1` guard makes the reset
   refuse to run against any non-test database.
-- e2e that uploads files also needs `BLOB_READ_WRITE_TOKEN` in `.env.local` — the
-  upload step hits real Vercel Blob and fails silently without it. Run blob e2e
-  where that token is set (your machine / CI), not a token-less environment.
+- **Two local env files — check both when a var seems "missing".** `.env.local`
+  holds dev secrets like `NEON_API_KEY` and `DATABASE_URL`; **`.env` holds the
+  Vercel-provisioned vars** — `BLOB_READ_WRITE_TOKEN`, `BLOB_STORE_ID`,
+  `NEON_AUTH_BASE_URL`, `NEON_AUTH_ORIGIN`. Grepping only `.env.local` will make
+  the blob token look absent when it is in `.env`.
+- File-upload e2e needs `BLOB_READ_WRITE_TOKEN` (the upload hits real Vercel
+  Blob). `playwright.config.ts` only loads `.env.local` + `.env.test`, but the
+  token is still picked up because `bun run` auto-loads `.env` into the process
+  env the Playwright web server inherits. So blob e2e works wherever `.env`
+  exists; it fails only in an environment that has neither.
 
 ---
 
