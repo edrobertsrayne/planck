@@ -133,6 +133,7 @@ test('shared blob survives template-lesson delete, reclaimed when last reference
 	// Delete the class — removes the last reference; blob is reclaimed.
 	await page.goto('/classes');
 	await page.getByRole('button', { name: 'Delete class' }).first().click();
+	await page.getByRole('button', { name: 'Delete', exact: true }).click();
 	await expect
 		.poll(async () => (await request.get(blobUrl)).status(), { timeout: 15000 })
 		.toBe(404);
