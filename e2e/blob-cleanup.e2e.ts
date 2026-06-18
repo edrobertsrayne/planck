@@ -1,5 +1,5 @@
+/// <reference types="node" />
 import { test, expect, type Page } from '@playwright/test';
-import { Buffer } from 'node:buffer';
 
 async function signUp(page: Page) {
 	const email = `teacher_${Date.now()}@example.com`;
