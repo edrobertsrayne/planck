@@ -84,6 +84,7 @@ test('deleting a subject reclaims its lesson file blobs', async ({ page, request
 	// Delete the subject from the courses list.
 	await page.goto('/courses');
 	await page.getByRole('button', { name: 'Delete subject' }).first().click();
+	await page.getByRole('button', { name: 'Delete', exact: true }).click();
 	await expect(page.getByRole('link', { name: 'GCSE Physics' })).toHaveCount(0);
 
 	// Blob is reclaimed (Vercel Blob serves 404 for a deleted pathname).
