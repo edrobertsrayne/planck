@@ -40,6 +40,39 @@ async function uploadFile(page: Page, filename: string): Promise<string> {
 	return url as string;
 }
 
+/** Create a class for `subject` (from the /classes page). */
+async function createClass(page: Page, subject: string, className: string) {
+	await page.goto('/classes');
+	await page.getByPlaceholder('10Phy1').fill(className);
+	await page.locator('select[name="courseId"]').selectOption({ label: subject });
+	await page.getByRole('button', { name: 'Add class' }).click();
+	await expect(page.getByText(className)).toBeVisible();
+}
+
+/** Assign `moduleName` (under `subject`) to `className` — schedules its lessons. */
+async function assignModuleToClass(
+	page: Page,
+	subject: string,
+	moduleName: string,
+	className: string
+) {
+	await page.goto('/courses');
+	await page.getByRole('link', { name: subject }).click();
+	await page.getByRole('link', { name: moduleName }).click();
+	await page.getByRole('button', { name: 'Assign to class' }).click();
+	await page.getByRole('button', { name: className }).click();
+	await page.getByRole('button', { name: /Assign to 1 class/ }).click();
+}
+
+/** Navigate to the template lesson's detail page (where files are managed). */
+async function openTemplateLesson(page: Page, subject: string, moduleName: string) {
+	await page.goto('/courses');
+	await page.getByRole('link', { name: subject }).click();
+	await page.getByRole('link', { name: moduleName }).click();
+	await page.locator('a[title="Open lesson"]').first().click();
+	await expect(page.getByLabel('Lesson title')).toHaveValue('L1 Intro');
+}
+
 test('deleting a subject reclaims its lesson file blobs', async ({ page, request }) => {
 	await signUp(page);
 	await createLessonAndOpen(page, 'GCSE Physics');
@@ -99,6 +132,63 @@ test('shared blob survives template-lesson delete, reclaimed when last reference
 	// Delete the class — removes the last reference; blob is reclaimed.
 	await page.goto('/classes');
 	await page.getByRole('button', { name: 'Delete class' }).first().click();
+	await expect
+		.poll(async () => (await request.get(blobUrl)).status(), { timeout: 15000 })
+		.toBe(404);
+});
+
+test('deleting a file reclaims its blob only when no row still references it', async ({
+	page,
+	request
+}) => {
+	await signUp(page);
+	await createLessonAndOpen(page, 'GCSE Chemistry');
+
+	// Unshared file: deleting it reclaims the blob (it was the only reference).
+	const soloUrl = await uploadFile(page, 'solo.pdf');
+	expect((await request.get(soloUrl)).ok()).toBe(true);
+	await page.getByRole('button', { name: 'Remove' }).first().click();
+	await expect
+		.poll(async () => (await request.get(soloUrl)).status(), { timeout: 15000 })
+		.toBe(404);
+
+	// Shared file: scheduling shares the blob. Deleting the template's file row
+	// must NOT delete a blob the scheduled copy still references (the critical fix).
+	const sharedUrl = await uploadFile(page, 'shared.pdf');
+	await createClass(page, 'GCSE Chemistry', '10Chm1');
+	await assignModuleToClass(page, 'GCSE Chemistry', 'Forces', '10Chm1');
+
+	await openTemplateLesson(page, 'GCSE Chemistry', 'Forces');
+	await page.getByRole('button', { name: 'Remove' }).first().click();
+	await expect
+		.poll(async () => (await request.get(sharedUrl)).status(), { timeout: 15000 })
+		.toBe(200);
+});
+
+test('deleting a scheduled lesson reclaims its blob when it is the last reference', async ({
+	page,
+	request
+}) => {
+	await signUp(page);
+	await createLessonAndOpen(page, 'GCSE History');
+	const blobUrl = await uploadFile(page, 'timeline.pdf');
+
+	await createClass(page, 'GCSE History', '10His1');
+	await assignModuleToClass(page, 'GCSE History', 'Forces', '10His1');
+
+	// Delete the template lesson (from the module page) — the scheduled copy is
+	// now the sole reference to the shared blob, which therefore survives.
+	await page.reload();
+	await page.getByRole('button', { name: 'Delete lesson' }).first().click();
+	await expect
+		.poll(async () => (await request.get(blobUrl)).status(), { timeout: 15000 })
+		.toBe(200);
+
+	// Delete the single scheduled lesson from the class sequence (deleteFromSequence)
+	// — the last reference is gone, so the blob is reclaimed.
+	await page.goto('/classes');
+	await page.getByRole('link', { name: '10His1' }).click();
+	await page.getByRole('button', { name: 'Delete' }).first().click();
 	await expect
 		.poll(async () => (await request.get(blobUrl)).status(), { timeout: 15000 })
 		.toBe(404);
