@@ -21,6 +21,21 @@
 		{ n: 7, label: 'Sun' }
 	];
 
+	const monthNames = [
+		'January',
+		'February',
+		'March',
+		'April',
+		'May',
+		'June',
+		'July',
+		'August',
+		'September',
+		'October',
+		'November',
+		'December'
+	];
+
 	const inputClass =
 		'h-[42px] w-full rounded-control border border-line bg-white px-3.5 text-[14.5px] text-ink focus:border-pink-200 focus:outline-none';
 	const fieldInputClass =
@@ -217,6 +232,27 @@
 						<option value="A" selected={data.config.anchorLetter === 'A'}>Week A</option>
 						<option value="B" selected={data.config.anchorLetter === 'B'}>Week B</option>
 					</select>
+				</Field>
+			</div>
+			<div class="grid grid-cols-1 gap-3 sm:grid-cols-2">
+				<Field label="Academic year starts (month)">
+					<select name="academicYearStartMonth" class={inputClass}>
+						{#each monthNames as name, i (name)}
+							<option value={i + 1} selected={data.config.academicYearStartMonth === i + 1}>
+								{name}
+							</option>
+						{/each}
+					</select>
+				</Field>
+				<Field label="Day of month">
+					<input
+						name="academicYearStartDay"
+						type="number"
+						min="1"
+						max="31"
+						value={data.config.academicYearStartDay}
+						class={inputClass}
+					/>
 				</Field>
 			</div>
 			<div class="flex justify-end">

@@ -1,5 +1,6 @@
 import type { Actions, PageServerLoad } from './$types';
 import { requireUserId } from '$lib/server/session';
+import { daysInMonth } from '$lib/scheduling/dates';
 import {
 	getConfig,
 	upsertConfig,
@@ -30,11 +31,20 @@ export const actions: Actions = {
 			.getAll('teachingDays')
 			.map((d) => Number(d))
 			.filter((n) => n >= 1 && n <= 7);
+		// `|| 9`/`|| 1` fall back to the defaults when a field is missing or
+		// non-numeric (a crafted POST), so NaN never propagates into the DB.
+		const startMonth = Math.min(12, Math.max(1, Number(form.get('academicYearStartMonth')) || 9));
+		const startDay = Math.min(
+			daysInMonth(startMonth),
+			Math.max(1, Number(form.get('academicYearStartDay')) || 1)
+		);
 		await upsertConfig(userId, {
 			cycleWeeks: Number(form.get('cycleWeeks')),
 			teachingDays,
 			periodsPerDay: Number(form.get('periodsPerDay')),
-			anchorLetter: String(form.get('anchorLetter'))
+			anchorLetter: String(form.get('anchorLetter')),
+			academicYearStartMonth: startMonth,
+			academicYearStartDay: startDay
 		});
 		await reallocateAllClasses(userId);
 	},
