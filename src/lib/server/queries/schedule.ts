@@ -1,5 +1,6 @@
 import { eq, and, sql, lt, gte, or, isNull } from 'drizzle-orm';
 import { db } from '$lib/server/db';
+import { deleteAndReclaim } from './resource-cleanup';
 import {
 	scheduledLesson,
 	klass,
@@ -234,8 +235,9 @@ export async function unscheduleModule(
 	classId: number,
 	today: string = todayIso()
 ): Promise<void> {
-	await db
-		.delete(scheduledLesson)
+	const rows = await db
+		.select({ id: scheduledLesson.id })
+		.from(scheduledLesson)
 		.where(
 			and(
 				eq(scheduledLesson.userId, userId),
@@ -243,6 +245,17 @@ export async function unscheduleModule(
 				eq(scheduledLesson.classId, classId)
 			)
 		);
+	await deleteAndReclaim(userId, { type: 'scheduledLessons', ids: rows.map((r) => r.id) }, () =>
+		db
+			.delete(scheduledLesson)
+			.where(
+				and(
+					eq(scheduledLesson.userId, userId),
+					eq(scheduledLesson.moduleId, moduleId),
+					eq(scheduledLesson.classId, classId)
+				)
+			)
+	);
 	await reallocateClass(userId, classId, today);
 }
 
@@ -400,9 +413,11 @@ export async function deleteFromSequence(
 		.from(scheduledLesson)
 		.where(and(eq(scheduledLesson.userId, userId), eq(scheduledLesson.id, id)));
 	if (!row) return;
-	await db
-		.delete(scheduledLesson)
-		.where(and(eq(scheduledLesson.userId, userId), eq(scheduledLesson.id, id)));
+	await deleteAndReclaim(userId, { type: 'scheduledLessons', ids: [id] }, () =>
+		db
+			.delete(scheduledLesson)
+			.where(and(eq(scheduledLesson.userId, userId), eq(scheduledLesson.id, id)))
+	);
 	await reallocateClass(userId, row.classId, today);
 }
 

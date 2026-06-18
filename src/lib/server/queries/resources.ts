@@ -3,7 +3,8 @@ import { db } from '$lib/server/db';
 import { resourceLink, resourceFile } from '$lib/server/db/schema';
 import { ownerColumns, type OwnerRef } from '$lib/resources/owner';
 import { applyOrder } from '$lib/resources/files';
-import { deleteBlob, headBlob } from '$lib/server/blob';
+import { headBlob } from '$lib/server/blob';
+import { reclaimBlobs } from './resource-cleanup';
 
 // --- owner where-clause helpers (branch on which discriminator is set) ---
 function linkOwnerEq(owner: OwnerRef) {
@@ -87,7 +88,7 @@ export async function addFile(
 	return db.insert(resourceFile).values({ userId, ...cols, ...file, orderIndex: next });
 }
 
-/** Delete a file row and its blob. Looks up pathname first (scoped to user). */
+/** Delete a file row and reclaim its blob if no other row references it. */
 export async function deleteFile(userId: string, id: number): Promise<void> {
 	const [row] = await db
 		.select({ pathname: resourceFile.pathname })
@@ -97,7 +98,7 @@ export async function deleteFile(userId: string, id: number): Promise<void> {
 	await db
 		.delete(resourceFile)
 		.where(and(eq(resourceFile.userId, userId), eq(resourceFile.id, id)));
-	await deleteBlob(row.pathname);
+	await reclaimBlobs([row.pathname]);
 }
 
 export async function lessonAttachmentCounts(
