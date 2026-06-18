@@ -6,8 +6,7 @@ async function signUp(page: Page) {
 	await page.goto('/signup');
 	await page.getByPlaceholder('Sofia Marsh').fill('Test Teacher');
 	await page.getByPlaceholder('you@email.com').fill(email);
-	await page.locator('input[type="password"]').first().fill('password1234');
-	await page.locator('input[type="password"]').nth(1).fill('password1234');
+	await page.locator('input[type="password"]').fill('password123');
 	await page.getByRole('button', { name: 'Create account' }).click();
 	await expect(page).toHaveURL(/\/agenda/);
 }
@@ -23,7 +22,7 @@ async function createLessonAndOpen(page: Page, subject: string) {
 	await page.getByRole('link', { name: 'Forces' }).click();
 	await page.getByPlaceholder('Add a lesson to this module').fill('L1 Intro');
 	await page.getByRole('button', { name: 'Add lesson' }).click();
-	await page.getByRole('link', { name: 'Open lesson' }).first().click();
+	await page.locator('a[title="Open lesson"]').first().click();
 	await expect(page.getByLabel('Lesson title')).toHaveValue('L1 Intro');
 }
 
@@ -95,7 +94,7 @@ test('shared blob survives template-lesson delete, reclaimed when last reference
 	// The scheduled lesson survived the template delete (detached).
 	await page.goto('/classes');
 	await page.getByRole('link', { name: '10Bio1' }).click();
-	await expect(page.getByText('L1 Intro')).toBeVisible();
+	await expect(page.locator('input[aria-label="Lesson title"]').first()).toHaveValue('L1 Intro');
 
 	// Delete the class — removes the last reference; blob is reclaimed.
 	await page.goto('/classes');
