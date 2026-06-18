@@ -17,4 +17,8 @@ describe('pathnamesToReclaim', () => {
 	it('returns nothing for empty candidates', () => {
 		expect(pathnamesToReclaim([], ['a'])).toEqual([]);
 	});
+
+	it('ignores referenced entries absent from candidates', () => {
+		expect(pathnamesToReclaim(['a'], ['a', 'ghost'])).toEqual([]);
+	});
 });
