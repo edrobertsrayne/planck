@@ -32,6 +32,7 @@ Test commands: unit `bun run test:unit -- --run`; e2e `bun run db:test:setup` th
 ## Task 1: `academicYearCutoff` + `daysInMonth` (pure date helpers)
 
 **Files:**
+
 - Modify: `src/lib/scheduling/dates.ts`
 - Test: `src/lib/scheduling/dates.spec.ts`
 
@@ -113,11 +114,7 @@ function makeDate(year: number, month: number, day: number): IsoDate {
  * lessons dated strictly before this are purged (keep current + previous year).
  * `startMonth`/`startDay` define the academic-year boundary (default 9/1).
  */
-export function academicYearCutoff(
-	today: IsoDate,
-	startMonth: number,
-	startDay: number
-): IsoDate {
+export function academicYearCutoff(today: IsoDate, startMonth: number, startDay: number): IsoDate {
 	const year = Number(today.slice(0, 4));
 	const thisYearStart = makeDate(year, startMonth, startDay);
 	// The most recent year-start on/before today is the current academic year.
@@ -143,6 +140,7 @@ git commit -m "feat: academicYearCutoff + daysInMonth date helpers"
 ## Task 2: `isAuthorizedCron` (pure cron auth guard)
 
 **Files:**
+
 - Create: `src/lib/server/cron-auth.ts`
 - Test: `src/lib/server/cron-auth.spec.ts`
 
@@ -223,6 +221,7 @@ git commit -m "feat: isAuthorizedCron fail-closed cron guard"
 ## Task 3: Schema columns + migration
 
 **Files:**
+
 - Modify: `src/lib/server/db/schema.ts:4-11`
 - Generate: `drizzle/*.sql` (+ snapshot/journal)
 
@@ -265,6 +264,7 @@ git commit -m "feat: add academic_year_start_{month,day} to timetable_config"
 ## Task 4: Config read/write/default
 
 **Files:**
+
 - Modify: `src/lib/server/queries/timetable.ts:7-39`
 
 - [ ] **Step 1: Extend `DEFAULT_CONFIG`, `getConfig`, `upsertConfig`**
@@ -287,14 +287,14 @@ const DEFAULT_CONFIG = {
 Add the two fields to the object `getConfig` returns from a row:
 
 ```ts
-	return {
-		cycleWeeks: row.cycleWeeks as 1 | 2,
-		teachingDays: row.teachingDays as DayOfWeek[],
-		periodsPerDay: row.periodsPerDay,
-		anchorLetter: row.anchorLetter as WeekLetter,
-		academicYearStartMonth: row.academicYearStartMonth,
-		academicYearStartDay: row.academicYearStartDay
-	};
+return {
+	cycleWeeks: row.cycleWeeks as 1 | 2,
+	teachingDays: row.teachingDays as DayOfWeek[],
+	periodsPerDay: row.periodsPerDay,
+	anchorLetter: row.anchorLetter as WeekLetter,
+	academicYearStartMonth: row.academicYearStartMonth,
+	academicYearStartDay: row.academicYearStartDay
+};
 ```
 
 Extend `upsertConfig`'s `data` parameter type (the `set:`/`values:` spread already carries the new keys):
@@ -323,6 +323,7 @@ Expected: errors in `settings/+page.server.ts` (the `upsertConfig` call there no
 ## Task 5: `reapScheduledLessonsBefore` query
 
 **Files:**
+
 - Modify: `src/lib/server/queries/schedule.ts:1` (imports) and append a new export.
 
 - [ ] **Step 1: Add imports**
@@ -389,6 +390,7 @@ Defer the commit until after Task 7 so the tree type-checks. (See Task 7, Step 6
 ## Task 6: Cron endpoint
 
 **Files:**
+
 - Create: `src/routes/api/cron/reap-scheduled-lessons/+server.ts`
 
 - [ ] **Step 1: Implement the endpoint**
@@ -453,6 +455,7 @@ Defer to Task 7, Step 6.
 ## Task 7: Settings UI for the academic-year start
 
 **Files:**
+
 - Modify: `src/routes/(app)/settings/+page.server.ts:26-40`
 - Modify: `src/routes/(app)/settings/+page.svelte`
 
@@ -496,36 +499,46 @@ Replace the `saveConfig` action body's `upsertConfig` call so it parses and clam
 In `src/routes/(app)/settings/+page.svelte`, add a month-name list near the existing `dayNames` const (top `<script>`):
 
 ```ts
-	const monthNames = [
-		'January', 'February', 'March', 'April', 'May', 'June',
-		'July', 'August', 'September', 'October', 'November', 'December'
-	];
+const monthNames = [
+	'January',
+	'February',
+	'March',
+	'April',
+	'May',
+	'June',
+	'July',
+	'August',
+	'September',
+	'October',
+	'November',
+	'December'
+];
 ```
 
 Then, inside the `?/saveConfig` form, immediately **before** the final `<div class="flex justify-end">` Save button, add:
 
 ```svelte
-		<div class="grid grid-cols-1 gap-3 sm:grid-cols-2">
-			<Field label="Academic year starts (month)">
-				<select name="academicYearStartMonth" class={inputClass}>
-					{#each monthNames as name, i (name)}
-						<option value={i + 1} selected={data.config.academicYearStartMonth === i + 1}>
-							{name}
-						</option>
-					{/each}
-				</select>
-			</Field>
-			<Field label="Day of month">
-				<input
-					name="academicYearStartDay"
-					type="number"
-					min="1"
-					max="31"
-					value={data.config.academicYearStartDay}
-					class={inputClass}
-				/>
-			</Field>
-		</div>
+<div class="grid grid-cols-1 gap-3 sm:grid-cols-2">
+	<Field label="Academic year starts (month)">
+		<select name="academicYearStartMonth" class={inputClass}>
+			{#each monthNames as name, i (name)}
+				<option value={i + 1} selected={data.config.academicYearStartMonth === i + 1}>
+					{name}
+				</option>
+			{/each}
+		</select>
+	</Field>
+	<Field label="Day of month">
+		<input
+			name="academicYearStartDay"
+			type="number"
+			min="1"
+			max="31"
+			value={data.config.academicYearStartDay}
+			class={inputClass}
+		/>
+	</Field>
+</div>
 ```
 
 - [ ] **Step 3: Run the Svelte autofixer on the edited component**
@@ -556,6 +569,7 @@ git commit -m "feat: reaper query, cron endpoint, and academic-year-start settin
 ## Task 8: Vercel cron + env wiring
 
 **Files:**
+
 - Modify: `vercel.json`
 - Modify: `.env.example`
 - Modify: `scripts/setup-test-branch.ts` (the `.env.test` writer)
@@ -612,6 +626,7 @@ git commit -m "feat: schedule reaper cron and wire CRON_SECRET"
 ## Task 9: End-to-end test (real Neon test branch + real blob)
 
 **Files:**
+
 - Create: `e2e/helpers/db.ts`
 - Create: `e2e/reaper.e2e.ts`
 
@@ -787,11 +802,21 @@ test('reaper purges an out-of-retention lesson and its last-reference blob', asy
 		title: 'OLD lesson',
 		date: '2000-01-01'
 	});
-	await insertResourceFile({ userId, scheduledLessonId: oldId, blobUrl: blob.url, pathname: blob.pathname });
+	await insertResourceFile({
+		userId,
+		scheduledLessonId: oldId,
+		blobUrl: blob.url,
+		pathname: blob.pathname
+	});
 
 	// KEEP: dated today → inside retention, must survive.
 	const today = new Date().toISOString().slice(0, 10);
-	const keepId = await insertScheduledLesson({ userId, classId, title: 'KEEP lesson', date: today });
+	const keepId = await insertScheduledLesson({
+		userId,
+		classId,
+		title: 'KEEP lesson',
+		date: today
+	});
 
 	// Run the reaper with the cron bearer.
 	const res = await request.get(CRON_PATH, {
@@ -805,7 +830,9 @@ test('reaper purges an out-of-retention lesson and its last-reference blob', asy
 	expect(await scheduledLessonExists(keepId)).toBe(true);
 
 	// The blob was the last reference → reclaimed (Vercel Blob serves 404).
-	await expect.poll(async () => (await request.get(blob.url)).status(), { timeout: 15000 }).toBe(404);
+	await expect
+		.poll(async () => (await request.get(blob.url)).status(), { timeout: 15000 })
+		.toBe(404);
 });
 ```
 
@@ -846,4 +873,7 @@ git commit -m "test: e2e reaper purges out-of-retention lessons and blobs"
 - **e2e ageing = direct DB insert** of fixtures (user preference): deterministic, decoupled from the assign/copy machinery, no missing-row edge case.
 - **Blob-reclaim race** is the accepted, documented Phase A behaviour — unchanged here.
 - Commit ordering: Tasks 4–7 land in one commit because Task 4's `upsertConfig` signature change isn't satisfied until Task 7 updates its caller; this keeps every committed tree type-checking.
+
+```
+
 ```
