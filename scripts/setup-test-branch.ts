@@ -153,6 +153,9 @@ writeFileSync(
 		'# Guard flag: scripts/reset-test-db.ts refuses to run unless this is set,',
 		'# and playwright.config.ts refuses to start e2e against a DB without it.',
 		'TEST_DB=1',
+		'',
+		'# Shared secret so the reaper e2e can authenticate against the cron endpoint.',
+		'CRON_SECRET="e2e-cron-secret"',
 		''
 	].join('\n')
 );

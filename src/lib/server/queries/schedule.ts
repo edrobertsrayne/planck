@@ -1,4 +1,4 @@
-import { eq, and, sql, lt, gte, or, isNull } from 'drizzle-orm';
+import { eq, and, sql, lt, gte, or, isNull, isNotNull, inArray } from 'drizzle-orm';
 import { db } from '$lib/server/db';
 import { deleteAndReclaim } from './resource-cleanup';
 import {
@@ -512,4 +512,38 @@ export async function getScheduledLesson(userId: string, id: number) {
 		.innerJoin(course, eq(klass.courseId, course.id))
 		.where(and(eq(scheduledLesson.userId, userId), eq(scheduledLesson.id, id)));
 	return row ?? null;
+}
+
+/**
+ * Purge up to `limit` of this user's OLDEST scheduled lessons dated strictly
+ * before `cutoff`, reclaiming any blobs that lose their last reference (Phase A).
+ * Returns the number of rows purged. The DELETE is id-driven (not predicate-
+ * driven) because the candidate set is capped by `limit`.
+ */
+export async function reapScheduledLessonsBefore(
+	userId: string,
+	cutoff: string,
+	limit: number
+): Promise<number> {
+	if (limit <= 0) return 0;
+	const rows = await db
+		.select({ id: scheduledLesson.id })
+		.from(scheduledLesson)
+		.where(
+			and(
+				eq(scheduledLesson.userId, userId),
+				isNotNull(scheduledLesson.date),
+				lt(scheduledLesson.date, cutoff)
+			)
+		)
+		.orderBy(scheduledLesson.date)
+		.limit(limit);
+	if (rows.length === 0) return 0;
+	const ids = rows.map((r) => r.id);
+	await deleteAndReclaim(userId, { type: 'scheduledLessons', ids }, () =>
+		db
+			.delete(scheduledLesson)
+			.where(and(eq(scheduledLesson.userId, userId), inArray(scheduledLesson.id, ids)))
+	);
+	return ids.length;
 }

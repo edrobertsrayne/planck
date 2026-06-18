@@ -7,7 +7,9 @@ export const timetableConfig = pgTable('timetable_config', {
 	cycleWeeks: integer('cycle_weeks').notNull().default(2),
 	teachingDays: integer('teaching_days').array().notNull().default([1, 2, 3, 4, 5]),
 	periodsPerDay: integer('periods_per_day').notNull().default(5),
-	anchorLetter: text('anchor_letter').notNull().default('A')
+	anchorLetter: text('anchor_letter').notNull().default('A'),
+	academicYearStartMonth: integer('academic_year_start_month').notNull().default(9),
+	academicYearStartDay: integer('academic_year_start_day').notNull().default(1)
 });
 
 export const teachingBlock = pgTable('teaching_block', {

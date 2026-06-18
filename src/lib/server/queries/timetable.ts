@@ -8,7 +8,9 @@ const DEFAULT_CONFIG = {
 	cycleWeeks: 2 as 1 | 2,
 	teachingDays: [1, 2, 3, 4, 5] as DayOfWeek[],
 	periodsPerDay: 5,
-	anchorLetter: 'A' as WeekLetter
+	anchorLetter: 'A' as WeekLetter,
+	academicYearStartMonth: 9,
+	academicYearStartDay: 1
 };
 
 export async function getConfig(userId: string) {
@@ -18,7 +20,9 @@ export async function getConfig(userId: string) {
 		cycleWeeks: row.cycleWeeks as 1 | 2,
 		teachingDays: row.teachingDays as DayOfWeek[],
 		periodsPerDay: row.periodsPerDay,
-		anchorLetter: row.anchorLetter as WeekLetter
+		anchorLetter: row.anchorLetter as WeekLetter,
+		academicYearStartMonth: row.academicYearStartMonth,
+		academicYearStartDay: row.academicYearStartDay
 	};
 }
 
@@ -29,6 +33,8 @@ export async function upsertConfig(
 		teachingDays: number[];
 		periodsPerDay: number;
 		anchorLetter: string;
+		academicYearStartMonth: number;
+		academicYearStartDay: number;
 	}
 ) {
 	await db
