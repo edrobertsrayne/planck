@@ -109,6 +109,11 @@ export async function reclaimBlobs(candidatePathnames: string[]): Promise<void> 
 		const CHUNK = 100;
 		const stillReferenced: string[] = [];
 		for (let i = 0; i < unique.length; i += CHUNK) {
+			// Deliberately NOT user-scoped: a pathname is globally unique in blob
+			// storage, so a blob must survive if ANY user's row still references it.
+			// Adding a userId filter here would risk deleting a shared blob. A
+			// concurrent insert between gather and delete is also safe — it shows up
+			// in this re-query and spares the blob.
 			const rows = await db
 				.select({ pathname: resourceFile.pathname })
 				.from(resourceFile)
