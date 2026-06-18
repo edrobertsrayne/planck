@@ -43,6 +43,7 @@
 ## Task 1: Flip scheduled_lesson FKs to `set null` + migration
 
 **Files:**
+
 - Modify: `src/lib/server/db/schema.ts:97-98`
 - Generated: `drizzle/` (new migration + snapshot)
 
@@ -83,6 +84,7 @@ git commit -m "feat: detach scheduled lessons on content delete (lesson_id/modul
 ## Task 2: Pure `pathnamesToReclaim` helper (TDD)
 
 **Files:**
+
 - Create: `src/lib/resources/reclaim.ts`
 - Test: `src/lib/resources/reclaim.spec.ts`
 
@@ -151,6 +153,7 @@ git commit -m "feat: add pathnamesToReclaim reference-count helper (#1)"
 ## Task 3: Share blobs in `buildCopiedFileRows` (TDD)
 
 **Files:**
+
 - Modify: `src/lib/resources/copy.ts:32-80`
 - Modify: `src/lib/resources/copy.spec.ts:35-63`
 
@@ -261,6 +264,7 @@ Expected: PASS. (Typecheck will still fail until Task 4 — that's expected; do 
 ## Task 4: Share blobs in `copyLessonContent`; add `deleteBlobs`; remove `copyBlob`
 
 **Files:**
+
 - Modify: `src/lib/server/blob.ts`
 - Modify: `src/lib/server/queries/schedule.ts:11-12,111-167`
 
@@ -315,9 +319,9 @@ Update the docstring above `copyLessonContent` (around line 111) to:
 Replace the `files.length > 0` block (currently lines 157-166, the `copyBlob` + `Promise.all` + insert) with:
 
 ```ts
-	if (files.length > 0) {
-		await db.insert(resourceFile).values(buildCopiedFileRows(files, userId, scheduledLessonId));
-	}
+if (files.length > 0) {
+	await db.insert(resourceFile).values(buildCopiedFileRows(files, userId, scheduledLessonId));
+}
 ```
 
 (The existing `files` select at lines 145-156 already returns `blobUrl`, `pathname`, `filename`, `contentType`, `size`, `orderIndex` — matching `TemplateFile`.)
@@ -341,6 +345,7 @@ git commit -m "feat: share lesson blobs by reference instead of copying (#1)"
 ## Task 5: Cleanup module — `descendantFilePathnames`, `reclaimBlobs`, `deleteAndReclaim`
 
 **Files:**
+
 - Create: `src/lib/server/queries/resource-cleanup.ts`
 
 No new importers yet, so the build stays green. DB behaviour is verified by the e2e in Tasks 7–8.
@@ -404,7 +409,13 @@ export async function descendantFilePathnames(
 			.select({ id: scheduledLesson.id })
 			.from(scheduledLesson)
 			.where(and(eq(scheduledLesson.userId, userId), eq(scheduledLesson.classId, root.id)));
-		add(await filePathnamesIn(userId, resourceFile.scheduledLessonId, sl.map((r) => r.id)));
+		add(
+			await filePathnamesIn(
+				userId,
+				resourceFile.scheduledLessonId,
+				sl.map((r) => r.id)
+			)
+		);
 		return [...out];
 	}
 	if (root.type === 'module') {
@@ -413,7 +424,13 @@ export async function descendantFilePathnames(
 			.from(lesson)
 			.where(and(eq(lesson.userId, userId), eq(lesson.moduleId, root.id)));
 		add(await filePathnamesIn(userId, resourceFile.moduleId, [root.id]));
-		add(await filePathnamesIn(userId, resourceFile.lessonId, lessons.map((r) => r.id)));
+		add(
+			await filePathnamesIn(
+				userId,
+				resourceFile.lessonId,
+				lessons.map((r) => r.id)
+			)
+		);
 		return [...out];
 	}
 	// course
@@ -440,11 +457,25 @@ export async function descendantFilePathnames(
 			: await db
 					.select({ id: scheduledLesson.id })
 					.from(scheduledLesson)
-					.where(and(eq(scheduledLesson.userId, userId), inArray(scheduledLesson.classId, classIds)));
+					.where(
+						and(eq(scheduledLesson.userId, userId), inArray(scheduledLesson.classId, classIds))
+					);
 	add(await filePathnamesIn(userId, resourceFile.courseId, [root.id]));
 	add(await filePathnamesIn(userId, resourceFile.moduleId, moduleIds));
-	add(await filePathnamesIn(userId, resourceFile.lessonId, lessons.map((r) => r.id)));
-	add(await filePathnamesIn(userId, resourceFile.scheduledLessonId, scheduled.map((r) => r.id)));
+	add(
+		await filePathnamesIn(
+			userId,
+			resourceFile.lessonId,
+			lessons.map((r) => r.id)
+		)
+	);
+	add(
+		await filePathnamesIn(
+			userId,
+			resourceFile.scheduledLessonId,
+			scheduled.map((r) => r.id)
+		)
+	);
 	return [...out];
 }
 
@@ -506,6 +537,7 @@ git commit -m "feat: add reference-counted blob cleanup module (#1)"
 ## Task 6: Wire all delete paths through the cleanup module
 
 **Files:**
+
 - Modify: `src/lib/server/queries/courses.ts:20-22,62-64,116-118`
 - Modify: `src/lib/server/queries/classes.ts:37-39`
 - Modify: `src/lib/server/queries/schedule.ts` (`unscheduleModule` ~238-254, `deleteFromSequence` ~400-414)
@@ -605,7 +637,9 @@ export async function deleteFromSequence(
 		.where(and(eq(scheduledLesson.userId, userId), eq(scheduledLesson.id, id)));
 	if (!row) return;
 	await deleteAndReclaim(userId, { type: 'scheduledLessons', ids: [id] }, () =>
-		db.delete(scheduledLesson).where(and(eq(scheduledLesson.userId, userId), eq(scheduledLesson.id, id)))
+		db
+			.delete(scheduledLesson)
+			.where(and(eq(scheduledLesson.userId, userId), eq(scheduledLesson.id, id)))
 	);
 	await reallocateClass(userId, row.classId, today);
 }
@@ -650,6 +684,7 @@ git commit -m "feat: reclaim blobs on every resource delete path (#1)"
 ## Task 7: e2e — cascade reclamation (the issue #1 acceptance test)
 
 **Files:**
+
 - Create: `e2e/blob-cleanup.e2e.ts`
 
 - [ ] **Step 1: Refresh the test branch (applies the FK migration)**
@@ -741,6 +776,7 @@ git commit -m "test(e2e): subject delete reclaims lesson file blobs (#1)"
 ## Task 8: e2e — reference counting + content decoupling
 
 **Files:**
+
 - Modify: `e2e/blob-cleanup.e2e.ts`
 
 - [ ] **Step 1: Append the reference-counting test**

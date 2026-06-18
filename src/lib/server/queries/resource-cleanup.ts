@@ -52,7 +52,13 @@ export async function descendantFilePathnames(
 			.select({ id: scheduledLesson.id })
 			.from(scheduledLesson)
 			.where(and(eq(scheduledLesson.userId, userId), eq(scheduledLesson.classId, root.id)));
-		add(await filePathnamesIn(userId, resourceFile.scheduledLessonId, sl.map((r) => r.id)));
+		add(
+			await filePathnamesIn(
+				userId,
+				resourceFile.scheduledLessonId,
+				sl.map((r) => r.id)
+			)
+		);
 		return [...out];
 	}
 	if (root.type === 'module') {
@@ -61,7 +67,13 @@ export async function descendantFilePathnames(
 			.from(lesson)
 			.where(and(eq(lesson.userId, userId), eq(lesson.moduleId, root.id)));
 		add(await filePathnamesIn(userId, resourceFile.moduleId, [root.id]));
-		add(await filePathnamesIn(userId, resourceFile.lessonId, lessons.map((r) => r.id)));
+		add(
+			await filePathnamesIn(
+				userId,
+				resourceFile.lessonId,
+				lessons.map((r) => r.id)
+			)
+		);
 		return [...out];
 	}
 	// course
@@ -88,11 +100,25 @@ export async function descendantFilePathnames(
 			: await db
 					.select({ id: scheduledLesson.id })
 					.from(scheduledLesson)
-					.where(and(eq(scheduledLesson.userId, userId), inArray(scheduledLesson.classId, classIds)));
+					.where(
+						and(eq(scheduledLesson.userId, userId), inArray(scheduledLesson.classId, classIds))
+					);
 	add(await filePathnamesIn(userId, resourceFile.courseId, [root.id]));
 	add(await filePathnamesIn(userId, resourceFile.moduleId, moduleIds));
-	add(await filePathnamesIn(userId, resourceFile.lessonId, lessons.map((r) => r.id)));
-	add(await filePathnamesIn(userId, resourceFile.scheduledLessonId, scheduled.map((r) => r.id)));
+	add(
+		await filePathnamesIn(
+			userId,
+			resourceFile.lessonId,
+			lessons.map((r) => r.id)
+		)
+	);
+	add(
+		await filePathnamesIn(
+			userId,
+			resourceFile.scheduledLessonId,
+			scheduled.map((r) => r.id)
+		)
+	);
 	return [...out];
 }
 

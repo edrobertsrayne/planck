@@ -8,7 +8,7 @@
 
 `resource_file` rows each carry a `blobUrl` + `pathname` pointing at a Vercel
 Blob. The only path that deletes a blob today is the explicit per-row
-`deleteFile()`. Every *cascade* path leaks: deleting a course/module/lesson/class
+`deleteFile()`. Every _cascade_ path leaks: deleting a course/module/lesson/class
 removes the `resource_file` rows via Postgres FK cascade, but the backing blobs
 are never deleted and accumulate forever.
 
@@ -17,7 +17,7 @@ Two structural facts shape the fix:
 - Scheduling a lesson onto a class today **physically copies** each blob to a
   fresh pathname (`copyLessonContent`, schedule.ts), so every scheduled lesson
   owns an independent duplicate that nothing ever reclaims.
-- `scheduled_lesson` ties its lifecycle to the *content* side via cascading FKs
+- `scheduled_lesson` ties its lifecycle to the _content_ side via cascading FKs
   (`lesson_id`, `module_id`), so deleting a module or template lesson deletes the
   scheduled lessons (and history) made from it.
 
@@ -30,7 +30,7 @@ be ordered for safety, not atomicity.
    pathname is removed — by any delete path. Closes issue #1.
 2. Scheduling shares one blob across rows (reference, not copy), so storage does
    not balloon and reference-counting is meaningful.
-3. Deleting *content* (a module/topic or a template lesson) does **not** affect
+3. Deleting _content_ (a module/topic or a template lesson) does **not** affect
    scheduled lessons — they are independent records of what was taught.
 4. Old scheduled lessons are purged on an academic-year rollover (keep current +
    previous year), so history is retained for review but not forever.
@@ -117,7 +117,7 @@ Layer 0 changes how blobs are shared; Layer 1 reclaims them on delete (closes
   before this are purged.
 - **`reapScheduledLessonsBefore(userId, cutoff)`** (queries/schedule.ts):
   collect scheduled-lesson ids for that user with `date IS NOT NULL AND
-  date < cutoff`, then `deleteAndReclaim({ scheduledLessonIds }, …)`.
+date < cutoff`, then `deleteAndReclaim({ scheduledLessonIds }, …)`.
 - **`src/routes/api/cron/reap-scheduled-lessons/+server.ts`** — `GET` guarded by
   pure `isAuthorizedCron(header, secret)` (`Authorization: Bearer ${CRON_SECRET}`).
   Iterates users that have scheduled lessons, looks up each one's config (falling
@@ -140,9 +140,9 @@ history. Single scheduled-lesson delete and template-lesson delete stay one-clic
   - `classDeletionImpact(userId, id)` → `{ scheduledLessons, files }`
   - `moduleDeletionImpact(userId, id)` → `{ lessons, files }` (modules no longer
     cascade scheduled lessons)
-  Rendered e.g. "This deletes this subject, its 3 classes, 41 scheduled lessons
-  and 12 files. This cannot be undone." Display-only; deletion is still the
-  cascade.
+    Rendered e.g. "This deletes this subject, its 3 classes, 41 scheduled lessons
+    and 12 files. This cannot be undone." Display-only; deletion is still the
+    cascade.
 
 ## Data flow (course delete)
 
@@ -186,7 +186,7 @@ Vercel Blob so storage side-effects are observable.
   blob URL, delete the parent, assert the URL returns HTTP 404. Cover a per-row
   `deleteFile` case and a cascade root reaching scheduled-lesson rows.
 - **e2e — reference counting:** schedule a lesson (now sharing the blob), delete
-  the *template lesson*; assert the scheduled lesson, its `lesson_id = null`, and
+  the _template lesson_; assert the scheduled lesson, its `lesson_id = null`, and
   the **shared blob still exist**. Then delete the scheduled lesson; assert the
   blob is now 404 (last reference gone).
 - **e2e — module decouple:** delete a module; assert scheduled lessons made from
@@ -206,7 +206,7 @@ Vercel Blob so storage side-effects are observable.
   concurrent `assignModule` could re-reference pathname `P` while `P`'s owner is
   being deleted, and `reclaimBlobs` could `del()` a now-referenced blob → one
   dangling row. Window is tiny (single-teacher tool; delete + schedule of the
-  same lesson concurrently). Mitigated by re-querying references *after* the row
+  same lesson concurrently). Mitigated by re-querying references _after_ the row
   delete; otherwise accepted and documented. Self-corrects on the next reclaim of
   that row.
 - **Set-null join-safety (verified):** no query inner-joins `scheduled_lesson` to
