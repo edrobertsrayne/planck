@@ -4,6 +4,7 @@
 	import Card from '$lib/components/Card.svelte';
 	import Button from '$lib/components/Button.svelte';
 	import EmptyState from '$lib/components/EmptyState.svelte';
+	import ConfirmDelete from '$lib/components/ConfirmDelete.svelte';
 	import { subjectTint } from '$lib/colour';
 	let { data } = $props();
 </script>
@@ -45,29 +46,31 @@
 				<div
 					class="absolute inset-y-0 right-12 flex items-center gap-1 opacity-100 transition [@media(hover:hover)]:opacity-0 group-hover:opacity-100 group-focus-within:opacity-100"
 				>
-					<form method="POST" action="?/delete" use:enhance>
-						<input type="hidden" name="id" value={c.id} />
-						<button
-							type="submit"
-							title="Delete subject"
-							class="flex h-[34px] w-[34px] items-center justify-center rounded-[9px] text-grey-3 transition hover:bg-pink-50 hover:text-pink-dk"
-						>
-							<svg
-								width="17"
-								height="17"
-								viewBox="0 0 24 24"
-								fill="none"
-								stroke="currentColor"
-								stroke-width="1.9"
-								stroke-linecap="round"
-								stroke-linejoin="round"
+					<ConfirmDelete type="course" id={c.id} name={c.name}>
+						{#snippet trigger(open)}
+							<button
+								type="button"
+								onclick={open}
+								title="Delete subject"
+								class="flex h-[34px] w-[34px] items-center justify-center rounded-[9px] text-grey-3 transition hover:bg-pink-50 hover:text-pink-dk"
 							>
-								<path d="M3 6h18"></path>
-								<path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
-								<path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6"></path>
-							</svg>
-						</button>
-					</form>
+								<svg
+									width="17"
+									height="17"
+									viewBox="0 0 24 24"
+									fill="none"
+									stroke="currentColor"
+									stroke-width="1.9"
+									stroke-linecap="round"
+									stroke-linejoin="round"
+								>
+									<path d="M3 6h18"></path>
+									<path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+									<path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6"></path>
+								</svg>
+							</button>
+						{/snippet}
+					</ConfirmDelete>
 				</div>
 				<span
 					class="pointer-events-none absolute inset-y-0 right-[18px] flex items-center text-grey-3"
