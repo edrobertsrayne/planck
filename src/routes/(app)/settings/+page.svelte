@@ -4,6 +4,7 @@
 	import { goto } from '$app/navigation';
 	import { page } from '$app/state';
 	import { authClient } from '$lib/auth-client';
+	import { PASSWORD_MIN_LENGTH, passwordProblem } from '$lib/auth/password';
 	import PageHeader from '$lib/components/PageHeader.svelte';
 	import Card from '$lib/components/Card.svelte';
 	import Button from '$lib/components/Button.svelte';
@@ -45,6 +46,7 @@
 	let email = $state(page.data.user?.email ?? '');
 	let currentPassword = $state('');
 	let newPassword = $state('');
+	let confirmPassword = $state('');
 	let acctMsg = $state('');
 
 	async function saveEmail() {
@@ -61,6 +63,11 @@
 
 	async function changePassword() {
 		acctMsg = '';
+		const problem = passwordProblem(newPassword, confirmPassword);
+		if (problem) {
+			acctMsg = problem;
+			return;
+		}
 		const r = await (
 			authClient as unknown as {
 				changePassword: (a: {
@@ -73,6 +80,7 @@
 		acctMsg = r.error ? (r.error.message ?? 'Password change failed') : 'Password changed.';
 		currentPassword = '';
 		newPassword = '';
+		confirmPassword = '';
 	}
 
 	// --- Log out ---
@@ -117,21 +125,31 @@
 					<Button onclick={saveEmail}>Update</Button>
 				</div>
 			</Field>
+			<Field label="Current password">
+				<input
+					class={inputClass}
+					type="password"
+					placeholder="••••••••"
+					bind:value={currentPassword}
+				/>
+			</Field>
 			<div class="grid grid-cols-1 gap-3 sm:grid-cols-2">
-				<Field label="Current password">
-					<input
-						class={inputClass}
-						type="password"
-						placeholder="••••••••"
-						bind:value={currentPassword}
-					/>
-				</Field>
 				<Field label="New password">
 					<input
 						class={inputClass}
 						type="password"
 						placeholder="••••••••"
+						minlength={PASSWORD_MIN_LENGTH}
 						bind:value={newPassword}
+					/>
+				</Field>
+				<Field label="Confirm new password">
+					<input
+						class={inputClass}
+						type="password"
+						placeholder="••••••••"
+						minlength={PASSWORD_MIN_LENGTH}
+						bind:value={confirmPassword}
 					/>
 				</Field>
 			</div>

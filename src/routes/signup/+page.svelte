@@ -1,17 +1,24 @@
 <script lang="ts">
 	import { goto } from '$app/navigation';
 	import { authClient } from '$lib/auth-client';
+	import { PASSWORD_MIN_LENGTH, passwordProblem } from '$lib/auth/password';
 	import BrandPanel from '$lib/components/BrandPanel.svelte';
 	import OAuthButtons from '$lib/components/OAuthButtons.svelte';
 	let name = $state('');
 	let email = $state('');
 	let password = $state('');
+	let confirmPassword = $state('');
 	let error = $state('');
 	let isSubmitting = $state(false);
 	const fallback = 'Unable to create account. Please try again.';
 	async function submit(e: SubmitEvent) {
 		e.preventDefault();
 		error = '';
+		const problem = passwordProblem(password, confirmPassword);
+		if (problem) {
+			error = problem;
+			return;
+		}
 		isSubmitting = true;
 		try {
 			const res = await authClient.signUp.email({ name, email, password });
@@ -72,6 +79,18 @@
 						type="password"
 						placeholder="••••••••"
 						bind:value={password}
+						minlength={PASSWORD_MIN_LENGTH}
+						required
+					/></label
+				>
+				<label class="block"
+					><span class="mb-1.5 block text-[13px] font-semibold text-grey-1">Confirm password</span>
+					<input
+						class={input}
+						type="password"
+						placeholder="••••••••"
+						bind:value={confirmPassword}
+						minlength={PASSWORD_MIN_LENGTH}
 						required
 					/></label
 				>

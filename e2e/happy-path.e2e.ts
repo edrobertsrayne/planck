@@ -7,7 +7,8 @@ test('plan and schedule a module end to end', async ({ page }) => {
 	await page.goto('/signup');
 	await page.getByPlaceholder('Sofia Marsh').fill('Test Teacher');
 	await page.getByPlaceholder('you@email.com').fill(email);
-	await page.locator('input[type="password"]').fill('password123');
+	await page.locator('input[type="password"]').first().fill('password1234');
+	await page.locator('input[type="password"]').nth(1).fill('password1234');
 	await page.getByRole('button', { name: 'Create account' }).click();
 	await expect(page).toHaveURL(/\/agenda/);
 
